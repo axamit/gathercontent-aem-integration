@@ -9,6 +9,7 @@ import org.apache.sling.api.resource.Resource;
 
 /**
  * The <tt>GCContentApi</tt> interface provides methods to get information about cloudservice instance context config.
+ * @author Axamit, gc.support@axamit.com
  */
 public interface GCConfiguration {
 

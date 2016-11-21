@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Simple JUnit test verifying the HelloWorldModel
+ * @author Axamit, gc.support@axamit.com
  */
 public class TestMapperModel {
 

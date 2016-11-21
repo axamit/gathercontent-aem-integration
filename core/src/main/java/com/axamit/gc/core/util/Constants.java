@@ -4,8 +4,8 @@
 
 package com.axamit.gc.core.util;
 
-/**
- * Created by dzianis.baburkin on 7/7/2016.
+/*
+ * @author Axamit, gc.support@axamit.com
  */
 public final class Constants {
 

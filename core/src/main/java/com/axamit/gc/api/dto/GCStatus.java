@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * The <code>GCStatus</code> class represents live status.
  *
  * @see <a href="https://gathercontent.com/developers/projects/get-projects-statuses/">Statuses</a>
+ * @author Axamit, gc.support@axamit.com
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCStatus {

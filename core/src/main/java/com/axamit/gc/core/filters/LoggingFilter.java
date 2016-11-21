@@ -1,8 +1,4 @@
 /*
- * Axamit, gc.support@axamit.com
- */
-
-/*
  *  Copyright 2015 Adobe Systems Incorporated
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +31,7 @@ import java.io.IOException;
 
 /**
  * Simple servlet filter component that logs incoming requests.
+ * @author Axamit, gc.support@axamit.com
  */
 @SlingFilter(order = LoggingFilter.FILTER_ORDER, scope = SlingFilterScope.REQUEST)
 public final class LoggingFilter implements Filter {

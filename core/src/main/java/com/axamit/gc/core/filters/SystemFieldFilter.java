@@ -14,6 +14,7 @@ import java.util.List;
 /**
  * Implementation of <code>{@link FieldFilter}</code> interface which provides methods to filter JCR properties to
  * exclude AEM 'system' properties which are not suitable for mapping like all string with 'cq:' or 'sling:' prefixes.
+ * @author Axamit, gc.support@axamit.com
  */
 public final class SystemFieldFilter implements FieldFilter {
 

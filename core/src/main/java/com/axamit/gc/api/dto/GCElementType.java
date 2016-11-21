@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * The <code>GCElementType</code> class represents element type of config.
  *
  * @see <a href="https://gathercontent.com/developers/the-config-field/">Element types</a>
+ * @author Axamit, gc.support@axamit.com
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public enum GCElementType {

@@ -20,6 +20,7 @@ import java.util.Map;
 /**
  * The <tt>PageCreator</tt> interface provides methods to create pages, assets and provide field mapping information,
  * which also needs access to JCR repository in AEM.
+ * @author Axamit, gc.support@axamit.com
  */
 public interface PageCreator {
 

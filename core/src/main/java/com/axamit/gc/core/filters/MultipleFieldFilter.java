@@ -14,6 +14,7 @@ import java.util.List;
  * Implementation of <code>{@link FieldFilter}</code> interface which provides methods to filter JCR properties
  * which are suitable for mapping to GatherContent 'Checkboxes' and 'Multiple choice' field - in AEM it is 'options'
  * property of 'Checkbox Group' and 'Radio Group' components of 'Form' component group.
+ * @author Axamit, gc.support@axamit.com
  */
 public final class MultipleFieldFilter implements FieldFilter {
     private static final String OPTIONS_PROPERTY_NAME = "options";

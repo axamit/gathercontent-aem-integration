@@ -1,5 +1,6 @@
 /*
  * Axamit, gc.support@axamit.com
+ * @author Axamit, gc.support@axamit.com
  */
 
 package com.axamit.gc.core.services;
@@ -27,8 +28,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Thread pool service implementation.
- *
  * @since 1.0.13 (25.10.2016)
+ * @author Axamit, gc.support@axamit.com
  */
 @Service
 @Component(label = "GatherContent: Fixed threads count pool provider",

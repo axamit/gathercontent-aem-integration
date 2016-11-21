@@ -20,6 +20,7 @@ import java.util.List;
 /**
  * Servlet return list of GatherContent accounts in JSON format for credentials selected in current cloudservice
  * configuration e.g. '/etc/cloudservices/gathercontent/gathercontent-importer.gcaccounts.json'
+ * @author Axamit, gc.support@axamit.com
  */
 @SlingServlet(
         resourceTypes = {"sling/servlet/default"},

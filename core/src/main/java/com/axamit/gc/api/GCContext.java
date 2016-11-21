@@ -10,6 +10,7 @@ import java.util.Map;
 
 /**
  * Class represents cloudservice context config.
+ * @author Axamit, gc.support@axamit.com
  */
 public final class GCContext implements Serializable {
 

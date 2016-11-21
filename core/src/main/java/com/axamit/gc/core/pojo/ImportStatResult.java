@@ -9,6 +9,7 @@ import java.util.List;
 
 /**
  * The <code>ImportStatResult</code> represents statistics about import process.
+ * @author Axamit, gc.support@axamit.com
  */
 public final class ImportStatResult {
     private List<ImportResultItem> importedPages;

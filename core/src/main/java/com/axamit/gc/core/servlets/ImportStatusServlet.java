@@ -29,6 +29,7 @@ import java.io.IOException;
  * Servlet return current status of import process by job ID in JSON format e.g.
  * '/etc/cloudservices/gathercontent/gathercontent-importer.importstatus.json?
  * jobId=2016/9/16/17/25/4670e235-72ea-4643-a8c4-6b336f0f7c22_112'.
+ * @author Axamit, gc.support@axamit.com
  */
 @SlingServlet(
         resourceTypes = {"sling/servlet/default"},

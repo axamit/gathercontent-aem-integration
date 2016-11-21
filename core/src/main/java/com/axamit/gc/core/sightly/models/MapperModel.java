@@ -39,6 +39,7 @@ import static com.axamit.gc.core.util.Constants.NEVER;
 
 /**
  * Sling model class which represents mapping configuration.
+ * @author Axamit, gc.support@axamit.com
  */
 @Model(adaptables = Resource.class)
 public final class MapperModel {

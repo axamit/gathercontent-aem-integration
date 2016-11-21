@@ -13,6 +13,7 @@ import java.util.concurrent.Future;
  * Thread pool service.
  *
  * @since 1.0.13 (25.10.2016)
+ * @author Axamit, gc.support@axamit.com
  */
 public interface ThreadsPoolProvider {
     /**

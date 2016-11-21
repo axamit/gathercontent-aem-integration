@@ -13,6 +13,7 @@ import java.util.List;
  * The <code>GCItem</code> class represents items (pages) in GatherContent.
  *
  * @see <a href="https://gathercontent.com/developers/items/get-items-by-id/">Item</a>
+ * @author Axamit, gc.support@axamit.com
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCItem {

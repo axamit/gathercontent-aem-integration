@@ -4,6 +4,7 @@
 
 /**
  * OSGI services responsible for performing content import/update from GatherContent to AEM.
+ * @author Axamit, gc.support@axamit.com
  */
 @Version("1.0")
 @Export(optional = "provide:=true")

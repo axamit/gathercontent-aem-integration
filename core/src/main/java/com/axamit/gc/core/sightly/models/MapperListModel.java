@@ -23,6 +23,7 @@ import java.util.Map;
 
 /**
  * Sling model class which represents table with mapping list on mappings page.
+ * @author Axamit, gc.support@axamit.com
  */
 @Model(adaptables = Resource.class)
 public final class MapperListModel {

@@ -10,6 +10,7 @@ import java.util.List;
 
 /**
  * The <tt>FieldFilter</tt> interface provides methods to filter list of JCR properties.
+ * @author Axamit, gc.support@axamit.com
  */
 public interface FieldFilter {
     /**

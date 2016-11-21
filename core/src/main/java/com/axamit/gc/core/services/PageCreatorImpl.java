@@ -70,6 +70,7 @@ import java.util.TreeMap;
 /**
  * OSGI service implements <code>{@link PageCreator}</code> interface which provides methods to create pages, assets
  * and provide field mapping information, which also needs access to JCR repository in AEM.
+ * @author Axamit, gc.support@axamit.com
  */
 @Service(value = PageCreator.class)
 @Component(description = "Page Creator Service", name = "Page Creator", immediate = true, metatype = true)

@@ -41,6 +41,7 @@ import java.util.concurrent.Callable;
 /**
  * OSGI service consumes Sling job with topic "com/axamit/gc/core/jobs/import" which performs parallel importing of
  * content in background.
+ * @author Axamit, gc.support@axamit.com
  */
 @Component
 @Service(value = {JobConsumer.class})

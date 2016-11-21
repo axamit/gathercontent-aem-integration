@@ -20,6 +20,7 @@ import javax.jcr.RepositoryException;
 /**
  * OSGI service implements <tt>GCContentApi</tt> interface provides methods to get information about cloudservice
  * instance context config.
+ * @author Axamit, gc.support@axamit.com
  */
 @Service(value = GCConfiguration.class)
 @Component(description = "GatherContent Configuration", name = "GatherContent Configuration",

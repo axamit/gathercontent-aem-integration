@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Sling model class which represents import process.
+ * @author Axamit, gc.support@axamit.com
  */
 @Model(adaptables = Resource.class)
 public final class ImportModel {

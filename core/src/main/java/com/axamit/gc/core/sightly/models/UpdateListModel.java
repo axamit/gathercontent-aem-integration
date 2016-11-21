@@ -41,6 +41,7 @@ import java.util.TimeZone;
 
 /**
  * Sling model class which represents table with items to process on update page.
+ * @author Axamit, gc.support@axamit.com
  */
 @Model(adaptables = SlingHttpServletRequest.class)
 public final class UpdateListModel {

@@ -9,6 +9,7 @@ import java.util.Set;
 
 /**
  * The <code>ImportUpdateTableItem</code> is a POJO class represent item in tables on import and update pages.
+ * @author Axamit, gc.support@axamit.com
  */
 public final class ImportUpdateTableItem {
     private String id;

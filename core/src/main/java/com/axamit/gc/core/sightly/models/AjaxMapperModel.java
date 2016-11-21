@@ -26,6 +26,7 @@ import java.util.Map;
 /**
  * Sling model class which represents mapping between AEM and GatherContent fields which are requested via AJAX after
  * changing GatherContent or AEM template.
+ * @author Axamit, gc.support@axamit.com
  */
 @Model(adaptables = SlingHttpServletRequest.class)
 public final class AjaxMapperModel {

@@ -29,6 +29,7 @@ import java.util.Set;
 
 /**
  * Sling model class which represents table with items to process on import page.
+ * @author Axamit, gc.support@axamit.com
  */
 @Model(adaptables = SlingHttpServletRequest.class)
 public final class ItemListModel {

@@ -17,6 +17,7 @@ import java.io.IOException;
 /**
  * Servlet return information about the User such as their avatar url, name, and other fields in JSON format
  * e.g. '/etc/cloudservices/gathercontent/gathercontent-importer.gcme.json'.
+ * @author Axamit, gc.support@axamit.com
  */
 @SlingServlet(
         resourceTypes = {"sling/servlet/default"},

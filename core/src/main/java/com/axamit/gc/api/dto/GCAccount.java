@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * The <code>GCAccount</code> is a POJO class represent user account info.
+ * @author Axamit, gc.support@axamit.com
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCAccount {

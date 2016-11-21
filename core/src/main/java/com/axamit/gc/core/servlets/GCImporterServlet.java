@@ -28,6 +28,7 @@ import java.util.Map;
 
 /**
  * Servlet for receiving list items to import and start import job.
+ * @author Axamit, gc.support@axamit.com
  */
 @SlingServlet(
         resourceTypes = {"sling/servlet/default"},

@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Abstract Servlet with References to <code>{@link GCConfiguration}</code> and
  * <code>{@link GCContentApi}</code> services.
+ * @author Axamit, gc.support@axamit.com
  */
 @Component(componentAbstract = true)
 public abstract class GCAbstractServlet extends SlingAllMethodsServlet {

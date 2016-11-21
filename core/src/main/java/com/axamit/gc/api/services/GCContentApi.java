@@ -19,6 +19,7 @@ import java.util.List;
 
 /**
  * The <tt>GCContentApi</tt> interface provides methods to get information from remote GatherContent server.
+ * @author Axamit, gc.support@axamit.com
  */
 public interface GCContentApi {
     /**

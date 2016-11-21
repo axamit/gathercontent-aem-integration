@@ -22,6 +22,7 @@ import java.util.List;
 /**
  * Servlet return list of GatherContent templates in JSON format for project ID passed with selector
  * projectId-[number] e.g. '/etc/cloudservices/gathercontent/gathercontent-importer.gctemplates.projectId-12345.json'.
+ * @author Axamit, gc.support@axamit.com
  */
 @SlingServlet(
         resourceTypes = {"sling/servlet/default"},

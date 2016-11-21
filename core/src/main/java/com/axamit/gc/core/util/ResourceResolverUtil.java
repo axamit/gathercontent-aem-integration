@@ -16,6 +16,7 @@ import java.util.Map;
 /**
  * The <code>ResourceResolverUtil</code> is an utility class for creating new <code>{@link ResourceResolver}</code>,
  * used for getting <code>{@link ResourceResolver}</code> with specified authentication information across application.
+ * @author Axamit, gc.support@axamit.com
  */
 public enum ResourceResolverUtil {
     INSTANCE;

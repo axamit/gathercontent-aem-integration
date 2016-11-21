@@ -14,6 +14,7 @@ import java.util.List;
  * The <code>GCElement</code> class represents element of config.
  *
  * @see <a href="https://gathercontent.com/developers/the-config-field/">Elements</a>
+ * @author Axamit, gc.support@axamit.com
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCElement {

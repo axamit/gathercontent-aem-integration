@@ -49,6 +49,7 @@ import java.util.Scanner;
 /**
  * OSGI service implements <tt>GCContentApi</tt> interface provides methods to get information from remote
  * GatherContent server.
+ * @author Axamit, gc.support@axamit.com
  */
 @Service(value = GCContentApi.class)
 @Component(description = "GContent Api", name = "GContent Api", immediate = true, metatype = true)

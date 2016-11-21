@@ -18,6 +18,7 @@ import java.util.List;
 
 /**
  * The <code>JSONUtil</code> is an utility class for transformation various objects and JSON representations.
+ * @author Axamit, gc.support@axamit.com
  */
 public final class JSONUtil {
 

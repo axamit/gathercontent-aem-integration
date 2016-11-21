@@ -27,7 +27,8 @@ import org.junit.runner.RunWith;
 /** 
  *  Test case which uses OSGi services injection
  *  to get hold of the HelloWorldModelServerSideTest which 
- *  it wants to test server-side. 
+ *  it wants to test server-side.
+ * @author Axamit, gc.support@axamit.com
  */
 @RunWith(SlingAnnotationsTestRunner.class)
 public class HelloWorldModelServerSideTest {

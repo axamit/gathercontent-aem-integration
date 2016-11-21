@@ -30,6 +30,7 @@ import javax.jcr.Session;
 /**
  * OSGI service implementS <tt>ImportService</tt> interface provides methods to get and update status of specific
  * import/update process job.
+ * @author Axamit, gc.support@axamit.com
  */
 @Service(value = ImportService.class)
 @Component(description = "Import Service Service", name = "Import Service", immediate = true, metatype = true)

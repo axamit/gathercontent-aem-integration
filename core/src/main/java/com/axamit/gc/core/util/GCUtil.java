@@ -39,6 +39,7 @@ import java.util.Set;
 /**
  * The <code>GCUtil</code> is an utility class presenting functionality using across whole application
  * to perform operations like getting mapped projects, mappings from repository etc.
+ * @author Axamit, gc.support@axamit.com
  */
 public final class GCUtil {
 

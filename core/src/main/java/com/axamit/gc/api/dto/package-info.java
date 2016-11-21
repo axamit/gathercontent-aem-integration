@@ -4,6 +4,7 @@
 
 /**
  * Classes represents content items in GatherContent.
+ * @author Axamit, gc.support@axamit.com
  */
 @Version("1.0")
 @Export(optional = "provide:=true")

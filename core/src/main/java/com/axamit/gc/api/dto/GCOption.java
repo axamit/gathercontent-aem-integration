@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * The <code>GCOption</code> class represents options in types 'choice_radio' and 'choice_checkbox'.
  *
  * @see <a href="https://gathercontent.com/developers/the-config-field/">Option</a>
+ * @author Axamit, gc.support@axamit.com
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCOption {

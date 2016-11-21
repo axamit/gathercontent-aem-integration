@@ -4,6 +4,7 @@
 
 /**
  * OSGI services which provide information from remote GatherContent server and cloudservice config in AEM.
+ * @author Axamit, gc.support@axamit.com
  */
 @Version("1.0")
 @Export(optional = "provide:=true")

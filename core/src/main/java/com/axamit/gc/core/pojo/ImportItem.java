@@ -12,6 +12,7 @@ import java.util.List;
 
 /**
  * The <code>ImportItem</code> represents information about item need to be imported.
+ * @author Axamit, gc.support@axamit.com
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ImportItem {

@@ -6,6 +6,7 @@ package com.axamit.gc.core.exception;
 
 /**
  * Thrown when any internal operation in application failed to perform.
+ * @author Axamit, gc.support@axamit.com
  */
 public class GCException extends Exception {
 
