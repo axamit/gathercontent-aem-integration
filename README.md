@@ -1,5 +1,5 @@
 # GatherContent AEM integration
-![Image of Integration](https://github.com/AntoniBertel/GatherContentAssets/blob/master/GC-AEM.png)
+[![Image of Integration](https://github.com/AntoniBertel/GatherContentAssets/blob/master/GC-AEM.png)](https://gathercontent.com/)
 
 GatherContent integration plugin allows you to map each field in your GatherContent Templates with AEM template fields.
 
@@ -7,6 +7,11 @@ GatherContent integration plugin allows you to map each field in your GatherCont
 - [x] Update migrated content in AEM
 - [ ] Import content into GatherContent (soon)
 - [ ] Publish content to AEM (soon)
+
+
+|  **`AEM 6.0`**   |  **`AEM 6.1`** | **`AEM 6.2`** |
+|-------------------|----------------------|------------------|
+|:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |
 
 ## Modules
 
@@ -47,5 +52,6 @@ The project comes with the auto-public repository configured. To setup the repos
     http://helpx.adobe.com/experience-manager/kb/SetUpTheAdobeMavenRepository.html
     
 ## Produced by
-![Axamit](https://github.com/AntoniBertel/GatherContentAssets/blob/master/GC-AEM.png)
+[![Axamit](https://github.com/AntoniBertel/GatherContentAssets/blob/master/Axamit.png)](https://axamit.com/)
 
+## Changelog
