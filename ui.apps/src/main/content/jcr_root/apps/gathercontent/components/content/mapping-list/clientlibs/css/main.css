@@ -1,0 +1,15 @@
+/*
+ * Axamit, gc.support@axamit.com
+ */
+
+#mapping-updated-cnt-wrapper {
+    background-color: #AEDD94;
+    font-size: 14px;
+    height: 32px;
+}
+
+#mapping-updated-cnt {
+    position: absolute;
+    margin-top: 7px;
+    margin-left: 7px;
+}

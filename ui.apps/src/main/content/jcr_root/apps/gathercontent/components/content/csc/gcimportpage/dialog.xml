@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          jcr:primaryType="cq:Dialog"
+          title="GatherContent Credentials Authentication"
+          xtype="dialog">
+    <listeners
+            jcr:primaryType="nt:unstructured"
+            added="function(dialog){dialog.findByType('tabpanel')[0].hide();}"
+            loadcontent="function(dialog){
+            var accountId = dialog.findById('account-id').getValue();
+            if(accountId!=''){
+                dialog.findById('verify-credentials').hide();
+                dialog.findById('reset-credentials').show();
+                dialog.findById('gc-username').setReadOnly(true);
+                dialog.findById('gc-apikey').setReadOnly(true);
+            }else{
+                dialog.findById('reset-credentials').hide();
+                dialog.findById('verify-credentials').show();
+            }
+            dialog.findByType('tabpanel')[0].show();
+            }"/>
+    <items
+            jcr:primaryType="cq:Widget"
+            xtype="tabpanel">
+        <items jcr:primaryType="cq:WidgetCollection">
+            <tab
+                    jcr:primaryType="cq:Panel"
+                    title="Config">
+                <items jcr:primaryType="cq:WidgetCollection">
+                    <gcUsername
+                            jcr:primaryType="cq:Widget"
+                            fieldDescription="This is the email address you use to login to GatherContent. Your permissions will determine what accounts, projects and content is available."
+                            fieldLabel="GatherContent User Email Address"
+                            id="gc-username"
+                            name="./gcUsername"
+                            xtype="textfield"/>
+                    <gcApikey
+                            jcr:primaryType="cq:Widget"
+                            fieldDescription="&lt;a href=&quot;https://gathercontent.com/developers/authentication/&quot; target=&quot;_blank&quot;>Click to find out where you can generate your API key&lt;/a>"
+                            fieldLabel="GatherContent API key"
+                            id="gc-apikey"
+                            name="./gcApikey"
+                            xtype="textfield"/>
+                    <verify
+                            jcr:primaryType="cq:Widget"
+                            fieldLabel="Verify Credentials"
+                            id="verify-credentials"
+                            text="Verify"
+                            xtype="button">
+                        <listeners
+                                jcr:primaryType="nt:unstructured"
+                                click="function(verifyButton, event){
+                                    var dialog = verifyButton.findParentByType('dialog');
+                                    var url = dialog.path;
+                                    var gcUsername = dialog.findById('gc-username').getValue();
+                                    var gcApikey = dialog.findById('gc-apikey').getValue();
+                                    var accountIds = CQ.Util.eval(CQ.HTTP.get(url + '.gcaccounts.json?gcUsername=' + gcUsername + '&amp;gcApikey=' + gcApikey)).gcaccounts;
+                                    if(accountIds != undefined){
+                                        var accountIdField = dialog.findById('account-id');
+                                        accountIdField.setOptions(accountIds);
+                                        accountIdField.setValue(accountIds[0].value);
+                                        verifyButton.hide();
+                                        dialog.findById('reset-credentials').show();
+                                        dialog.findById('gc-username').setReadOnly(true);
+                                        dialog.findById('gc-apikey').setReadOnly(true);
+                                    }else{
+                                        CQ.Ext.MessageBox.show({title: 'Invalid Credentials', msg: 'Invalid credentials, please try again', width:300, buttons: CQ.Ext.MessageBox.OK, });
+                                    }
+                                }"/>
+                    </verify>
+                    <accountId
+                            jcr:primaryType="cq:Widget"
+                            fieldLabel="Select GatherContent Account"
+                            id="account-id"
+                            name="./accountId"
+                            type="select"
+                            options="$PATH.gcaccounts.json"
+                            optionsRoot='gcaccounts'
+                            xtype="selection"/>
+                    <resetCredentials
+                            jcr:primaryType="cq:Widget"
+                            fieldLabel="Reset Credentials"
+                            id="reset-credentials"
+                            text="Reset"
+                            xtype="button">
+                        <listeners
+                                jcr:primaryType="nt:unstructured"
+                                click="function(resetButton, event){
+                                    var dialog = resetButton.findParentByType('dialog');
+                                    var gcUsernameField = dialog.findById('gc-username');
+                                    gcUsernameField.setValue('');
+                                    gcUsernameField.setReadOnly(false);
+                                    var gcApikeyField = dialog.findById('gc-apikey');
+                                    gcApikeyField.setValue('');
+                                    gcApikeyField.setReadOnly(false);
+                                    var accountIdField = dialog.findById('account-id');
+                                    accountIdField.setValue('');
+                                    accountIdField.setOptions([]);
+                                    resetButton.hide();
+                                    dialog.findById('verify-credentials').show();
+                                }"/>
+                    </resetCredentials>
+                </items>
+            </tab>
+        </items>
+    </items>
+</jcr:root>

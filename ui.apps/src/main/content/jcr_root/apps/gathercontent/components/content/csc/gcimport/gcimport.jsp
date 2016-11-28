@@ -1,0 +1,1 @@
+<!--No need any insertion into the page but to keep structure consistent this component was created-->

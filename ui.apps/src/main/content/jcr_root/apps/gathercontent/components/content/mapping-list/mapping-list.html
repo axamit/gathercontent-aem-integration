@@ -1,0 +1,60 @@
+<h1>
+    Mappings
+</h1>
+
+<div>
+    <input class="ui-button ui-widget ui-corner-all" id="add-mapping" data-path="${resource.path}" type="button"
+           value="+ Add New Mapping"/>
+</div>
+<div data-sly-use.mappings="com.axamit.gc.core.sightly.models.MapperListModel">
+    <div>
+        <table id="mapping-list-table" class="full-width">
+            <thead>
+            <tr>
+                <th>GatherContent Project</th>
+                <th>GatherContent Template</th>
+                <th>Mapping Name</th>
+                <th>AEM Template Page</th>
+                <th>Last Mapped</th>
+                <th>Last Updated in GatherContent</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody data-sly-list.mapping="${mappings.mappingList}">
+            <tr>
+                <td>${mapping.projectName}</td>
+                <td>${mapping.templateName}</td>
+                <td>${mapping.mappingName}</td>
+                <td>${mapping.aemTemplatePageTitle} <br> <i>${mapping.templatePath}</i> </td>
+                <td>${mapping.lastMapped}</td>
+                <td>${mapping.lastUpdated}</td>
+                <td><a href="${mapping.createEditlink}">Edit</a> | <a class="delete-mapping"
+                                                                      data-path="${mapping.resource.path}"
+                                                                      href="javascript:void(0)">Delete</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="mapping-updated-cnt-wrapper" style="display: none">
+    <span id="mapping-updated-cnt"></span>
+</div>
+
+<div id="delete-confirm-modal" title="Are you sure you want to delete this item?">
+    This action cannot be undone.
+</div>
+
+<script>
+    $('document').ready(function () {
+        var createdUpdatedMapping = localStorage.getItem("createdUpdatedMapping");
+        if (createdUpdatedMapping) {
+            localStorage.removeItem("createdUpdatedMapping");
+            $('#mapping-updated-cnt').html(createdUpdatedMapping);
+            $('#mapping-updated-cnt-wrapper').show();
+            setTimeout(function () {
+                $('#mapping-updated-cnt-wrapper').hide();
+            }, 5000);
+        }
+    });
+</script>

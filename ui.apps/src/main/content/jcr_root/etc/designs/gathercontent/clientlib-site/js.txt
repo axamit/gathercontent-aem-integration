@@ -1,0 +1,9 @@
+
+script.js
+
+#base=js
+plugins/jquery-ui-1.11.4.min.js
+plugins/jquery.dataTables.min.js
+plugins/dataTables.select.min.js
+plugins/jquery.validate.min.js
+plugins/spin.min.js

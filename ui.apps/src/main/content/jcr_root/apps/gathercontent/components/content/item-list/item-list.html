@@ -1,0 +1,100 @@
+<div id="import-table-wrapper" data-sly-use.itemList="com.axamit.gc.core.sightly.models.ItemListModel"
+     xmlns:height="http://www.w3.org/1999/xhtml" xmlns:height="http://www.w3.org/1999/xhtml">
+    <h1>
+        Import
+    </h1>
+
+    <div>
+            <label class="property-label" for="import-project-select">Project</label>
+            <div>
+                <select class="filter-select" id="import-project-select">
+                    <option value="">Select Project</option>
+                    <sly data-sly-list.project="${itemList.projects}">
+                        <option value="${project.id}">${project.name}</option>
+                    </sly>
+                </select>
+            </div>
+            <div class="property-description">Select GatherContent project. You can only see projects
+                with mapped templates in the dropdown.</div>
+    </div>
+
+    <div class="margin-top-5">
+        <label class="property-label" for="template-filter">Filter</label>
+        <div>
+            <select class="filter-select" id="template-filter">
+                <option value="">Select Template</option>
+            </select>
+            <select class="filter-select" id="status-filter">
+                <option value="">Select Status</option>
+            </select>
+            <input placeholder="Filter by Item Name" id="title-filter" value=""/>
+        </div>
+        <div class="property-description">Filter Items by template, workflow status or Item name</div>
+    </div>
+
+    <div id="import-table">
+        <sly data-sly-use.listView="list-template.html"
+             data-sly-call="${listView.listTemplate @ itemList = itemList}">
+        </sly>
+    </div>
+    <input class="ui-button ui-widget ui-corner-all" id="import-items" type="button" data-empty="false"
+           data-import="${itemList.defaultImportPath}" value="Import"/>
+</div>
+
+<div id="confirmation-table-wrapper" style="display: none">
+    <h1>Confirm Import Selection</h1>
+    <div id="status-change-header" class="gc-status-line" style="display: none;"></div>
+    <div class="property-description">Please review your selection before importing.</div>
+    <table id="confirmation-table" class="full-width">
+    </table>
+    <input class="ui-button ui-widget ui-corner-all" id="cancel-import" type="button" value="Cancel"/>
+    <input class="ui-button ui-widget ui-corner-all" id="confirm-import" data-path="${resource.path}" type="button"
+           value="Confirm"/>
+</div>
+
+<div id="result-table-wrapper" style="display: none">
+    <h1>
+        Results for Import
+    </h1>
+    <div id="imported-cnt-wrapper" style="background-color: #AEDD94; font-size: 14px; height: 32px;">
+        <span id="imported-cnt" style="position:absolute;margin-top:7px; margin-left:7px"></span>
+    </div>
+
+    <div style="padding: 3px;"></div>
+
+    <div id="failed-cnt-wrapper" style="background-color: #FFB4B0; font-size: 14px; height: 32px;">
+        <span id="failed-cnt"style="position:absolute;margin-top:7px; margin-left:7px"></span>
+    </div>
+
+    <table id="result-table" class="full-width">
+    </table>
+</div>
+
+<div id="progressbar-wrapper" style="display: none">
+    <div id="progressbar"></div>
+    <div id="progressbar-label">Loading...</div>
+</div>
+
+<div id="empty-list-modal" title="ERROR">
+    Please select at least one item.
+</div>
+
+<div id="empty-field-modal" title="INFORMATION">
+    <span id = "empty-field"> </span>
+</div>
+
+<script>
+    var defaultImportPath = "${itemList.defaultImportPath @ context='scriptString'}";
+    $('document').ready(function () {
+        $().initImportTable();
+        $('#title-filter').on('keyup', (function () {
+            $('#item-list-table').DataTable().column(2).search(this.value, false, false, false).draw();
+        }));
+        $('#status-filter').change(function () {
+            $('#item-list-table').DataTable().column(1).search(this.value, false, false, false).draw();
+        });
+        $('#template-filter').change(function () {
+            $('#item-list-table').DataTable().column(5).search(this.value, false, false, false).draw();
+        });
+    });
+</script>

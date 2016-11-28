@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workspaceFilter version="1.0">
+    <filter root="/apps/gathercontent">
+        <exclude pattern="/apps/gathercontent/install" />
+    </filter>
+    <filter root="/oak:index/isGCImportedPage"/>
+    <filter root="/etc/designs/gathercontent"/>
+    <filter root="/home/users/system/6ICM08HN9co84f6JU7Uk"/>
+    <filter root="/etc/cloudservices/gathercontent" mode="merge"/>
+    <filter root="/content/rep:policy/allowgathercontentuser"/>
+    <filter root="/etc/cloudservices/gathercontent/rep:policy/allowgathercontentuser"/>
+</workspaceFilter>

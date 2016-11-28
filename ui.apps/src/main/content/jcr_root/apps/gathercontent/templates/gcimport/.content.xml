@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          jcr:description="Account settings for GatherContent"
+          jcr:primaryType="cq:Template"
+          jcr:title="GatherContent Configuration"
+          sling:resourceSuperType="cq/cloudserviceconfigs/templates/configpage"
+          allowedChildren="[/apps/gathercontent/templates/gcimport]"
+          allowedPaths="[/etc/cloudservices/gathercontent(/.*)?]"
+          ranking="{Long}100">
+    <jcr:content
+            cq:designPath="/etc/designs/cloudservices/gathercontent"
+            jcr:primaryType="cq:PageContent"
+            sling:resourceType="gathercontent/components/content/csc/gcimportpage">
+        <item-list
+                jcr:primaryType="nt:unstructured"
+                sling:resourceType="gathercontent/components/content/item-list"/>
+        <update-list
+                jcr:primaryType="nt:unstructured"
+                sling:resourceType="gathercontent/components/content/update-list"/>
+        <mapping-list
+                jcr:primaryType="nt:unstructured"
+                sling:resourceType="gathercontent/components/content/mapping-list"/>
+        <import-list
+                jcr:primaryType="nt:unstructured"
+                sling:resourceType="gathercontent/components/content/import-list"/>
+    </jcr:content>
+</jcr:root>

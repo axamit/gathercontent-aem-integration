@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
+    jcr:primaryType="cq:Dialog"
+    title="Properties"
+    xtype="panel">
+    <items jcr:primaryType="cq:WidgetCollection">
+        <projectId
+                jcr:primaryType="cq:Widget"
+                fieldLabel="Select Project:"
+                name="./projectId"
+                type="select"
+                options="$PATH.gcprojects.json"
+                optionsRoot = 'gcprojects'
+                xtype="selection"/>
+
+    </items>
+</jcr:root>

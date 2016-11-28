@@ -1,0 +1,79 @@
+/*
+ * Axamit, gc.support@axamit.com
+ */
+
+.mapper-container {
+    position: relative;
+    max-width: 551px;
+}
+
+#mapping-form-panel .x-panel-body {
+    background-color: transparent;
+}
+
+.mapping form .x-form-item-description {
+    padding-left: 0 !important;
+}
+
+.mapping #CQ select {
+    border: 1px solid rgb(169, 169, 169);
+}
+
+#accordion {
+    width: 900px;
+}
+
+label.error {
+    color: red;
+    margin-left: 3px;
+}
+
+.mapping #CQ .x-form-item-label {
+    width: 145px !important;
+}
+
+.mapping #CQ .x-form-search-trigger {
+    left: 218px;
+}
+
+.path {
+    width: 167px !important;
+}
+
+#template-path-error {
+    left: 18px;
+    position: relative;
+}
+
+#empty-mapping-modal {
+    color: red;
+}
+
+.mapper-select {
+    width: 100%;
+}
+
+.grayout {
+    opacity: 0.5;
+    filter: alpha(opacity = 50);
+}
+
+#meta-name-label {
+    float: left;
+}
+
+#meta-name-selection {
+    padding-left: 200px;
+    padding-bottom: 10px;
+    width: 500px;
+}
+
+#meta-name-select {
+    width: 700px;
+}
+
+#meta-name-information {
+    padding-bottom: 10px;
+}
+
+

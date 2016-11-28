@@ -1,0 +1,5 @@
+<sly data-sly-use.itemList="com.axamit.gc.core.sightly.models.ItemListModel">
+    <sly data-sly-use.listView="list-template.html"
+         data-sly-call="${listView.listTemplate @ itemList = itemList}">
+    </sly>
+</sly>

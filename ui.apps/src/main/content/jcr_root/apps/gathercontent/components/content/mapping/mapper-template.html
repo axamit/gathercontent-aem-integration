@@ -1,0 +1,26 @@
+<template data-sly-template.mapperTemplate="${@ mapper}">
+    <h1>${mapper.gctemplate.name}</h1>
+    <div><span id="meta-name-label" >Name of the page in GatherContent</span>
+        <div id="meta-name-selection">
+            <select id="meta-name-select" data-sly-list.entry="${mapper.fieldsMappings['META_NAME'].entrySet}">
+                <option value="${entry.key}" selected="${mapper.metaMapper['META_NAME'] == entry.key?'selected':''}">
+                    ${entry.value}
+                </option>
+            </select>
+        </div>
+        <div id="meta-name-information" style="color:red"></div>
+    </div>
+    <div id="accordion" data-sly-list.config="${mapper.gctemplate.config}">
+        <h3>Config: ${config.label}</h3>
+        <div data-sly-list.element="${config.elements}">
+            <div class="mapper-element" data-id="${element.name}">
+                <h4>${element.type.toString == 'SECTION' ? element.title : element.label}</h4>
+                <select class="mapper-select" data-sly-list.entry="${mapper.fieldsMappings[element.name].entrySet}">
+                    <option value="${entry.key}" selected="${mapper.mapper[element.name] == entry.key?'selected':''}">
+                        ${entry.value}
+                    </option>
+                </select>
+            </div>
+        </div>
+    </div>
+</template>

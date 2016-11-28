@@ -1,0 +1,123 @@
+<h1>
+    Mappings
+</h1>
+<div data-sly-use.mapper="com.axamit.gc.core.sightly.models.MapperModel">
+    <div id="CQ">
+        <div id="CQ-MAPPING-FORM-WRAPPER"></div>
+        <script>
+            CQ.Ext.onReady(function () {
+                new CQ.Ext.form.FormPanel({
+                    id: "mapping-form-panel",
+                    renderTo: document.getElementById("CQ-MAPPING-FORM-WRAPPER"),
+                    width: 500,
+                    border: false,
+                    items: [
+                        {
+                            cls: "required",
+                            id: "mapping-name",
+                            fieldDescription: "Add a mapping name. This will be used to distinguish mappings on import dialogs.",
+                            fieldLabel: "Mapping Name (*)",
+                            xtype: "textfield",
+                            value: "${mapper.mappingName @ context='scriptString'}",
+                            width: "184"
+                        },
+                        {
+                            cls: "required path",
+                            id: "template-path",
+                            editable: false,
+                            fieldDescription: "Select template path. This will be used as a base model for your field mappings.",
+                            fieldLabel: "Template Path (*)",
+                            rootPath: "/content",
+                            xtype: "pathfield",
+                            value: "${mapper.templatePath @ context='scriptString'}",
+                            "listeners": {
+                                "dialogselect": function () {
+                                    $().reloadMapping();
+                                    $().updateSaveMappingButton();
+                                }
+                            }
+                        },
+                        {
+                            cls: "path",
+                            id: "import-path",
+                            editable: false,
+                            fieldDescription: "Import Path allows you to specify the default location (node) in AEM where imported items will be stored. Default path /content/GatherContent/ will be used if not specified.",
+                            fieldLabel: "Import Path",
+                            rootPath: "/content",
+                            xtype: "pathfield",
+                            value: "${mapper.importPath @ context='scriptString'}"
+                        },
+                        {
+                            cls: "path",
+                            id: "import-dampath",
+                            editable: false,
+                            fieldDescription: "Import DAM Path allows you to specify the default location (node) in AEM where imported assets (attachments) will be stored. Default path /content/dam/gathercontent will be used if not specified.",
+                            fieldLabel: "Import DAM Path",
+                            rootPath: "/content/dam",
+                            xtype: "pathfield",
+                            value: "${mapper.importDAMPath @ context='scriptString'}"
+                        }
+                    ]
+                });
+
+                $(document).ready(function () {
+                    $().updateSaveMappingButton();
+                    $(".required").change(function () {
+                        $().updateSaveMappingButton();
+                    });
+                    $.validator.addClassRules({
+                        required: {
+                            required: true
+                        }
+                    });
+                });
+            });
+        </script>
+        <form>
+            <div style="margin-top:2px">
+                <label for="project-select" style="width:125px;color:#000000">GatherContent Project (*)</label>
+                <div style="padding-left:128px; margin-top: -16px">
+                    <select class="required" id="project-select" data-sly-list.projectEntry="${mapper.projects.entrySet}"
+                            style="width:310px; margin-left: 20px">
+                        <option data-sly-test="${projectEntryList.first}" value="">Select Project</option>
+                        <option value="${projectEntry.key}"
+                                selected="${mapper.projectId == projectEntry.key?'selected':''}">
+                            ${projectEntry.value}
+                        </option>
+                    </select>
+                </div>
+                <div class="x-form-item-description">Select GatherContent Project</div>
+            </div>
+        </form>
+        <form>
+            <div style="margin-top:7px">
+                <label for="gctemplate-select" style="width:125px;color:#000000">Project Templates (*)</label>
+                <div style="padding-left:128px; margin-top: -16px">
+                    <select class="required" id="gctemplate-select" style="width:310px; margin-left: 20px">
+                        <option value="">Select Template</option>
+                        <sly data-sly-list.templateEntry="${mapper.templates.entrySet}">
+                            <option value="${templateEntry.key}"
+                                    selected="${mapper.gctemplate.id == templateEntry.key?'selected':''}">
+                                ${templateEntry.value}
+                            </option>
+                        </sly>
+                    </select>
+                </div>
+                <div class="x-form-item-description">Select the GatherContent Template you'd like to map</div>
+            </div>
+        </form>
+    </div>
+
+    <div id="mapper-container" class="mapper-container">
+        <sly data-sly-use.mapperView="mapper-template.html"
+             data-sly-call="${mapperView.mapperTemplate @ mapper = mapper}">
+        </sly>
+    </div>
+    <br>
+    <input class="saveMapping ui-button ui-widget ui-corner-all" data-path="${resource.path}" type="button"
+           value="Save mapping"/>
+</div>
+
+<div id="empty-mapping-modal" title="ERROR">
+    At least one field should be mapped.
+</div>
