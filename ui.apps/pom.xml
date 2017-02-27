@@ -130,21 +130,6 @@
                             <target>${install.dir}</target>
                         </embedded>
                         <embedded>
-                            <groupId>com.fasterxml.jackson.core</groupId>
-                            <artifactId>jackson-databind</artifactId>
-                            <target>${install.dir}</target>
-                        </embedded>
-                        <embedded>
-                            <groupId>com.fasterxml.jackson.core</groupId>
-                            <artifactId>jackson-core</artifactId>
-                            <target>${install.dir}</target>
-                        </embedded>
-                        <embedded>
-                            <groupId>com.fasterxml.jackson.core</groupId>
-                            <artifactId>jackson-annotations</artifactId>
-                            <target>${install.dir}</target>
-                        </embedded>
-                        <embedded>
                             <groupId>org.apache.httpcomponents</groupId>
                             <artifactId>httpcore-osgi</artifactId>
                             <target>${install.dir}</target>
@@ -243,10 +228,6 @@
             <artifactId>servlet-api</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient-osgi</artifactId>
