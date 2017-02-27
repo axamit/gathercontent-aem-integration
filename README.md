@@ -55,4 +55,5 @@ The project comes with the auto-public repository configured. To setup the repos
 [![Axamit](https://github.com/AntoniBertel/GatherContentAssets/blob/master/Axamit.png)](https://axamit.com/)
 
 ## Changelog
+27/02/2017 [1.0.38.1 Bug Fix Release](https://github.com/axamit/gathercontent-aem-integration/releases/tag/1.0.38.1 "Package attached")
 28/11/2016 [1.0.38 Release](https://github.com/axamit/gathercontent-aem-integration/releases/tag/1.0.38 "Package attached")
