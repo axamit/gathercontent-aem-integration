@@ -20,7 +20,7 @@
     <parent>
         <groupId>com.axamit.gc</groupId>
         <artifactId>gathercontent</artifactId>
-        <version>1.0.38</version>
+        <version>1.0.38.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
