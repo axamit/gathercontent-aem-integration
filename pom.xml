@@ -4,7 +4,7 @@
     <groupId>com.axamit.gc</groupId>
     <artifactId>gathercontent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.38.1</version>
+    <version>1.0.39-SNAPSHOT</version>
     <description>GatherContent</description>
     <developers>
         <developer>
@@ -412,9 +412,10 @@
             <!-- Apache Sling Dependencies -->
             <dependency>
                 <groupId>com.adobe.aem</groupId>
-                <artifactId>aem-api</artifactId>
-                <version>6.0.0.1</version>
+                <artifactId>uber-jar</artifactId>
+                <version>6.3.0</version>
                 <scope>provided</scope>
+    			<classifier>apis</classifier>
             </dependency>
 
             <dependency>
