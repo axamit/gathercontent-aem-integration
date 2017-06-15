@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.axamit.gc</groupId>
         <artifactId>gathercontent</artifactId>
-        <version>1.0.38.1</version>
+        <version>1.0.39-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>gathercontent.core</artifactId>
@@ -26,7 +26,6 @@
                         <Embed-Dependency>jackson-databind,jackson-core,jackson-annotations</Embed-Dependency>
                         <Import-Package>
                             com.day.cq.commons.jcr;version="[5.7,6]",
-                            org.apache.sling.event.jobs;version="[1.4,2]",
                             javax.inject;version="[0,1]",
                             *
                         </Import-Package>
@@ -186,7 +185,8 @@
         </dependency>
         <dependency>
             <groupId>com.adobe.aem</groupId>
-            <artifactId>aem-api</artifactId>
+            <artifactId>uber-jar</artifactId>
+            <classifier>apis</classifier>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
