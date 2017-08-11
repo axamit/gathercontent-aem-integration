@@ -1,4 +1,4 @@
-# GatherContent AEM integration
+# GatherContent AEM integration v1.0
 [![Image of Integration](https://github.com/AntoniBertel/GatherContentAssets/blob/master/GC-AEM.png)](https://gathercontent.com/)
 
 GatherContent’s AEM integration allows content editors to import and update content from GatherContent to AEM. Editors are able to specify mappings, defining which templates and fields should be mapped and then imported. The integration also provides a backward connection, allowing content editors to update the GatherContent workflow status for all items that are successfully imported.
@@ -43,7 +43,7 @@ Or to deploy only the bundle to the author, run
 
 ## Testing
 
-In progress
+Completed v1.0
 
 ## Maven settings
 
