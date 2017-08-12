@@ -4,21 +4,26 @@
 
 package com.axamit.gc.api.dto;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The <code>GCElementType</code> class represents element type of config.
  *
- * @see <a href="https://gathercontent.com/developers/the-config-field/">Element types</a>
  * @author Axamit, gc.support@axamit.com
+ * @see <a href="https://gathercontent.com/developers/the-config-field/">Element types</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public enum GCElementType {
+    @JsonProperty("text")
     TEXT("text"),
+    @JsonProperty("files")
     FILES("files"),
+    @JsonProperty("choice_radio")
     CHOICE_RADIO("choice_radio"),
+    @JsonProperty("choice_checkbox")
     CHOICE_CHECKBOX("choice_checkbox"),
+    @JsonProperty("section")
     SECTION("section");
     private final String type;
 
@@ -29,22 +34,6 @@ public enum GCElementType {
      */
     GCElementType(final String type) {
         this.type = type;
-    }
-
-    /**
-     * Get enum element by string representation.
-     *
-     * @param code String representation of type.
-     * @return enum element.
-     */
-    @JsonCreator
-    public static GCElementType of(final String code) {
-        for (GCElementType argument : GCElementType.values()) {
-            if (argument.getType().equalsIgnoreCase(code)) {
-                return argument;
-            }
-        }
-        return null;
     }
 
     public String getType() {

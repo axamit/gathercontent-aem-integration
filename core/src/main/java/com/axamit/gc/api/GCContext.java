@@ -4,26 +4,26 @@
 
 package com.axamit.gc.api;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Class represents cloudservice context config.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 public final class GCContext implements Serializable {
 
+    private static final String API_URL = "https://api.gathercontent.com";
+    private final Map<String, String> headers = ImmutableMap.of("Accept", "application/vnd.gathercontent.v0.5+json");
     private String username;
     private String apikey;
-    private Map<String, String> headers;
-    private String apiURL = "https://api.gathercontent.com/";
 
     private GCContext(final String username, final String apikey) {
         this.username = username;
         this.apikey = apikey;
-        headers = new HashMap<>();
-        headers.put("Accept", "application/vnd.gathercontent.v0.5+json");
     }
 
     /**
@@ -58,6 +58,6 @@ public final class GCContext implements Serializable {
     }
 
     public String getApiURL() {
-        return apiURL;
+        return API_URL;
     }
 }

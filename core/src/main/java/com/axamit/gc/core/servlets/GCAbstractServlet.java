@@ -18,12 +18,19 @@ import org.slf4j.LoggerFactory;
 /**
  * Abstract Servlet with References to <code>{@link GCConfiguration}</code> and
  * <code>{@link GCContentApi}</code> services.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @Component(componentAbstract = true)
 public abstract class GCAbstractServlet extends SlingAllMethodsServlet {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private static final String REQUEST_PN_GC_USERNAME = "gcUsername";
+    private static final String REQUEST_PN_GC_API_KEY = "gcApikey";
+    protected static final String JSON_PN_TEXT = "text";
+    protected static final String JSON_PN_VALUE = "value";
+    protected static final String JSON_PN_QTIP = "qtip";
 
     @Reference
     private GCConfiguration gcConfiguration;
@@ -38,9 +45,9 @@ public abstract class GCAbstractServlet extends SlingAllMethodsServlet {
      * @return <code>GCContext</code> object with context.
      */
     protected final GCContext getGCContext(final SlingHttpServletRequest request) {
-        GCContext gcContext = null;
-        String gcUsername = request.getParameter("gcUsername");
-        String gcApiKey = request.getParameter("gcApikey");
+        GCContext gcContext;
+        String gcUsername = request.getParameter(REQUEST_PN_GC_USERNAME);
+        String gcApiKey = request.getParameter(REQUEST_PN_GC_API_KEY);
         if (gcUsername != null && gcApiKey != null) {
             gcContext = GCContext.build(gcUsername, gcApiKey);
         } else {

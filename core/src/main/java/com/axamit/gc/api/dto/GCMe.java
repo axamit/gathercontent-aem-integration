@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * The <code>GCItem</code> class represents information about user.
  *
- * @see <a href="https://gathercontent.com/developers/me/get-me/">User info</a>
  * @author Axamit, gc.support@axamit.com
+ * @see <a href="https://gathercontent.com/developers/me/get-me/">User info</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCMe {

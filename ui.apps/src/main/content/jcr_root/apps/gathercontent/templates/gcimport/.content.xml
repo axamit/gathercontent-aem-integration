@@ -24,5 +24,18 @@
         <import-list
                 jcr:primaryType="nt:unstructured"
                 sling:resourceType="gathercontent/components/content/import-list"/>
+        <config-list
+                jcr:primaryType="nt:unstructured"
+                sling:resourceType="gathercontent/components/content/plugin-config-list">
+            <config_default
+                    jcr:primaryType="nt:unstructured"
+                    sling:resourceType="gathercontent/components/content/plugin-config"
+                    choice_checkbox="\{&quot;name&quot;:&quot;&quot;,&quot;plugin&quot;:&quot;com.axamit.gc.core.services.plugins.MultiplePropertiesPlugin&quot;}"
+                    choice_radio="\{&quot;name&quot;:&quot;&quot;,&quot;plugin&quot;:&quot;com.axamit.gc.core.services.plugins.MultiplePropertiesPlugin&quot;}"
+                    configurationName="Default config"
+                    files="\{&quot;name&quot;:&quot;&quot;,&quot;plugin&quot;:&quot;com.axamit.gc.core.services.plugins.FilesPlugin&quot;}"
+                    section="\{&quot;name&quot;:&quot;&quot;,&quot;plugin&quot;:&quot;com.axamit.gc.core.services.plugins.SectionPlugin&quot;}"
+                    text="\{&quot;name&quot;:&quot;&quot;,&quot;plugin&quot;:&quot;com.axamit.gc.core.services.plugins.TextPlugin&quot;}"/>
+        </config-list>
     </jcr:content>
 </jcr:root>

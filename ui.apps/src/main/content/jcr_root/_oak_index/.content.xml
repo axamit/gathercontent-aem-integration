@@ -7,4 +7,9 @@
             propertyNames="{Name}[isGCImportedPage]"
             reindex="{Boolean}true"
             type="property"/>
+    <isGCExportedPage
+            jcr:primaryType="oak:QueryIndexDefinition"
+            propertyNames="{Name}[isGCExportedPage]"
+            reindex="{Boolean}true"
+            type="property"/>
 </jcr:root>

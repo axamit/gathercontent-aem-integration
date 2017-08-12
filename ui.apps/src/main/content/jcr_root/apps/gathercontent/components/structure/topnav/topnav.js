@@ -26,7 +26,7 @@ use(function () {
 
         // No strict comparison, because the types returned from the Java APIs
         // don't strictly match the JavaScript types
-        var selected = (page.getPath() == currentNavPath);
+        var selected = (page.getPath() === currentNavPath);
 
         items.push({
             page: page,

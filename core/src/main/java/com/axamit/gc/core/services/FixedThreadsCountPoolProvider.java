@@ -5,6 +5,7 @@
 
 package com.axamit.gc.core.services;
 
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,8 +29,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Thread pool service implementation.
- * @since 1.0.13 (25.10.2016)
+ *
  * @author Axamit, gc.support@axamit.com
+ * @since 1.0.13 (25.10.2016)
  */
 @Service
 @Component(label = "GatherContent: Fixed threads count pool provider",
@@ -42,7 +44,8 @@ public final class FixedThreadsCountPoolProvider implements ThreadsPoolProvider 
     private static final int MIN_POOL_CAPACITY = 1;
     private static final int MAX_POOL_CAPACITY = 200;
     private static final String PROPERTY_NAME = "count of pool threads";
-    @Property(name = PROPERTY_NAME, description = "How many threads be contained in pool, min: " + MIN_POOL_CAPACITY + " , max: " + MAX_POOL_CAPACITY,
+    @Property(name = PROPERTY_NAME, description = "How many threads be contained in pool, min: "
+            + MIN_POOL_CAPACITY + " , max: " + MAX_POOL_CAPACITY,
             intValue = FixedThreadsCountPoolProvider.DEFAULT_POOL_SIZE)
     private static final String THREADS_POOL_SIZE = "threads.pool.size";
 
@@ -149,4 +152,6 @@ public final class FixedThreadsCountPoolProvider implements ThreadsPoolProvider 
             threadPoolLock.unlock();
         }
     }
+
+
 }

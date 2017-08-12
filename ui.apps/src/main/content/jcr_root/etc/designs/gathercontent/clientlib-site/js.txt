@@ -7,3 +7,5 @@ plugins/jquery.dataTables.min.js
 plugins/dataTables.select.min.js
 plugins/jquery.validate.min.js
 plugins/spin.min.js
+plugins/select2.min.js
+plugins/placeholders.min.js

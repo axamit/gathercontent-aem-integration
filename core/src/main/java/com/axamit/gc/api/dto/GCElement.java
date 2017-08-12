@@ -13,8 +13,8 @@ import java.util.List;
 /**
  * The <code>GCElement</code> class represents element of config.
  *
- * @see <a href="https://gathercontent.com/developers/the-config-field/">Elements</a>
  * @author Axamit, gc.support@axamit.com
+ * @see <a href="https://gathercontent.com/developers/the-config-field/">Elements</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCElement {
@@ -24,8 +24,9 @@ public final class GCElement {
     private String label;
     private String value;
     private String microcopy;
+    private Boolean otherOption;
     private String limitType;
-    private String limit;
+    private Integer limit;
     private String title;
     private String subtitle;
     private Boolean plainText;
@@ -60,13 +61,13 @@ public final class GCElement {
         return label;
     }
 
-    @JsonProperty("label")
-    public void setEscapedLabel(final String escapedLabel) {
-        this.label = GCUtil.unescapeGCString(escapedLabel);
-    }
-
     public void setLabel(final String label) {
         this.label = label;
+    }
+
+    @JsonProperty("label")
+    public void setEscapedLabel(final String escapedLabel) {
+        label = GCUtil.unescapeGCString(escapedLabel);
     }
 
     /**
@@ -76,13 +77,13 @@ public final class GCElement {
         return value;
     }
 
-    @JsonProperty("value")
-    public void setEscapedValue(final String escapedValue) {
-        this.value = GCUtil.unescapeGCString(escapedValue);
-    }
-
     public void setValue(final String value) {
         this.value = value;
+    }
+
+    @JsonProperty("value")
+    public void setEscapedValue(final String escapedValue) {
+        value = GCUtil.unescapeGCString(escapedValue);
     }
 
     /**
@@ -94,6 +95,16 @@ public final class GCElement {
 
     public void setMicrocopy(final String microcopy) {
         this.microcopy = microcopy;
+    }
+
+    @JsonProperty("other_option")
+    public Boolean getOtherOption() {
+        return otherOption;
+    }
+
+    @JsonProperty("other_option")
+    public void setOtherOption(final Boolean otherOption) {
+        this.otherOption = otherOption;
     }
 
     /**
@@ -112,11 +123,11 @@ public final class GCElement {
     /**
      * @return Element limit - integer, non-negative.
      */
-    public String getLimit() {
+    public Integer getLimit() {
         return limit;
     }
 
-    public void setLimit(final String limit) {
+    public void setLimit(final Integer limit) {
         this.limit = limit;
     }
 
@@ -162,13 +173,13 @@ public final class GCElement {
         return title;
     }
 
-    @JsonProperty("title")
-    public void setEscapedTitle(final String escapedTitle) {
-        this.title = GCUtil.unescapeGCString(escapedTitle);
-    }
-
     public void setTitle(final String title) {
         this.title = title;
+    }
+
+    @JsonProperty("title")
+    public void setEscapedTitle(final String escapedTitle) {
+        title = GCUtil.unescapeGCString(escapedTitle);
     }
 
     /**
@@ -178,12 +189,31 @@ public final class GCElement {
         return subtitle;
     }
 
-    @JsonProperty("subtitle")
-    public void setEscapedSubTitle(final String escapedSubTitle) {
-        this.subtitle = GCUtil.unescapeGCString(escapedSubTitle);
-    }
-
     public void setSubtitle(final String subtitle) {
         this.subtitle = subtitle;
+    }
+
+    @JsonProperty("subtitle")
+    public void setEscapedSubTitle(final String escapedSubTitle) {
+        subtitle = GCUtil.unescapeGCString(escapedSubTitle);
+    }
+
+    @Override
+    public String toString() {
+        return "GCElement{"
+            + "type=" + type
+            + ", name='" + name + '\''
+            + ", required=" + required
+            + ", label='" + label + '\''
+            + ", value='" + value + '\''
+            + ", microcopy='" + microcopy + '\''
+            + ", otherOption=" + otherOption
+            + ", limitType='" + limitType + '\''
+            + ", limit=" + limit
+            + ", title='" + title + '\''
+            + ", subtitle='" + subtitle + '\''
+            + ", plainText=" + plainText
+            + ", options=" + options
+            + '}';
     }
 }

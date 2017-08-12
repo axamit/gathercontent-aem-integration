@@ -1,0 +1,30 @@
+<sly data-sly-use.clientlib="/libs/granite/sightly/templates/clientlib.html"
+     data-sly-call="${clientlib.all @ categories='apps.gathercontent.components.plugin-config-list'}"/>
+<div>
+    <input class="ui-button ui-widget ui-corner-all" id="add-configuration" data-path="${resource.path}" type="button"
+           value="+ Add new plugins configuration"/>
+</div>
+<div data-sly-use.configurations="com.axamit.gc.core.sightly.models.PluginsConfigurationListModel">
+    <div>
+        <table id="configuration-list-table" class="full-width">
+            <thead>
+            <tr>
+                <th>Configuration Name</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody data-sly-list.pluginsConfiguration="${configurations.pluginsConfigurationList}">
+            <tr>
+                <td>${pluginsConfiguration.configurationName}</td>
+                <td><a href="${pluginsConfiguration.createEditlink}">Edit</a> | <a class="delete-config"
+                                                                      data-path="${pluginsConfiguration.resource.path}"
+                                                                      href="javascript:void(0)">Delete</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="delete-confirm-modal" title="Are you sure you want to delete this item?">
+    This action cannot be undone.
+</div>

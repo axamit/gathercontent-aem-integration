@@ -4,6 +4,7 @@
 
 /**
  * Application exceptions.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @Version("1.0")

@@ -1,0 +1,46 @@
+<template data-sly-template.listTemplate="${@ itemList}">
+    <div class="margin-top-15">You can only see items with mapped templates in the table.</div>
+    <script>
+        var importItemsJson = {};
+    </script>
+    <table id="item-list-table" class="display full-width">
+        <thead>
+        <tr>
+            <th><input id="all-items-checkbox" type="checkbox"></th>
+            <th>Status</th>
+            <th>Item Name</th>
+            <th>Template Name</th>
+        </tr>
+        </thead>
+        <tbody data-sly-list.item="${itemList.itemList}">
+        <tr parentId="${item.parentId}" itemId="${item.id}" title="${item.title}" validName="${item.validName}">
+            <td></td>
+            <td>
+                <span class="coloredspan" style="background-color:${item.color @ context='styleToken'}"></span>
+                <span class="item-status">${item.status}</span>
+            </td>
+            <td>
+                <span class="item-title">${item.hierarchyTitle}</span>
+            </td>
+            <script>
+                importItemsJson["${item.id @ context='scriptString'}"] =
+                        JSON.parse("${item.jsonInformation @ context='scriptString'}");
+            </script>
+            <td>
+                <span class="item-template">${item.gcTemplate}</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="margin-bottom-5">
+        <label for="change-status-select">After import change status in GC to </label>
+        <select id="change-status-select" data-sly-list.status="${itemList.projectStatusList}">
+            <option data-sly-test="${statusList.first}" value="">- Don't change status -</option>
+            <option data-color="${status.color}" value="${status.id}">${status.name}</option>
+        </select>
+
+        <select data-sly-test="${!itemList.projectStatusList}">
+            <option>- Don't change status -</option>
+        </select>
+    </div>
+</template>

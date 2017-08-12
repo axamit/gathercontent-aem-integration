@@ -11,6 +11,7 @@ import java.util.List;
 
 /**
  * The <code>ImportItem</code> represents information about list of items need to be imported.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -19,6 +20,8 @@ public final class ImportData {
     private String newStatusId;
     private String newStatusColor;
     private String newStatusName;
+    private String projectName;
+    private String projectId;
 
     /**
      * @return List of items need to be imported.
@@ -62,5 +65,39 @@ public final class ImportData {
 
     public void setNewStatusName(final String newStatusName) {
         this.newStatusName = newStatusName;
+    }
+
+    /**
+     * @return Project name.
+     */
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(final String projectName) {
+        this.projectName = projectName;
+    }
+
+    /**
+     * @return Project id.
+     */
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(final String projectId) {
+        this.projectId = projectId;
+    }
+
+    @Override
+    public String toString() {
+        return "ImportData{"
+            + "items=" + items
+            + ", newStatusId='" + newStatusId + '\''
+            + ", newStatusColor='" + newStatusColor + '\''
+            + ", newStatusName='" + newStatusName + '\''
+            + ", projectName='" + projectName + '\''
+            + ", projectId='" + projectId + '\''
+            + '}';
     }
 }

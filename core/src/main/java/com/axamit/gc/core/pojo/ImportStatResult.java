@@ -4,30 +4,32 @@
 
 package com.axamit.gc.core.pojo;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableList;
+
 import java.util.List;
 
 /**
  * The <code>ImportStatResult</code> represents statistics about import process.
+ *
  * @author Axamit, gc.support@axamit.com
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class ImportStatResult {
     private List<ImportResultItem> importedPages;
-    private int importedNumber;
-    private int failedNumber;
+
+    //! Possible regression
 
     /**
      * Public constructor.
      *
      * @param importedPages  List of results of import.
-     * @param importedNumber Number of successfully imported pages.
-     * @param failedNumber   Number of pages imported with failure.
      */
-    public ImportStatResult(final List<ImportResultItem> importedPages, final int importedNumber,
-                            final int failedNumber) {
+    @JsonCreator
+    public ImportStatResult(@JsonProperty("importedPages") final List<ImportResultItem> importedPages) {
         this.importedPages = importedPages;
-        this.importedNumber = importedNumber;
-        this.failedNumber = failedNumber;
     }
 
     /**
@@ -57,12 +59,7 @@ public final class ImportStatResult {
             }
         }
 
-        importedNumber = newImportedNumber;
-        return importedNumber;
-    }
-
-    public void setImportedNumber(final int importedNumber) {
-        this.importedNumber = importedNumber;
+        return newImportedNumber;
     }
 
     /**
@@ -81,15 +78,17 @@ public final class ImportStatResult {
             }
         }
 
-        failedNumber = newFailedNumber;
-        return failedNumber;
+        return newFailedNumber;
     }
 
-    private ArrayList<ImportResultItem> copyAndGetPages() {
-        return new ArrayList<>(importedPages);
+    private Iterable<ImportResultItem> copyAndGetPages() {
+        return ImmutableList.copyOf(importedPages);
     }
 
-    public void setFailedNumber(final int failedNumber) {
-        this.failedNumber = failedNumber;
+    @Override
+    public String toString() {
+        return "ImportStatResult{"
+            + "importedPages=" + importedPages
+            + '}';
     }
 }

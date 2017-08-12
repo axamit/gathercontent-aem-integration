@@ -4,6 +4,7 @@
 
 package com.axamit.gc.api.dto;
 
+import com.axamit.gc.core.util.GCUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -12,8 +13,8 @@ import java.util.List;
 /**
  * The <code>GCItem</code> class represents items (pages) in GatherContent.
  *
- * @see <a href="https://gathercontent.com/developers/items/get-items-by-id/">Item</a>
  * @author Axamit, gc.support@axamit.com
+ * @see <a href="https://gathercontent.com/developers/items/get-items-by-id/">Item</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCItem {
@@ -32,6 +33,7 @@ public final class GCItem {
     private GCTime createdAt;
     private GCTime updatedAt;
     private GCStatus status;
+    private GCItemType itemType;
 
     /**
      * @return Item ID.
@@ -109,6 +111,11 @@ public final class GCItem {
      */
     public String getName() {
         return name;
+    }
+
+    @JsonProperty("name")
+    public void setEscapedName(final String escapedName) {
+        this.name = GCUtil.unescapeGCString(escapedName);
     }
 
     public void setName(final String name) {
@@ -203,5 +210,18 @@ public final class GCItem {
     @JsonProperty("updated_at")
     public void setUpdatedAt(final GCTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    /**
+     * @return Last type of item in GatherContent.
+     */
+    @JsonProperty("type")
+    public GCItemType getItemType() {
+        return itemType;
+    }
+
+    @JsonProperty("type")
+    public void setItemType(GCItemType itemType) {
+        this.itemType = itemType;
     }
 }

@@ -4,6 +4,7 @@
 
 /**
  * POJO classes used during import process in application.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @Version("1.0")

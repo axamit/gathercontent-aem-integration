@@ -12,15 +12,15 @@ $(function () {
             success: function (data) {
                 var response = JSON.parse(data);
                 if (response.success) {
-                    $('#testConnectionOutput').addClass("success-connection");
+                    $('#testConnectionOutput').addClass("success-connection").removeClass("error-connection");
                     $('#testConnectionOutput').html("Connection successful");
                 } else {
-                    $('#testConnectionOutput').addClass("error-connection");
+                    $('#testConnectionOutput').addClass("error-connection").removeClass("success-connection");
                     $('#testConnectionOutput').html("Invalid credentials");
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                $('#testConnectionOutput').addClass("error-connection");
+                $('#testConnectionOutput').addClass("error-connection").removeClass("success-connection");
                 $('#testConnectionOutput').html("Connection failed");
             }
         });

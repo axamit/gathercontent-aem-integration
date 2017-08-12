@@ -12,8 +12,8 @@ import java.util.concurrent.Future;
 /**
  * Thread pool service.
  *
- * @since 1.0.13 (25.10.2016)
  * @author Axamit, gc.support@axamit.com
+ * @since 1.0.13 (25.10.2016)
  */
 public interface ThreadsPoolProvider {
     /**
@@ -37,4 +37,5 @@ public interface ThreadsPoolProvider {
      *                              which case unfinished tasks are cancelled.
      */
     <T> List<Future<T>> invokeAll(Collection<Callable<T>> callableCollection) throws InterruptedException;
+
 }

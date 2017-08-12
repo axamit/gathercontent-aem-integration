@@ -9,6 +9,7 @@ import com.axamit.gc.core.jobs.ImportJobConsumer;
 import com.axamit.gc.core.util.Constants;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.util.Base64;
@@ -28,6 +29,7 @@ import java.util.Map;
 
 /**
  * Servlet for receiving list items to import and start import job.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @SlingServlet(
@@ -38,6 +40,7 @@ import java.util.Map;
 public final class GCImporterServlet extends GCAbstractServlet {
 
     public static final String UPDATE_SELECTOR = "update";
+    public static final String IMPORT_SIDE_SELECTOR = "gc";
     public static final String SINGLE_SPACE_IN_ENCODED_BASE_64 = "\\s";
     public static final String PLUS_SYMBOL = "+";
     public static final String DATA_REQUEST_PARAMETER = "data";
@@ -63,21 +66,36 @@ public final class GCImporterServlet extends GCAbstractServlet {
             for (String selector : selectors) {
                 if (UPDATE_SELECTOR.equals(selector)) {
                     params.put(ImportJobConsumer.JOB_PARAM_UPDATE_FLAG, true);
-                    break;
+                }
+                if (IMPORT_SIDE_SELECTOR.equals(selector)) {
+                    params.put(ImportJobConsumer.IMPORT_SIDE_UPDATE_FLAG, true);
                 }
             }
-            params.put(ImportJobConsumer.JOB_PARAM_DATA, data);
             GCContext gcContext = getGCContext(request);
-            params.put(ImportJobConsumer.JOB_PARAM_CONTEXT_KEY, gcContext.getApikey());
-            params.put(ImportJobConsumer.JOB_PARAM_CONTEXT_USERNAME, gcContext.getUsername());
-            params.put(ImportJobConsumer.JOB_PARAM_ACCOUNT_ID, getAccountId(request));
             ResourceResolver resourceResolver = request.getResourceResolver();
             PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
             Page page = pageManager.getContainingPage(request.getResource());
-            params.put(ImportJobConsumer.JOB_PARAM_STATUS_STORE, page.getPath());
-            Job importJob = jobManager.addJob(ImportJobConsumer.JOB_TOPIC, params);
-            if (importJob != null) {
-                jsonObject.put("jobId", importJob.getId());
+            String accountId = getAccountId(request);
+            if (StringUtils.isBlank(data)) {
+                getLOGGER().error("Received data about items to import/export is empty");
+            } else if (StringUtils.isBlank(gcContext.getUsername())) {
+                getLOGGER().error("GatherContent User Email Address not found in configuration");
+            } else if (StringUtils.isBlank(gcContext.getApikey())) {
+                getLOGGER().error("GatherContent API key not found in configuration");
+            } else if (StringUtils.isBlank(accountId)) {
+                getLOGGER().error("GatherContent Account Id not found in configuration");
+            } else if (page == null || StringUtils.isBlank(page.getPath())) {
+                getLOGGER().error("GatherContent configuration page not found");
+            } else {
+                params.put(ImportJobConsumer.JOB_PARAM_DATA, data);
+                params.put(ImportJobConsumer.JOB_PARAM_CONTEXT_KEY, gcContext.getApikey());
+                params.put(ImportJobConsumer.JOB_PARAM_CONTEXT_USERNAME, gcContext.getUsername());
+                params.put(ImportJobConsumer.JOB_PARAM_ACCOUNT_ID, accountId);
+                params.put(ImportJobConsumer.JOB_PARAM_STATUS_STORE, page.getPath());
+                Job importJob = jobManager.addJob(ImportJobConsumer.JOB_TOPIC, params);
+                if (importJob != null) {
+                    jsonObject.put("jobId", importJob.getId());
+                }
             }
         } catch (Exception e) {
             getLOGGER().error("Error during processing of request with information about items to import"

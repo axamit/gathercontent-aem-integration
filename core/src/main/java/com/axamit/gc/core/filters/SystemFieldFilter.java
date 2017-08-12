@@ -5,42 +5,42 @@
 package com.axamit.gc.core.filters;
 
 import com.day.cq.wcm.api.NameConstants;
+import com.google.common.collect.ImmutableList;
 
+import java.util.Collection;
+import java.util.List;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Implementation of <code>{@link FieldFilter}</code> interface which provides methods to filter JCR properties to
  * exclude AEM 'system' properties which are not suitable for mapping like all string with 'cq:' or 'sling:' prefixes.
+ *
  * @author Axamit, gc.support@axamit.com
  */
-public final class SystemFieldFilter implements FieldFilter {
+public enum SystemFieldFilter implements FieldFilter {
+    INSTANCE;
 
-    public static final String CQ_PREFIX = "cq:";
-    public static final String SLING_PREFIX = "sling:";
-    private static List<String> forbiddenProperties = new ArrayList<>();
-
-    static {
-        forbiddenProperties.add(NameConstants.PN_CREATED);
-        forbiddenProperties.add(NameConstants.PN_CREATED_BY);
-        forbiddenProperties.add(NameConstants.PN_LAST_MOD);
-        forbiddenProperties.add(NameConstants.PN_LAST_MOD_BY);
-    }
+    private static final String CQ_PREFIX = "cq:";
+    private static final String SLING_PREFIX = "sling:";
+    private static final List<String> FORBIDDEN_PROPERTIES = ImmutableList.of(
+        NameConstants.PN_CREATED,
+        NameConstants.PN_CREATED_BY,
+        NameConstants.PN_LAST_MOD,
+        NameConstants.PN_LAST_MOD_BY);
 
     /**
      * @inheritDoc
      */
     @Override
-    public List<Property> filter(final List<Property> properties) throws RepositoryException {
-        List<Property> filteredProperties = new ArrayList<>();
+    public Collection<Property> filter(final Collection<Property> properties) throws RepositoryException {
+        final ImmutableList.Builder<Property> filteredProperties = ImmutableList.builder();
         for (Property property : properties) {
-            if (!forbiddenProperties.contains(property.getName()) && !property.getName().startsWith(CQ_PREFIX)
-                    && !property.getName().startsWith(SLING_PREFIX) && !property.getDefinition().isProtected()) {
+            if (!FORBIDDEN_PROPERTIES.contains(property.getName()) && !property.getName().startsWith(CQ_PREFIX)
+                && !property.getName().startsWith(SLING_PREFIX) && !property.getDefinition().isProtected()) {
                 filteredProperties.add(property);
             }
         }
-        return filteredProperties;
+        return filteredProperties.build();
     }
 }

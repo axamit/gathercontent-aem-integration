@@ -5,7 +5,7 @@
 package com.axamit.gc.core.services;
 
 import com.axamit.gc.api.GCContext;
-import com.axamit.gc.api.dto.GCElementType;
+import com.axamit.gc.api.dto.GCConfig;
 import com.axamit.gc.api.dto.GCItem;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.pojo.ImportItem;
@@ -15,11 +15,13 @@ import com.day.cq.wcm.api.Page;
 import org.apache.sling.api.resource.LoginException;
 
 import javax.jcr.RepositoryException;
+import java.util.List;
 import java.util.Map;
 
 /**
  * The <tt>PageCreator</tt> interface provides methods to create pages, assets and provide field mapping information,
  * which also needs access to JCR repository in AEM.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 public interface PageCreator {
@@ -32,10 +34,8 @@ public interface PageCreator {
      * @param mimetype   The mime type of the new asset's original binary.
      * @param doSave     Whether the repository changes are saved or not.
      * @return The newly created asset.
-     * @throws LoginException If an error occurs during creating the new ResourceResolver for the service represented
-     *                        by the calling bundle.
      */
-    Asset createAsset(String parentPath, String sourceURL, String mimetype, boolean doSave) throws LoginException;
+    Asset createAsset(String parentPath, String sourceURL, String mimetype, boolean doSave);
 
     /**
      * Update page that already exists in AEM. It used during update process. During new import process it should be
@@ -69,26 +69,29 @@ public interface PageCreator {
      * @param gcItem        GatherContent page item object.
      * @param importDAMPath JCR path (supposed be to path in DAM) to create new assets.
      * @return <tt>Map</tt> with GatherContent field as a key and he newly created assets as a value.
-     * @throws RepositoryException If any error related to access to JCR repository occurs.
-     * @throws LoginException      If an error occurs during creating the new ResourceResolver for the service
-     *                             represented by the calling bundle.
-     * @throws GCException         If error occurred during receiving data from GatherContent.
+     * @throws LoginException If an error occurs during creating the new ResourceResolver for the service
+     *                        represented by the calling bundle.
+     * @throws GCException    If error occurred during receiving data from GatherContent.
      */
-    Map<String, Asset> createGCAssets(GCContext gcContext, GCItem gcItem, String importDAMPath)
-            throws RepositoryException, LoginException, GCException;
+    Map<String, List<Asset>> createGCAssets(GCContext gcContext, GCItem gcItem, String importDAMPath)
+            throws LoginException, GCException;
 
     /**
-     * Get AEM fields suitable to map particular GatherContent element type.
+     * Builds collection of GatherContent field and accordingly AEM fields which could be mapped to this GatherContent
+     * field.
      *
-     * @param gcElementType Information about field type in GatherContent.
-     * @param templatePath  JCR path to 'template page' in AEM.
-     * @return Map with suitable for mapping AEM fields and their names based on dummy information of this fields in
-     * AEM.
-     * @throws LoginException      If an error occurs during creating the new ResourceResolver for the service
-     *                             represented by the calling bundle.
-     * @throws RepositoryException If any error related to access to JCR repository occurs.
+     * @param gcConfigs                 List of GatherContent configs.
+     * @param useAbstract               Use abstract template for mapping combined from set of template pages.
+     * @param addEmptyValue             Add empty mapping option to set of properties.
+     * @param templatePath              JCR path in AEM to template page.
+     * @param configurationPath         JCR path in AEM to Plugins configuration.
+     * @param abstractTemplateLimitPath JCR path in AEM to search for abstract template pages.
+     * @return Collection of mapped GatherContent and AEM fields.
+     * @throws LoginException      If an error occurs during getting ResourceResolver
+     * @throws RepositoryException If any error occurs during access JCR Repository
      */
-    Map<String, String> getFieldMapping(GCElementType gcElementType, String templatePath)
+    Map<String, Map<String, String>> getFieldsMappings(List<GCConfig> gcConfigs, boolean useAbstract, boolean addEmptyValue,
+                                                       String templatePath, String configurationPath, String abstractTemplateLimitPath)
             throws LoginException, RepositoryException;
 
 }

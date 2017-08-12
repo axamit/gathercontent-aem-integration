@@ -1,0 +1,128 @@
+/*
+ * Axamit, gc.support@axamit.com
+ */
+
+#imported-cnt-wrapper {
+    background-color: #AEDD94;
+    font-size: 14px;
+    height: 32px;
+    margin-bottom: 3px;
+}
+
+#imported-cnt {
+    position: absolute;
+    margin-top: 7px;
+    margin-left: 7px;
+}
+
+#failed-cnt-wrapper {
+    background-color: #FFB4B0;
+    font-size: 14px;
+    height: 32px;
+    margin-top: 3px;
+}
+
+#failed-cnt {
+    position: absolute;
+    margin-top: 7px;
+    margin-left: 7px;
+}
+
+.coloredspan {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    position: relative;
+    border-radius: 50px;
+}
+
+.grayout {
+    opacity: 0.5;
+    filter: alpha(opacity=50);
+}
+
+.full-width {
+    width: 100% !important;
+}
+
+.main-menu li {
+    border-top: none;
+    width: auto;
+}
+
+.main-menu-header {
+    font-size: 18px;
+}
+
+.horizontal-li {
+    display: inline;
+    float: left;
+}
+
+ul.main-menu {
+    margin: 0;
+    padding: 0 40px 0 0;
+}
+
+#confirmation-table select, #review-table select {
+    height: 22px;
+    margin-bottom: 4px;
+}
+
+.table-text-input {
+    height: 16px;
+    margin-bottom: 4px;
+}
+
+.clearfix::after {
+    content: " ";
+    clear: both;
+    display: block;
+    height: 0;
+    visibility: hidden;
+}
+
+h1 {
+    width: 660px;
+}
+
+.dataTables_filter {
+    margin-bottom: 10px;
+}
+
+.dataTables_filter input[type=search] {
+    width: 300px;
+}
+
+#global-error-wrapper {
+    display: none;
+    background-color: #FFB4B0;
+    font-size: 14px;
+    height: 32px;
+    margin-top: 3px;
+}
+
+#global-error {
+    position: absolute;
+    margin-top: 7px;
+    margin-left: 7px;
+}
+
+.margin-bottom-5 {
+    margin-bottom: 5px;
+}
+
+#status-change-header {
+    display: none;
+}
+
+.gc-status-line {
+    font-size: 16px;
+    margin-bottom: 2px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.item-title {
+    white-space: pre;
+}

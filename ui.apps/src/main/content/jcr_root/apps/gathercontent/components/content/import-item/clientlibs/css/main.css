@@ -1,0 +1,18 @@
+/*
+ * Axamit, gc.support@axamit.com
+ */
+#result-table-wrapper {
+    display: none;
+}
+
+#result-table {
+    white-space: pre;
+}
+
+#result-cnt-wrapper {
+    margin-bottom: 20px !important;
+}
+
+#import-item-result {
+    margin-bottom: 40px;
+}

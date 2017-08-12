@@ -6,22 +6,29 @@ package com.axamit.gc.api.services;
 
 import com.axamit.gc.api.GCContext;
 import com.axamit.gc.api.dto.GCAccount;
+import com.axamit.gc.api.dto.GCConfig;
 import com.axamit.gc.api.dto.GCData;
 import com.axamit.gc.api.dto.GCFile;
 import com.axamit.gc.api.dto.GCItem;
 import com.axamit.gc.api.dto.GCProject;
 import com.axamit.gc.api.dto.GCTemplate;
 import com.axamit.gc.core.exception.GCException;
+import com.axamit.gc.core.util.GCStringUtil;
 import com.axamit.gc.core.util.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.commons.lang3.time.StopWatch;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
@@ -35,13 +42,16 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.apache.sling.commons.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -49,6 +59,7 @@ import java.util.Scanner;
 /**
  * OSGI service implements <tt>GCContentApi</tt> interface provides methods to get information from remote
  * GatherContent server.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @Service(value = GCContentApi.class)
@@ -56,6 +67,16 @@ import java.util.Scanner;
 public final class GCContentApiImpl implements GCContentApi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GCContentApiImpl.class);
+    private static final String SUCCESS_POST_CALL_FLAG = "success";
+    private static final String PARAM_ACCOUNT_ID = "account_id";
+    private static final String PARAM_PARENT_ID = "parent_id";
+    private static final String PARAM_PROJECT_ID = "project_id";
+    private static final String PARAM_STATUS_ID = "status_id";
+    private static final String PARAM_TEMPLATE_ID = "template_id";
+    private static final String PARAM_CONFIG = "config";
+    private static final String PARAM_NAME = "name";
+    private static final String PARAM_TYPE = "type";
+    private static final String JSON_DATA_NODE_NAME = "data";
 
     /**
      * @inheritDoc
@@ -64,7 +85,7 @@ public final class GCContentApiImpl implements GCContentApi {
     public JSONObject me(final GCContext gcContext) throws GCException {
         String content = apiCall("/me", gcContext);
         if ("Invalid credentials.".equals(content)) {
-            LOGGER.error("Invalid credentials.");
+            LOGGER.warn(content);
             return null;
         }
         return JSONUtil.fromJsonToJSonObject(content);
@@ -77,38 +98,66 @@ public final class GCContentApiImpl implements GCContentApi {
     public List<GCAccount> accounts(final GCContext gcContext) throws GCException {
         String content = apiCall("/accounts", gcContext);
         JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
-        String extractedResult = jsonNode.get("data").toString();
-        List<GCAccount> gcAccountList = JSONUtil.fromJsonToListObject(extractedResult, GCAccount.class);
-        return gcAccountList;
+        String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
+        return JSONUtil.fromJsonToListObject(extractedResult, GCAccount.class);
+    }
+
+    private static String apiCall(final String url, final GCContext gcContext) throws GCException {
+        return apiCall(url, gcContext, null);
     }
 
     /**
      * @inheritDoc
      */
     @Override
-    public List<GCProject> projects(final GCContext gcContext, final String accountId) throws GCException {
-        List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("account_id", accountId));
-        String content = apiCall("/projects", gcContext, params);
+    public GCProject project(final GCContext gcContext, final String projectID) throws GCException {
+        String content = apiCall("/projects/" + projectID, gcContext);
         JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
-        String extractedResult = jsonNode.get("data").toString();
-        List<GCProject> gcProjectList = JSONUtil.fromJsonToListObject(extractedResult, GCProject.class);
-        return gcProjectList;
+        String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
+        return JSONUtil.fromJsonToObject(extractedResult, GCProject.class);
     }
 
     /**
      * @inheritDoc
      */
     @Override
-    public List<GCTemplate> templates(final GCContext gcContext, final String projectID) throws GCException {
+    public Boolean createProject(final GCContext gcContext, final String accountId, final String projectName,
+                                 final String type) {
         List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("project_id", projectID));
-        String content = apiCall("/templates", gcContext, params);
+        params.add(new BasicNameValuePair(PARAM_ACCOUNT_ID, accountId));
+        params.add(new BasicNameValuePair(PARAM_NAME, projectName));
+        params.add(new BasicNameValuePair(PARAM_TYPE, type));
+        return Boolean.parseBoolean(apiPostCall("/projects", gcContext, params, null).get(SUCCESS_POST_CALL_FLAG));
+    }
 
-        JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
-        String extractedResult = jsonNode.get("data").toString();
-        List<GCTemplate> templatesList = JSONUtil.fromJsonToListObject(extractedResult, GCTemplate.class);
-        return templatesList;
+    private static Map<String, String> apiPostCall(final String url, final GCContext gcContext,
+                                                   final List<NameValuePair> params, final String[] headers) {
+        HttpPost httpPost = new HttpPost(gcContext.getApiURL() + url);
+        httpPost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
+        Map<String, String> returnObject = new HashMap<>();
+
+        HttpClient httpClient = setHeadersAndAuth(httpPost, gcContext);
+        try {
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            if (statusCode != HttpStatus.SC_ACCEPTED) {
+                String responseEntityContent = EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8);
+                LOGGER.error("Requested GatherContent URL: " + httpPost.getURI()
+                    + System.lineSeparator() + "Response: " + httpResponse.toString()
+                    + System.lineSeparator() + "ResponseEntity: " + responseEntityContent);
+            } else if (headers != null) {
+                for (String header : headers) {
+                    Header firstHeader = httpResponse.getFirstHeader(header);
+                    if (firstHeader != null) {
+                        returnObject.put(header, httpResponse.getFirstHeader(header).getValue());
+                    }
+                }
+            }
+            returnObject.put(SUCCESS_POST_CALL_FLAG, Boolean.toString(statusCode == HttpStatus.SC_ACCEPTED));
+        } catch (IOException e) {
+            LOGGER.error("Request to GatherContent URL: {} failed. {}", httpPost.getURI(), e.getMessage());
+        }
+        return returnObject;
     }
 
     /**
@@ -133,30 +182,46 @@ public final class GCContentApiImpl implements GCContentApi {
     public GCItem itemById(final GCContext gcContext, final String itemId) throws GCException {
         String content = apiCall("/items/" + itemId, gcContext);
         JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
-        String extractedResult = jsonNode.get("data").toString();
-        GCItem item = JSONUtil.fromJsonToObject(extractedResult, GCItem.class);
-        return item;
+        String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
+        return JSONUtil.fromJsonToObject(extractedResult, GCItem.class);
+    }
+
+    private static String apiCall(final String url, final GCContext gcContext, final Iterable<NameValuePair> params)
+        throws GCException {
+        StringBuilder requestUrl = new StringBuilder(gcContext.getApiURL()).append(url);
+        if (params != null) {
+            requestUrl.append("?").append(URLEncodedUtils.format(params, StandardCharsets.UTF_8));
+        }
+        HttpUriRequest httpUriRequest = new HttpGet(requestUrl.toString());
+
+        HttpClient httpClient = setHeadersAndAuth(httpUriRequest, gcContext);
+
+        try {
+            HttpResponse httpResponse = httpClient.execute(httpUriRequest);
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            StringBuilder stringBuilder = new StringBuilder();
+            Scanner scanner = new Scanner(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8.name());
+            while (scanner.hasNextLine()) {
+                stringBuilder.append(scanner.nextLine());
+            }
+            if (statusCode == HttpStatus.SC_OK) {
+                return stringBuilder.toString(); //new String(httpResponse.getEntity().getContent());
+            } else {
+                throw new GCException("Requested GatherContent URL: " + httpUriRequest.getURI()
+                    + System.lineSeparator() + "Response: " + httpResponse.toString()
+                    + System.lineSeparator() + "ResponseEntity: " + stringBuilder.toString());
+            }
+        } catch (IOException e) {
+            LOGGER.error("Request to GatherContent URL: {} failed. {}", httpUriRequest.getURI(), e.getMessage());
+            throw new GCException(e);
+        }
     }
 
     /**
      * @inheritDoc
      */
     @Override
-    public List<GCItem> itemsByProjectId(final GCContext gcContext, final String projectId) throws GCException {
-        List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("project_id", projectId));
-        String content = apiCall("/items", gcContext, params);
-        JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
-        String extractedResult = jsonNode.get("data").toString();
-        List<GCItem> items = JSONUtil.fromJsonToListObject(extractedResult, GCItem.class);
-        return items;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public List<GCItem> itemsByProjectIdandTemplateId(final GCContext gcContext, final String projectId,
+    public List<GCItem> itemsByProjectIdAndTemplateId(final GCContext gcContext, final String projectId,
                                                       final String templateId, final boolean fetch) throws GCException {
         List<GCItem> allItems = itemsByProjectId(gcContext, projectId);
         List<GCItem> filteredItems = new ArrayList<>();
@@ -180,7 +245,7 @@ public final class GCContentApiImpl implements GCContentApi {
     public List<GCData> statusesByProjectId(final GCContext gcContext, final String projectId) throws GCException {
         String content = apiCall("/projects/" + projectId + "/statuses", gcContext);
         JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
-        String extractedResult = jsonNode.get("data").toString();
+        String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
         return JSONUtil.fromJsonToListObject(extractedResult, GCData.class);
     }
 
@@ -191,95 +256,22 @@ public final class GCContentApiImpl implements GCContentApi {
     public List<GCFile> filesByItemId(final GCContext gcContext, final String itemId) throws GCException {
         String content = apiCall("/items/" + itemId + "/files", gcContext);
         JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
-        String extractedResult = jsonNode.get("data").toString();
-        List<GCFile> gcFileList = JSONUtil.fromJsonToListObject(extractedResult, GCFile.class);
-        return gcFileList;
+        String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
+        return JSONUtil.fromJsonToListObject(extractedResult, GCFile.class);
     }
 
     /**
      * @inheritDoc
      */
     @Override
-    public Boolean updateItemStatus(final GCContext gcContext, final String itemId, final String statusId)
-            throws GCException {
+    public Boolean updateItemStatus(final GCContext gcContext, final String itemId, final String statusId) {
         List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("status_id", statusId));
-        return apiPostCall("/items/" + itemId + "/choose_status", gcContext, params);
+        params.add(new BasicNameValuePair(PARAM_STATUS_ID, statusId));
+        return Boolean.parseBoolean(apiPostCall("/items/" + itemId + "/choose_status", gcContext, params, null)
+                .get(SUCCESS_POST_CALL_FLAG));
     }
 
-    private String apiCall(final String url, final GCContext gcContext) throws GCException {
-        return apiCall(url, gcContext, null);
-    }
-
-    private Boolean apiPostCall(final String url, final GCContext gcContext, final List<NameValuePair> params) {
-        HttpUriRequest httpUriRequest;
-        HttpPost httpPost = new HttpPost(gcContext.getApiURL() + url);
-        try {
-            httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            LOGGER.error(e.getMessage(), e);
-        }
-        httpUriRequest = httpPost;
-
-        HttpClient httpClient = setHeadersAndAuth(httpUriRequest, gcContext);
-        try {
-            StopWatch sw = new StopWatch();
-            sw.start();
-            HttpResponse httpResponse = httpClient.execute(httpUriRequest);
-            sw.stop();
-            LOGGER.debug("Execution time: POST CALL to GC URL {} - {} ms", httpUriRequest.getURI(), sw.getTime());
-            int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (statusCode == HttpStatus.SC_ACCEPTED) {
-                return true;
-            } else {
-                LOGGER.error("Request to GatherContent URL: {} failed. Response: {}",
-                        httpUriRequest.getURI(), httpResponse.toString());
-                return false;
-            }
-        } catch (IOException e) {
-            LOGGER.error("Request to GatherContent URL: {} failed. {}", httpUriRequest.getURI(), e.getMessage());
-        }
-        return false;
-    }
-
-    private String apiCall(final String url, final GCContext gcContext, final List<NameValuePair> params)
-            throws GCException {
-        StringBuilder requestUrl = new StringBuilder(gcContext.getApiURL()).append(url);
-        if (params != null) {
-            String querystring = URLEncodedUtils.format(params, "utf-8");
-            requestUrl.append("?");
-            requestUrl.append(querystring);
-        }
-        HttpUriRequest httpUriRequest = new HttpGet(requestUrl.toString());
-
-        HttpClient httpClient = setHeadersAndAuth(httpUriRequest, gcContext);
-
-        try {
-            StopWatch sw = new StopWatch();
-            sw.start();
-            HttpResponse httpResponse = httpClient.execute(httpUriRequest);
-            sw.stop();
-            LOGGER.debug("Execution time: GET CALL to GC URL {} - {} ms", httpUriRequest.getURI(), sw.getTime());
-            int statusCode = httpResponse.getStatusLine().getStatusCode();
-            StringBuilder stringBuilder = new StringBuilder();
-            Scanner scanner = new Scanner(httpResponse.getEntity().getContent(), "UTF-8");
-            while (scanner.hasNextLine()) {
-                stringBuilder.append(scanner.nextLine());
-            }
-            if (statusCode == HttpStatus.SC_OK) {
-                return stringBuilder.toString(); //new String(httpResponse.getEntity().getContent());
-            } else {
-                throw new GCException("Requested GatherContent URL: " + httpUriRequest.getURI()
-                        + System.lineSeparator() + "Response: " + httpResponse.toString()
-                        + System.lineSeparator() + "ResponseEntity: " + stringBuilder.toString());
-            }
-        } catch (IOException e) {
-            LOGGER.error("Request to GatherContent URL: {} failed. {}", httpUriRequest.getURI(), e.getMessage());
-            throw new GCException(e);
-        }
-    }
-
-    private HttpClient setHeadersAndAuth(final HttpUriRequest httpUriRequest, final GCContext gcContext) {
+    private static HttpClient setHeadersAndAuth(final HttpRequest httpUriRequest, final GCContext gcContext) {
         for (Map.Entry<String, String> entry : gcContext.getHeaders().entrySet()) {
             Header header = new BasicHeader(entry.getKey(), entry.getValue());
             httpUriRequest.setHeader(header);
@@ -287,17 +279,115 @@ public final class GCContentApiImpl implements GCContentApi {
 
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
         String username = gcContext.getUsername();
-        String apikey = gcContext.getApikey();
-        if (username != null && apikey != null) {
+        String apiKey = gcContext.getApikey();
+        if (username != null && apiKey != null) {
             //this is hack for httpclient 4.3.4
-            UsernamePasswordCredentials creds = new UsernamePasswordCredentials(username, apikey);
-            httpUriRequest.addHeader(BasicScheme.authenticate(creds, "US-ASCII", false));
+            try {
+                Credentials credentials = new UsernamePasswordCredentials(username, apiKey);
+                httpUriRequest.addHeader(new BasicScheme().authenticate(credentials, httpUriRequest, null));
+            } catch (AuthenticationException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
 
             CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, apikey));
+            credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, apiKey));
             httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
         }
 
         return httpClientBuilder.build();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public List<GCProject> projects(final GCContext gcContext, final String accountId) throws GCException {
+        Collection<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair(PARAM_ACCOUNT_ID, accountId));
+        String content = apiCall("/projects", gcContext, params);
+        JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
+        String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
+        return JSONUtil.fromJsonToListObject(extractedResult, GCProject.class);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public List<GCTemplate> templates(final GCContext gcContext, final String projectID) throws GCException {
+        Collection<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair(PARAM_PROJECT_ID, projectID));
+        String content = apiCall("/templates", gcContext, params);
+
+        JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
+        String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
+        return JSONUtil.fromJsonToListObject(extractedResult, GCTemplate.class);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public List<GCItem> itemsByProjectId(final GCContext gcContext, final String projectId) throws GCException {
+        Collection<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair(PARAM_PROJECT_ID, projectId));
+        String content = apiCall("/items", gcContext, params);
+        JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
+        String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
+        return JSONUtil.fromJsonToListObject(extractedResult, GCItem.class);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public Boolean applyItemTemplate(final GCContext gcContext, final String itemId, final String templateId) {
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair(PARAM_TEMPLATE_ID, templateId));
+        return Boolean.parseBoolean(apiPostCall("/items/" + itemId + "/apply_template", gcContext, params, null)
+                .get(SUCCESS_POST_CALL_FLAG));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public String createItem(final GCItem gcItem, final GCContext gcContext) throws GCException {
+
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair(PARAM_PROJECT_ID, gcItem.getProjectId()));
+        params.add(new BasicNameValuePair(PARAM_NAME, gcItem.getName()));
+        params.add(new BasicNameValuePair(PARAM_PARENT_ID, gcItem.getParentId()));
+        params.add(new BasicNameValuePair(PARAM_TEMPLATE_ID, gcItem.getTemplateId()));
+
+        List<GCConfig> gcConfigs = gcItem.getConfig();
+        if (gcConfigs != null && gcConfigs.size() != NumberUtils.INTEGER_ZERO) {
+            String itemJSON = JSONUtil.fromObjectToJsonString(gcConfigs);
+            byte[] encodedBytes = Base64.encodeBase64(itemJSON.getBytes(StandardCharsets.UTF_8));
+            params.add(new BasicNameValuePair(PARAM_CONFIG, new String(encodedBytes, StandardCharsets.UTF_8)));
+        }
+        Map<String, String> returnObject = apiPostCall("/items/", gcContext, params, new String[]{HttpHeaders.LOCATION});
+        String id = GCStringUtil.getLastURLPartOrNull(returnObject.get(HttpHeaders.LOCATION));
+        if (Boolean.parseBoolean(returnObject.get(SUCCESS_POST_CALL_FLAG))) {
+            return id;
+        }
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public Boolean updateItem(final List<GCConfig> gcConfigs, final String itemId, final GCContext gcContext)
+            throws GCException {
+        List<NameValuePair> params = new ArrayList<>();
+
+        String itemJSON = JSONUtil.fromObjectToJsonString(gcConfigs);
+        byte[] encodedBytes = Base64.encodeBase64(itemJSON.getBytes(StandardCharsets.UTF_8));
+
+        params.add(new BasicNameValuePair(PARAM_CONFIG, new String(encodedBytes, StandardCharsets.UTF_8)));
+
+        return Boolean.parseBoolean(apiPostCall("/items/" + itemId + "/save", gcContext, params, null)
+                .get(SUCCESS_POST_CALL_FLAG));
     }
 }

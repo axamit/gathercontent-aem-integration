@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * The <code>GCProject</code> class represents project.
  *
- * @see <a href="https://gathercontent.com/developers/projects/get-projects-by-id/">Project</a>
  * @author Axamit, gc.support@axamit.com
+ * @see <a href="https://gathercontent.com/developers/projects/get-projects-by-id/">Project</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCProject {

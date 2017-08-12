@@ -1,0 +1,72 @@
+<template data-sly-template.pageTemplate="${@ header, reviewTableHeader, confirmationTableHeader}">
+    <div id="import-table-wrapper" data-sly-use.itemList="com.axamit.gc.core.sightly.models.ItemListModel">
+        <h1>
+            ${header}
+        </h1>
+
+        <div>
+            <label class="property-label" for="import-project-select">Project</label>
+            <div>
+                <select class="filter-select" id="import-project-select">
+                    <option value="">Select Project</option>
+                    <sly data-sly-list.project="${itemList.projects}">
+                        <option value="${project.id}">${project.name}</option>
+                    </sly>
+                </select>
+            </div>
+            <div class="property-description">Select GatherContent project. You can only see projects
+                with mapped templates in the dropdown.
+            </div>
+        </div>
+
+        <div class="margin-top-5">
+            <label class="property-label" for="template-filter">Filter</label>
+            <div>
+                <select class="filter-select" id="template-filter">
+                    <option value="">Select Template</option>
+                </select>
+                <select class="filter-select" id="status-filter">
+                    <option value="">Select Status</option>
+                </select>
+                <input placeholder="Filter by Item Name" id="title-filter" value=""/>
+            </div>
+            <div class="property-description">Filter Items by template, workflow status or Item name</div>
+        </div>
+
+        <div id="import-table">
+            <sly data-sly-use.listView="templates/list-template.html"
+                 data-sly-call="${listView.listTemplate @ itemList = itemList}">
+            </sly>
+        </div>
+        <input class="ui-button ui-widget ui-corner-all" id="import-items" type="button" value="Next"/>
+    </div>
+
+    <div id="review-table-wrapper">
+        <h1>${reviewTableHeader}</h1>
+        <table id="review-table" class="full-width">
+        </table>
+        <input class="ui-button ui-widget ui-corner-all" id="cancel-review" type="button" value="Cancel"/>
+        <input class="ui-button ui-widget ui-corner-all" id="confirm-review" type="button"
+               value="Import"/>
+    </div>
+
+    <div id="confirmation-table-wrapper">
+        <h1>${confirmationTableHeader}</h1>
+        <div id="status-change-header" class="gc-status-line"></div>
+        <div class="property-description">Please review your selection before importing.</div>
+        <table id="confirmation-table" class="full-width">
+        </table>
+        <input class="ui-button ui-widget ui-corner-all" id="cancel-import" type="button" value="Cancel"/>
+        <input class="ui-button ui-widget ui-corner-all" id="confirm-import" data-pagepath="${currentPage.path}"
+               data-path="${resource.path}" type="button" value="Confirm"/>
+    </div>
+
+    <div id="empty-list-modal" title="WARNING">
+        Please select at least one item.
+    </div>
+
+    <div id="leave-page-modal" title="Are you sure?">
+        Any unsaved changes will be lost.
+    </div>
+
+</template>

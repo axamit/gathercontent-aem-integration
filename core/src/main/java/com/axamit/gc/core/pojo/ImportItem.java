@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The <code>ImportItem</code> represents information about item need to be imported.
+ * The <code>ImportItem</code> represents information about item need to be imported or exported.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -22,9 +23,27 @@ public final class ImportItem {
     private String importPath;
     private String title;
     private String template;
+    private String gcTemplateId;
     private List<ImportItem> children = new ArrayList<>();
-    private String slug;
+    private String slug; //! May items have different slugs?
     private GCData newStatusData;
+    private String gcTargetItemName = "";
+    private String gcTargetItemId = "0";
+    private Boolean isProceed = false;
+    private String aemTitle;
+    private Integer importIndex;
+    private String mappingName;
+
+    /**
+     * @return Index number as it came to be processed.
+     */
+    public Integer getImportIndex() {
+        return importIndex;
+    }
+
+    public void setImportIndex(Integer importIndex) {
+        this.importIndex = importIndex;
+    }
 
     /**
      * @return ID of GatherContent item.
@@ -124,6 +143,92 @@ public final class ImportItem {
 
     public void setNewStatusData(final GCData newStatusData) {
         this.newStatusData = newStatusData;
+    }
+
+    /**
+     * @return Name of item in GatherContent which will act as parent item for export.
+     */
+    public String getGcTargetItemName() {
+        return gcTargetItemName;
+    }
+
+    public void setGcTargetItemName(final String gcTargetItemName) {
+        this.gcTargetItemName = gcTargetItemName;
+    }
+
+    /**
+     * @return ID of item in GatherContent which will act as parent item for export.
+     */
+    public String getGcTargetItemId() {
+        return gcTargetItemId;
+    }
+
+    public void setGcTargetItemId(final String gcTargetItemId) {
+        this.gcTargetItemId = gcTargetItemId;
+    }
+
+    /**
+     * @return ID of GatherContent template.
+     */
+    public String getGcTemplateId() {
+        return gcTemplateId;
+    }
+
+    public void setGcTemplateId(final String gcTemplateId) {
+        this.gcTemplateId = gcTemplateId;
+    }
+
+    /**
+     * @return AEM title for export.
+     */
+    public String getAemTitle() {
+        return aemTitle;
+    }
+
+    public void setAemTitle(final String aemTitle) {
+        this.aemTitle = aemTitle;
+    }
+
+    /**
+     * @return True if item was already proceed, false otherwise.
+     */
+    public Boolean getProceed() {
+        return isProceed;
+    }
+
+    public void setProceed(final Boolean proceed) {
+        isProceed = proceed;
+    }
+
+    /**
+     * @return Mapping Name.
+     */
+    public String getMappingName() {
+        return mappingName;
+    }
+
+    public void setMappingName(String mappingName) {
+        this.mappingName = mappingName;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ImportItem that = (ImportItem) o;
+
+        return importPath != null ? importPath.equals(that.importPath) : that.importPath == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return importPath != null ? importPath.hashCode() : 0;
     }
 
     @Override

@@ -1,0 +1,129 @@
+<sly data-sly-use.clientlib="/libs/granite/sightly/templates/clientlib.html"
+     data-sly-call="${clientlib.all @ categories='apps.gathercontent.components.mapping-export'}"/>
+<h1>
+    Export Mappings
+</h1>
+<div class="mapping" data-sly-use.mapper="com.axamit.gc.core.sightly.models.ExportMapperModel">
+    <div id="CQ">
+        <div id="CQ-MAPPING-FORM-WRAPPER"></div>
+        <div id="mapper-mapping-name" data-value="${mapper.mappingName}"></div>
+        <div id="mapper-template-path" data-value="${mapper.templatePath}"></div>
+        <div id="mapper-abstract-template-limit-path" data-value="${mapper.abstractTemplateLimitPath}"></div>
+    </div>
+    <div>
+        <!--/*
+        <form>
+            <div id="plugin-conf-wrapper">
+                <label for="config-select" class="conf-label">Plugins Config</label>
+                <div class="select-wrapper">
+                    <select class="required reload-mapping" id="config-select"
+                            data-sly-list.pluginsConfiguration="${mapper.pluginsConfigurationListModel.pluginsConfigurationList}">
+                        <option value="${pluginsConfiguration.resource.path}"
+                                selected="${mapper.pluginConfigPath == pluginsConfiguration.resource.path?'selected':''}">
+                            ${pluginsConfiguration.configurationName}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </form>
+        */-->
+        <form>
+            <div class="conf-wrapper">
+                <label for="project-select" class="conf-label">GatherContent Project (*)</label>
+                <div class="select-wrapper">
+                    <select class="required reload-mapping" id="project-select">
+                        <option value="">Select Project</option>
+                        <sly data-sly-list.projectEntry="${mapper.projects.entrySet}">
+                            <option value="${projectEntry.key}"
+                                    selected="${mapper.projectId == projectEntry.key ? 'selected':''}">
+                                ${projectEntry.value}
+                            </option>
+                        </sly>
+                    </select>
+                </div>
+                <div class="x-form-item-description">Select GatherContent Project.</div>
+            </div>
+        </form>
+
+        <form id="gc-mapping-type-form">
+            <div class="conf-wrapper">
+                <label for="gc-mapping-type-select" class="conf-label">Mapping type (*)</label>
+                <div class="select-wrapper">
+                    <select class="required" id="gc-mapping-type-select">
+                        <option value="" selected="${!mapper.projectId ? 'selected' : ''}">Select Type</option>
+                        <option value="1" selected="${mapper.projectId && mapper.mappingType.toString == 'TEMPLATE' ? 'selected' : ''}">Template</option>
+                        <option value="3" selected="${mapper.projectId && mapper.mappingType.toString == 'CUSTOM_ITEM' ? 'selected' : ''}">Custom Structure</option>
+                    </select>
+                </div>
+                <div class="x-form-item-description">Select the source mapping type you'd like to map.</div>
+            </div>
+        </form>
+
+
+        <form id="gctemplate-form" class="${mapper.projectId && mapper.mappingType.toString == 'TEMPLATE' || (mapper.projectId && !mapper.mappingType) ? '' : 'hide'}">
+            <div class="conf-wrapper">
+                <label for="gctemplate-select" class="conf-label">Project Template (*)</label>
+                <div class="select-wrapper">
+                    <select class="required reload-mapping" id="gctemplate-select">
+                        <option value="">Select Template</option>
+                        <sly data-sly-test="${mapper.projectId && mapper.mappingType.toString == 'TEMPLATE'}" data-sly-list.templateEntry="${mapper.templates.entrySet}">
+                            <option value="${templateEntry.key}"
+                                    selected="${mapper.templateId == templateEntry.key?'selected':''}">
+                                ${templateEntry.value}
+                            </option>
+                        </sly>
+                    </select>
+                </div>
+                <div class="x-form-item-description">Select the GatherContent Project Template you'd like to map.</div>
+            </div>
+        </form>
+
+
+        <form id="gccustomitem-form" class="${mapper.projectId && mapper.mappingType.toString == 'CUSTOM_ITEM' ? '' : 'hide'}">
+            <div class="conf-wrapper">
+                <label for="gccustomitem-select" class="conf-label">Project Custom Structure (*)</label>
+                <div class="select-wrapper">
+                    <select class="required" id="gccustomitem-select">
+                        <option value="">Select Custom Structure</option>
+                        <sly data-sly-test="${mapper.projectId && mapper.mappingType.toString == 'CUSTOM_ITEM'}" data-sly-list.templateEntry="${mapper.templates.entrySet}">
+                            <option value="${templateEntry.key}"
+                                    selected="${mapper.templateId == templateEntry.key?'selected':''}">
+                                ${templateEntry.value}
+                            </option>
+                        </sly>
+                    </select>
+                </div>
+                <div class="x-form-item-description">Select the GatherContent Project Custom Structure you'd like to map.</div>
+            </div>
+        </form>
+
+
+
+    </div>
+
+    <div id="mapper-container" class="mapper-container">
+        <sly data-sly-use.mapperView="mapper-template.html"
+             data-sly-call="${mapperView.mapperTemplate @ mapper = mapper}">
+        </sly>
+    </div>
+    <br>
+    <input id="cancel-edit" class="cancelEditOfMapping ui-button ui-widget ui-corner-all" type="button"
+           value="Cancel"/>
+    <input class="saveMapping ui-button ui-widget ui-corner-all" data-path="${resource.path}" type="button"
+           value="Save"/>
+</div>
+
+<div id="empty-mapping-modal" title="WARNING">
+    At least one field should be mapped.
+</div>
+
+<div id="empty-template-path" title="WARNING">
+    AEM Template Page path does not exist in the repository.
+</div>
+
+<div id="moveTo-mapping-modal" title="Are you sure?">
+
+</div>
+<div id="leave-mapping-modal" title="Are you sure?">
+    Any unsaved changes will be lost.
+</div>

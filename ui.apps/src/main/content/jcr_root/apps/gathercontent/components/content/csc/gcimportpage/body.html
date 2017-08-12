@@ -1,0 +1,11 @@
+<body>
+<sly data-sly-include="header.html"/>
+<p class="cq-clear-for-ie7"></p>
+
+<div id="global-error-wrapper">
+    <span id="global-error"></span>
+</div>
+
+<sly data-sly-use.pageModel="com.axamit.gc.core.sightly.models.GCCloudServicePageModel"
+     data-sly-include="content.${pageModel.renderer}.html"/>
+</body>

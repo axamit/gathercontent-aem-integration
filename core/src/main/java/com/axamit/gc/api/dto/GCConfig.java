@@ -12,6 +12,7 @@ import java.util.List;
 
 /**
  * The <code>GCConfig</code> is a POJO class represent item config info.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -33,7 +34,7 @@ public final class GCConfig {
 
     @JsonProperty("label")
     public void setEscapedLabel(final String escapedLabel) {
-        this.label = GCUtil.unescapeGCString(escapedLabel);
+        label = GCUtil.unescapeGCString(escapedLabel);
     }
 
     public void setLabel(final String label) {

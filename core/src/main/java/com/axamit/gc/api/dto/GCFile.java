@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * The <code>GCFile</code> class represents file (attachment).
  *
- * @see <a href="https://gathercontent.com/developers/items/get-items-files/">Files</a>
  * @author Axamit, gc.support@axamit.com
+ * @see <a href="https://gathercontent.com/developers/items/get-items-files/">Files</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCFile {

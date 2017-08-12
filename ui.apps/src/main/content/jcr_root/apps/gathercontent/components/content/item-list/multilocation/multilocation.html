@@ -1,0 +1,8 @@
+<sly data-sly-use.clientlib="/libs/granite/sightly/templates/clientlib.html"
+     data-sly-call="${clientlib.all @ categories='apps.gathercontent.components.item-list'}"/>
+<sly data-sly-use.pageView="templates/page-template.html"
+     data-sly-call="${pageView.pageTemplate @
+     header = 'Multilocation Import',
+     reviewTableHeader = 'Multilocation Import',
+     confirmationTableHeader = 'Confirm Multilocation Import Selection'}">
+</sly>

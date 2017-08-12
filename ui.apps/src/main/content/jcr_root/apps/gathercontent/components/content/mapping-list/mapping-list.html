@@ -1,60 +1,75 @@
-<h1>
-    Mappings
-</h1>
+<sly data-sly-use.clientlib="/libs/granite/sightly/templates/clientlib.html"
+     data-sly-call="${clientlib.all @ categories='apps.gathercontent.components.mapping-list'}"/>
+<sly data-sly-use.mappings="com.axamit.gc.core.sightly.models.MapperListModel">
 
-<div>
-    <input class="ui-button ui-widget ui-corner-all" id="add-mapping" data-path="${resource.path}" type="button"
-           value="+ Add New Mapping"/>
-</div>
-<div data-sly-use.mappings="com.axamit.gc.core.sightly.models.MapperListModel">
+    <h1>
+        ${mappings.typeLabel}
+    </h1>
+
     <div>
-        <table id="mapping-list-table" class="full-width">
-            <thead>
-            <tr>
-                <th>GatherContent Project</th>
-                <th>GatherContent Template</th>
-                <th>Mapping Name</th>
-                <th>AEM Template Page</th>
-                <th>Last Mapped</th>
-                <th>Last Updated in GatherContent</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody data-sly-list.mapping="${mappings.mappingList}">
-            <tr>
-                <td>${mapping.projectName}</td>
-                <td>${mapping.templateName}</td>
-                <td>${mapping.mappingName}</td>
-                <td>${mapping.aemTemplatePageTitle} <br> <i>${mapping.templatePath}</i> </td>
-                <td>${mapping.lastMapped}</td>
-                <td>${mapping.lastUpdated}</td>
-                <td><a href="${mapping.createEditlink}">Edit</a> | <a class="delete-mapping"
-                                                                      data-path="${mapping.resource.path}"
-                                                                      href="javascript:void(0)">Delete</a></td>
-            </tr>
-            </tbody>
-        </table>
+        <input class="addNewMappingButton ui-button ui-widget ui-corner-all" id="add-mapping"
+               data-path="${resource.path}" data-sideselector="${mappings.mappingSideSelector}"
+               type="button" data-pagepath="${currentPage.path}"
+               value="+ Add New Mapping"/>
     </div>
-</div>
+    <br>
+    <div id="mapping-updated-cnt-wrapper">
+        <span id="mapping-updated-cnt"></span>
+    </div>
+    <br>
+    <div>
+        <div>
+            <table id="mapping-list-table" class="full-width">
+                <thead>
+                <tr>
+                    <th>GatherContent Project</th>
+                    <th>GatherContent Template</th>
+                    <th>Mapping Name</th>
+                    <th>AEM Template Page</th>
+                    <th>Last Mapped</th>
+                    <th>Last Updated in GatherContent</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody data-sly-list.mapping="${mappings.mappingList}">
+                <tr>
+                    <td>${mapping.projectName}</td>
+                    <td>
+                        <span data-sly-test="${mapping.templateName != 'Template not found.'}">${mapping.templateName}</span>
+                        <span data-sly-test="${mapping.templateName == 'Template not found.'}"
+                              class="mapping-template-name">${mapping.templateName}</span>
+                    </td>
+                    <td>${mapping.mappingName}</td>
+                    <td>${mapping.aemTemplatePageTitle} <br> <i>${mapping.templatePath}</i></td>
+                    <td>${mapping.lastMapped}</td>
+                    <td>${mapping.lastUpdated}</td>
+                    <td>
+                        <a href="${mapping.createEditlink}">Edit</a>
+                        | <a class="delete-mapping" data-path="${mapping.resource.path}"
+                             href="javascript:void(0)">Delete</a>
 
-<div id="mapping-updated-cnt-wrapper" style="display: none">
-    <span id="mapping-updated-cnt"></span>
-</div>
+                        | <a class="copyLink" data-mappingName="${mapping.mappingName}"
+                             data-about="${mapping.resource.path}" href="javascript:void(0);">Copy</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-<div id="delete-confirm-modal" title="Are you sure you want to delete this item?">
-    This action cannot be undone.
-</div>
-
-<script>
-    $('document').ready(function () {
-        var createdUpdatedMapping = localStorage.getItem("createdUpdatedMapping");
-        if (createdUpdatedMapping) {
-            localStorage.removeItem("createdUpdatedMapping");
-            $('#mapping-updated-cnt').html(createdUpdatedMapping);
-            $('#mapping-updated-cnt-wrapper').show();
-            setTimeout(function () {
-                $('#mapping-updated-cnt-wrapper').hide();
-            }, 5000);
-        }
-    });
-</script>
+    <div id="delete-confirm-modal" title="Are you sure you want to delete this item?">
+        This action cannot be undone.
+    </div>
+    <div id="dialog" title="Please enter a new name">
+        <br method='post' action=''>
+        <label for="newMappingName">New name:</label></br>
+        <input id="newMappingName" class="copyDialogInputNewMappingName" type='text'>
+        <span id="empty-name-error" class="copy-span-error">This field is required.</span>
+        <span id="duplicate-name-error" class="copy-span-error">The mapping name already exists.</span></br>
+        <input id="newMappingNameSubmit" class=" copyDialogCopyButton ui-button ui-widget ui-corner-all" type='button'
+               value='Copy'>
+        <input id="newMappingNameSubmitAndOpen" class="ui-button ui-widget ui-corner-all" type='button'
+               value='Copy and open'>
+        </form>
+    </div>
+</sly>

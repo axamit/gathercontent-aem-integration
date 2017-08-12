@@ -21,21 +21,22 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import java.io.IOException;
 
 /**
  * Simple servlet filter component that logs incoming requests.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @SlingFilter(order = LoggingFilter.FILTER_ORDER, scope = SlingFilterScope.REQUEST)
 public final class LoggingFilter implements Filter {
-    public static final int FILTER_ORDER = -700;
+    static final int FILTER_ORDER = -700;
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingFilter.class);
 
     @Override
@@ -43,9 +44,11 @@ public final class LoggingFilter implements Filter {
                          final FilterChain filterChain) throws IOException, ServletException {
 
         final SlingHttpServletRequest slingRequest = (SlingHttpServletRequest) request;
-        LOGGER.debug("request for {}, with selector {}", slingRequest
-                .getRequestPathInfo().getResourcePath(), slingRequest
-                .getRequestPathInfo().getSelectorString());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("request for {}, with selector {}",
+                slingRequest.getRequestPathInfo().getResourcePath(),
+                slingRequest.getRequestPathInfo().getSelectorString());
+        }
 
         filterChain.doFilter(request, response);
     }

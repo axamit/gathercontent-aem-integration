@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * The <code>GCData</code> class represents data structure of live status.
  *
- * @see <a href="https://gathercontent.com/developers/projects/get-projects-statuses/">Statuses</a>
  * @author Axamit, gc.support@axamit.com
+ * @see <a href="https://gathercontent.com/developers/projects/get-projects-statuses/">Statuses</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCData {

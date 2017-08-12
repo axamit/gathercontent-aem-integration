@@ -6,10 +6,41 @@
     background-color: #AEDD94;
     font-size: 14px;
     height: 32px;
+    display: none;
 }
 
 #mapping-updated-cnt {
     position: absolute;
     margin-top: 7px;
     margin-left: 7px;
+}
+
+.mapping-template-name {
+    color: red;
+}
+
+#dialog > span, input[type=text] {
+    display: block;
+}
+
+.copy-span-error {
+    display: none;
+    color: red;
+    font-size: smaller;
+}
+
+.copyDialogCopyButton {
+    margin-left: 26%;
+}
+
+.copyDialogInputNewMappingName {
+    width: 97%;
+}
+
+.addNewMappingButton {
+    margin-bottom: 10px;
+}
+
+#mapping-list-table {
+    margin-bottom: 40px;
 }

@@ -11,12 +11,12 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.HttpConstants;
 import org.apache.sling.commons.json.JSONObject;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
 
 /**
  * Servlet return information about the User such as their avatar url, name, and other fields in JSON format
  * e.g. '/etc/cloudservices/gathercontent/gathercontent-importer.gcme.json'.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @SlingServlet(
@@ -28,7 +28,7 @@ public final class GCMeServlet extends GCAbstractServlet {
 
     @Override
     protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
-            throws ServletException, IOException {
+        throws IOException {
 
         GCContext gcContext = getGCContext(request);
         JSONObject responseObject = new JSONObject();

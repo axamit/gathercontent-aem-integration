@@ -16,10 +16,11 @@ import java.util.Map;
 /**
  * The <code>ResourceResolverUtil</code> is an utility class for creating new <code>{@link ResourceResolver}</code>,
  * used for getting <code>{@link ResourceResolver}</code> with specified authentication information across application.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 public enum ResourceResolverUtil {
-    INSTANCE;
+    /*INSTANCE*/;
     private static final Logger LOGGER = LoggerFactory.getLogger(JSONUtil.class);
 
     /**
@@ -37,7 +38,7 @@ public enum ResourceResolverUtil {
                                                        final String subservice) throws LoginException {
         try {
             Map<String, Object> paramMap =
-                    ImmutableMap.<String, Object>of(ResourceResolverFactory.SUBSERVICE, subservice);
+                ImmutableMap.<String, Object>of(ResourceResolverFactory.SUBSERVICE, subservice);
             final ResourceResolver resourceResolver = resourceResolverFactory.getServiceResourceResolver(paramMap);
             if (resourceResolver != null) {
                 return resourceResolver;

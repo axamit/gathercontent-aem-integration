@@ -1,0 +1,26 @@
+<sly data-sly-use.clientlib="/libs/granite/sightly/templates/clientlib.html"
+     data-sly-call="${clientlib.all @ categories='apps.gathercontent.components.import-item'}"/>
+<div id="import-item-result"
+     data-statuspath="${currentPage.path @ selectors='importstatus', extension='json', suffix=request.getRequestPathInfo.getSuffix}">
+    <div id="result-table-wrapper">
+        <h1 id="result-table-header">
+            Results
+        </h1>
+        <div id="result-cnt-wrapper">
+            <div id="imported-cnt-wrapper">
+                <span id="imported-cnt"></span>
+            </div>
+
+            <div id="failed-cnt-wrapper">
+                <span id="failed-cnt"></span>
+            </div>
+        </div>
+        <table id="result-table" class="full-width">
+        </table>
+    </div>
+
+    <div id="progressbar-wrapper">
+        <div id="progressbar"></div>
+        <div id="progressbar-label">Loading...</div>
+    </div>
+</div>

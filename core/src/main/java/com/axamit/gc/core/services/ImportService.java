@@ -9,6 +9,7 @@ import com.axamit.gc.core.sightly.models.ImportModel;
 
 /**
  * The <tt>ImportService</tt> interface provides methods to get and update status of specific import/update process job.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 public interface ImportService {

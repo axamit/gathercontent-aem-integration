@@ -13,8 +13,8 @@ import java.util.List;
 /**
  * The <code>GCTemplate</code> class represents template.
  *
- * @see <a href="https://gathercontent.com/developers/templates/get-templates-by-id/">Template</a>
  * @author Axamit, gc.support@axamit.com
+ * @see <a href="https://gathercontent.com/developers/templates/get-templates-by-id/">Template</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCTemplate {

@@ -1,26 +1,45 @@
 <template data-sly-template.mapperTemplate="${@ mapper}">
-    <h1>${mapper.gctemplate.name}</h1>
-    <div><span id="meta-name-label" >Name of the page in GatherContent</span>
-        <div id="meta-name-selection">
+    <h1>${mapper.templateName}</h1>
+    <div id="meta-name-wrapper">
+        <div id="meta-name-selection" class="clearfix">
+            <span id="meta-name-label">GatherContent Page Name</span>
             <select id="meta-name-select" data-sly-list.entry="${mapper.fieldsMappings['META_NAME'].entrySet}">
                 <option value="${entry.key}" selected="${mapper.metaMapper['META_NAME'] == entry.key?'selected':''}">
                     ${entry.value}
                 </option>
             </select>
         </div>
-        <div id="meta-name-information" style="color:red"></div>
+        <div id="meta-name-information"></div>
     </div>
-    <div id="accordion" data-sly-list.config="${mapper.gctemplate.config}">
-        <h3>Config: ${config.label}</h3>
-        <div data-sly-list.element="${config.elements}">
+    <div id="accordion" data-sly-list.config="${mapper.gcConfigs}">
+        <h3 class="clearfix" data-label="${config.label}">
+            Config: ${config.label}
+            <select data-sly-test="${mapper.gcConfigs.size > 1}" class="moveTo" data-from="${config.label}" data-sly-list.tab="${mapper.gcConfigs}">
+                <option data-sly-test="${tabList.first}" value="" disabled selected hidden>Move to </option>
+                <option data-sly-test="${config.label != tab.label}" value="${tab.label}">config : ${tab.label}</option>
+            </select>
+        </h3>
+        <div data-label="${config.label}" data-sly-list.element="${config.elements}">
             <div class="mapper-element" data-id="${element.name}">
                 <h4>${element.type.toString == 'SECTION' ? element.title : element.label}</h4>
                 <select class="mapper-select" data-sly-list.entry="${mapper.fieldsMappings[element.name].entrySet}">
-                    <option value="${entry.key}" selected="${mapper.mapper[element.name] == entry.key?'selected':''}">
+                    <sly data-sly-test.selected=""/>
+                    <sly data-sly-list.property="${mapper.mapper[element.name].path}">
+                        <sly data-sly-test.selected="${property == entry.key ? 'selected' : selected}">
+                            <sly data-sly-test.activeTab="${!activeTab && entry.value != 'Don\'t map' ? configList.count : activeTab}"/>
+                        </sly>
+                    </sly>
+                    <option value="${entry.key}" selected="${selected}">
                         ${entry.value}
                     </option>
                 </select>
+                <div class="carousel-checkbox-wrapper" data-sly-test="${element.type.toString == 'FILES'}">
+                    <label for="carousel-checkbox-${element.name}">
+                        <input id="carousel-checkbox-${element.name}" class="carousel-checkbox" type="checkbox"
+                               checked="${mapper.mapper[element.name].plugin == 'com.axamit.gc.core.services.plugins.CarouselPlugin' ? 'checked' : ''}">Multiple assets mapping (Make sure AEM component supports multiple assets. For example, Slideshow and etc.)</label>
+                </div>
             </div>
         </div>
     </div>
+    <div id="active-tab" data-tabcount="${activeTab ? activeTab : 0}"/>
 </template>

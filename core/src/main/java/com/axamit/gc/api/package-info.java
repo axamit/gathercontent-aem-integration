@@ -4,6 +4,7 @@
 
 /**
  * Services and models to access and represent content items in GatherContent.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @Version("1.0")

@@ -1,0 +1,71 @@
+<sly data-sly-use.clientlib="/libs/granite/sightly/templates/clientlib.html"
+     data-sly-call="${clientlib.all @ categories='apps.gathercontent.components.export-list'}"/>
+<div id="CQ"></div>
+<div id="export-table-wrapper">
+    <h1>
+        Export
+    </h1>
+
+
+        <div id="CQ">
+            <div class="pathfield-label-wrapper">
+                <div>Root Path</div>
+                <div class="x-form-item-description">Select path. All pages under this path will be eligible for export into GatherContent</div>
+            </div>
+            <div id="CQ-EXPORT-FORM-WRAPPER"></div>
+            <div class="clearfix"></div>
+        </div>
+    <div>
+            <form>
+                <div class="conf-wrapper">
+                    <label class="conf-label" for="gcproject-select">GatherContent Project (*)</label>
+                    <div class="select-wrapper">
+                        <select class="required" id="gcproject-select">
+                            <option value="">Select Project</option>
+                        </select>
+                    </div>
+                    <div class="property-description">Select GatherContent Project</div>
+                </div>
+            </form>
+    </div>
+
+    <table id="export-table" class="display full-width">
+    </table>
+
+    <div class="margin-bottom-5">
+        <label for="change-status-select">After export change status in GC to </label>
+        <select id="change-status-select">
+            <option value="">- Don't change status -</option>
+        </select>
+    </div>
+
+    <input class="export-button ui-button ui-widget ui-corner-all" type="button"
+           id="export-items" value="Next"/>
+</div>
+
+<div id="confirmation-table-wrapper">
+    <h1>Export</h1>
+    <table id="confirmation-table" class="full-width">
+    </table>
+    <input class="ui-button ui-widget ui-corner-all" id="cancel-export" type="button" value="Cancel"/>
+    <input class="ui-button ui-widget ui-corner-all" id="confirm-export" type="button" value="Export"/>
+</div>
+
+<div id="final-confirmation-table-wrapper">
+    <h1>Export</h1>
+    <div id="status-change-header" class="gc-status-line"></div>
+    <div class="property-description">Please review your selection before exporting.</div>
+    <table id="final-confirmation-table" class="full-width">
+    </table>
+    <input class="ui-button ui-widget ui-corner-all" id="final-back-export" type="button" value="Cancel"/>
+    <input class="ui-button ui-widget ui-corner-all" id="final-confirm-export" data-pagepath="${currentPage.path}"
+           type="button" value="Confirm"/>
+</div>
+
+<div id="empty-list-modal" title="WARNING">
+    Both project and at least one item should be selected.
+</div>
+
+<div id="leave-page-modal" title="Are you sure?">
+    Any unsaved changes will be lost.
+</div>

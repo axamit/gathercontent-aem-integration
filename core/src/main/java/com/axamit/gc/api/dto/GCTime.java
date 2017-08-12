@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * The <code>GCTime</code> class represents time with timezone e.g. in GatherContent items.
  *
- * @see <a href="https://gathercontent.com/developers/items/get-items-by-id/">Item</a>
  * @author Axamit, gc.support@axamit.com
+ * @see <a href="https://gathercontent.com/developers/items/get-items-by-id/">Item</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCTime {

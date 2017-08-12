@@ -1,0 +1,4 @@
+#base=js
+
+main.js
+GCItemsPathField.js

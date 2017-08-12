@@ -11,8 +11,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * The <code>GCOption</code> class represents options in types 'choice_radio' and 'choice_checkbox'.
  *
- * @see <a href="https://gathercontent.com/developers/the-config-field/">Option</a>
  * @author Axamit, gc.support@axamit.com
+ * @see <a href="https://gathercontent.com/developers/the-config-field/">Option</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCOption {
@@ -41,7 +41,7 @@ public final class GCOption {
 
     @JsonProperty("label")
     public void setEscapedLabel(final String escapedLabel) {
-        this.label = GCUtil.unescapeGCString(escapedLabel);
+        label = GCUtil.unescapeGCString(escapedLabel);
     }
 
     public void setLabel(final String label) {
@@ -68,10 +68,20 @@ public final class GCOption {
 
     @JsonProperty("value")
     public void setEscapedValue(final String escapedValue) {
-        this.value = GCUtil.unescapeGCString(escapedValue);
+        value = GCUtil.unescapeGCString(escapedValue);
     }
 
     public void setValue(final String value) {
         this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return "GCOption{"
+            + "name='" + name + '\''
+            + ", label='" + label + '\''
+            + ", selected=" + selected
+            + ", value='" + value + '\''
+            + '}';
     }
 }

@@ -1,0 +1,41 @@
+<template data-sly-template.mapperTemplate="${@ mapper}">
+    <h1>${mapper.templateName}</h1>
+    <div id="accordion" data-sly-list.config="${mapper.gcConfigs}">
+        <h3 class="clearfix" data-label="${config.label}">
+            Config: ${config.label}
+            <select data-sly-test="${mapper.gcConfigs.size > 1}" class="moveTo" data-from="${config.label}"
+                    data-sly-list.tab="${mapper.gcConfigs}">
+                <option data-sly-test="${tabList.first}" value="" disabled selected hidden>Move to</option>
+                <option data-sly-test="${config.label != tab.label}" value="${tab.label}">config : ${tab.label}</option>
+            </select>
+        </h3>
+        <div data-label="${config.label}" data-sly-list.element="${config.elements}">
+            <sly data-sly-test.isFiles="${element.type.toString == 'FILES'}"/>
+            <div data-id="${element.name}" data-sly-attribute.class="${isFiles ? 'disabled-gray mapper-element' : 'mapper-element'}">
+                <h4>${element.type.toString == 'SECTION' ? element.title : element.label}</h4>
+                <div class="warn" data-sly-test="${isFiles}">
+                    'FILES' type is not available for export due to GC API restrictions.
+                </div>
+                <select class="mapper-select" data-sly-attribute.disabled="${isFiles}" multiple="multiple">
+                    <sly data-sly-list.entry="${mapper.absFieldsMappings[element.name].entrySet}">
+                        <sly data-sly-test.selected=""/>
+                        <sly data-sly-list.property="${mapper.mapper[element.name].path}">
+                            <sly data-sly-test.selected="${property == entry.key ? 'selected' : selected}">
+                                <sly data-sly-test.activeTab="${!activeTab && entry.value != 'Don\'t map' ? configList.count : activeTab}"/>
+                            </sly>
+                        </sly>
+                        <option value="${entry.key}" selected="${selected}">
+                            ${entry.value}
+                        </option>
+                    </sly>
+                </select>
+                <div class="carousel-checkbox-wrapper" data-sly-test="${isFiles}">
+                    <label for="carousel-checkbox-${element.name}">
+                        <input id="carousel-checkbox-${element.name}" class="carousel-checkbox" type="checkbox" disabled
+                               checked="${mapper.mapper[element.name].plugin == 'com.axamit.gc.core.services.plugins.CarouselPlugin' ? 'checked' : ''}">Multiple assets mapping (Make sure AEM component supports multiple assets. For example, Slideshow and etc.)</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="active-tab" data-tabcount="${activeTab ? activeTab : 0}"/>
+</template>

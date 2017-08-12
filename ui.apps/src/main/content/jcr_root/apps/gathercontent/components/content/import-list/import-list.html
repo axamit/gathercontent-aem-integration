@@ -1,38 +1,22 @@
-TODO ImportList
-<div>
-    <input id="add-mapping" data-path="${resource.path}" type="button" value="+ Add New Mapping"/>
-</div>
-<div data-sly-use.mappings="com.axamit.gc.core.sightly.models.MapperListModel">
-    <div>
-        <table id="mapping-list-table" class="full-width">
-            <thead>
-            <tr>
-                <th>GatherContent Project</th>
-                <th>GatherContent Template</th>
-                <th>Mapping Name</th>
-                <th>AEM Template Page</th>
-                <th>Last Mapped</th>
-                <th>Last Updated in GatherContent</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody data-sly-list.mapping="${mappings.mappingList}">
-            <tr>
-                <td>${mapping.projectName}</td>
-                <td>${mapping.gctemplate.name}</td>
-                <td>${mapping.mappingName}</td>
-                <td>${mapping.aemTemplatePageTitle} <br> <i>${mapping.templatePath}</i> </td>
-                <td>${mapping.lastMapped}</td>
-                <td>${mapping.lastUpdated}</td>
-                <td><a href="${mapping.createEditlink}">Edit</a> | <a class="delete-mapping"
-                                                                      data-path="${mapping.resource.path}"
-                                                                      href="javascript:void(0)">Delete</a></td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+<sly data-sly-use.clientlib="/libs/granite/sightly/templates/clientlib.html"
+     data-sly-call="${clientlib.all @ categories='apps.gathercontent.components.import-list'}"/>
+<h1>
+    Import History
+</h1>
 
-<div id="delete-confirm-modal" title="Are you sure you want to delete this item?">
-    This action cannot be undone.
+<div id="import-history-list-table-wrapper">
+    <table id="import-history-list-table" class="full-width" data-path="${resource.path}">
+        <thead>
+        <tr>
+            <th>Job ID</th>
+            <th>Job Type</th>
+            <th>GatherContent Project Name</th>
+            <th>Start</th>
+            <th>Finish</th>
+            <th>Status</th>
+            <th>Details</th>
+        </tr>
+        </thead>
+    </table>
+    <input class="ui-button ui-widget ui-corner-all" id="refresh-history-table" type="button" value="Refresh"/>
 </div>

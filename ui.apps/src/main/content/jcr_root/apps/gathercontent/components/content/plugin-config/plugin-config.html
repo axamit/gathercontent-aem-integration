@@ -1,0 +1,10 @@
+<div data-sly-use.config="com.axamit.gc.core.sightly.models.PluginsConfigurationModel"
+     data-sly-test.pluginsMap="${config.pluginsMap}">
+
+    <div data-sly-list.pluginsMapEntry="${pluginsMap.entrySet}">
+        <h4>${pluginsMapEntry.key}</h4>
+        <div data-sly-list.pluginForType="${pluginsMapEntry.value.entrySet}">
+            <div>${pluginForType.key} - ${pluginForType.value}</div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          jcr:primaryType="cq:Dialog"
+          title="Plugins Configuration"
+          width="{Long}800"
+          height="{Long}800"
+          xtype="dialog">
+    <items
+            jcr:primaryType="cq:Widget"
+            xtype="tabpanel">
+        <items jcr:primaryType="cq:WidgetCollection">
+            <tab
+                    jcr:primaryType="cq:Panel"
+                    title="Config">
+                <items jcr:primaryType="cq:WidgetCollection">
+                    <configurationName
+                            jcr:primaryType="cq:Widget"
+                            allowBlank="{Boolean}false"
+                            fieldLabel="Configuration Name"
+                            name="./configurationName"
+                            xtype="textfield"/>
+                    <text_field_type
+                            jcr:primaryType="cq:Widget"
+                            fieldLabel="Text"
+                            name="./text"
+                            orderable="{Boolean}false"
+                            xtype="multifield">
+                        <fieldConfig
+                                jcr:primaryType="cq:Widget"
+                                xtype="gcmultifieldpanel">
+                            <items jcr:primaryType="cq:WidgetCollection">
+                                <name
+                                        jcr:primaryType="cq:Widget"
+                                        fieldLabel="GC Field Name"
+                                        key="name"
+                                        width="350"
+                                        xtype="textfield"/>
+                                <definition
+                                        jcr:primaryType="cq:Widget"
+                                        fieldLabel="Plugin"
+                                        key="plugin"
+                                        width="350"
+                                        type="select"
+                                        options="$PATH.gcplugins.json"
+                                        optionsRoot='gcplugins'
+                                        xtype="selection"/>
+                            </items>
+                        </fieldConfig>
+                    </text_field_type>
+                    <files_field_type
+                            jcr:primaryType="cq:Widget"
+                            fieldLabel="Files"
+                            name="./files"
+                            orderable="{Boolean}false"
+                            xtype="multifield">
+                        <fieldConfig
+                                jcr:primaryType="cq:Widget"
+                                xtype="gcmultifieldpanel">
+                            <items jcr:primaryType="cq:WidgetCollection">
+                                <name
+                                        jcr:primaryType="cq:Widget"
+                                        fieldLabel="GC Field Name"
+                                        key="name"
+                                        width="350"
+                                        xtype="textfield"/>
+                                <definition
+                                        jcr:primaryType="cq:Widget"
+                                        fieldLabel="Plugin"
+                                        key="plugin"
+                                        width="350"
+                                        type="select"
+                                        options="$PATH.gcplugins.json"
+                                        optionsRoot='gcplugins'
+                                        xtype="selection"/>
+                            </items>
+                        </fieldConfig>
+                    </files_field_type>
+                    <choice_radio_field_type
+                            jcr:primaryType="cq:Widget"
+                            fieldLabel="Choice Radio"
+                            name="./choice_radio"
+                            orderable="{Boolean}false"
+                            xtype="multifield">
+                        <fieldConfig
+                                jcr:primaryType="cq:Widget"
+                                xtype="gcmultifieldpanel">
+                            <items jcr:primaryType="cq:WidgetCollection">
+                                <name
+                                        jcr:primaryType="cq:Widget"
+                                        fieldLabel="GC Field Name"
+                                        key="name"
+                                        width="350"
+                                        xtype="textfield"/>
+                                <definition
+                                        jcr:primaryType="cq:Widget"
+                                        fieldLabel="Plugin"
+                                        key="plugin"
+                                        width="350"
+                                        type="select"
+                                        options="$PATH.gcplugins.json"
+                                        optionsRoot='gcplugins'
+                                        xtype="selection"/>
+                            </items>
+                        </fieldConfig>
+                    </choice_radio_field_type>
+                    <choice_checkbox_field_type
+                            jcr:primaryType="cq:Widget"
+                            fieldLabel="Choice Checkbox"
+                            name="./choice_checkbox"
+                            orderable="{Boolean}false"
+                            xtype="multifield">
+                        <fieldConfig
+                                jcr:primaryType="cq:Widget"
+                                xtype="gcmultifieldpanel">
+                            <items jcr:primaryType="cq:WidgetCollection">
+                                <name
+                                        jcr:primaryType="cq:Widget"
+                                        fieldLabel="GC Field Name"
+                                        key="name"
+                                        width="350"
+                                        xtype="textfield"/>
+                                <definition
+                                        jcr:primaryType="cq:Widget"
+                                        fieldLabel="Plugin"
+                                        key="plugin"
+                                        width="350"
+                                        type="select"
+                                        options="$PATH.gcplugins.json"
+                                        optionsRoot='gcplugins'
+                                        xtype="selection"/>
+                            </items>
+                        </fieldConfig>
+                    </choice_checkbox_field_type>
+                    <section_field_type
+                            jcr:primaryType="cq:Widget"
+                            fieldLabel="Section"
+                            name="./section"
+                            orderable="{Boolean}false"
+                            xtype="multifield">
+                        <fieldConfig
+                                jcr:primaryType="cq:Widget"
+                                xtype="gcmultifieldpanel">
+                            <items jcr:primaryType="cq:WidgetCollection">
+                                <name
+                                        jcr:primaryType="cq:Widget"
+                                        fieldLabel="GC Field Name"
+                                        key="name"
+                                        width="350"
+                                        xtype="textfield"/>
+                                <definition
+                                        jcr:primaryType="cq:Widget"
+                                        fieldLabel="Plugin"
+                                        key="plugin"
+                                        width="350"
+                                        type="select"
+                                        options="$PATH.gcplugins.json"
+                                        optionsRoot='gcplugins'
+                                        xtype="selection"/>
+                            </items>
+                        </fieldConfig>
+                    </section_field_type>
+                </items>
+            </tab>
+        </items>
+    </items>
+</jcr:root>

@@ -2,425 +2,753 @@
  * Axamit, gc.support@axamit.com
  */
 
-var checkedItems = [];
-(function ($) {
-    $.fn.initImportTable = function () {
-        $().setImportPath();
-        $().setOnChangeListeners();
-        var table = $('#item-list-table').DataTable({
-            columnDefs: [{
-                orderable: false,
-                className: 'select-checkbox',
-                targets: 0
-            }],
-            select: {
-                style: 'multi',
-                selector: 'td:first-child'
-            }
-        });
-        $('#all-items-checkbox').click(function () {
-            if ($('#all-items-checkbox').prop('checked')) {
-                table.rows({filter: 'applied'}).select();
-            } else {
-                table.rows().deselect();
-            }
-        });
-        $('#item-list-table_filter').remove();
-        $().fillFilter('#status-filter', '.item-status', 'Select Status');
-        $().fillFilter('#template-filter', '.item-template', 'Select Template');
-    };
-
-    $.fn.fetchItemsToImport = function () {
-        var importData = {};
-        var checked = [];
-        var emptyField = 0;
-        $('#item-list-table').DataTable().rows({selected: true, filter: 'applied'}).nodes().each(function (item) {
-            var selected = {};
-            selected.itemId = $(item).attr("itemId");
-            selected.parentId = $(item).attr("parentId");
-            selected.mappingPath = $(item).find('.item-mapping-select').find('option:selected').val();
-            if (!selected.mappingPath) {
-                selected.mappingPath = $(item).attr("mappingPath");
-            } else {
-                selected.mappingPath = selected.mappingPath.trim();
-            }
-            selected.importPath = $(item).find('input.item-import-path').val();
-            if (!selected.importPath) {
-                selected.importPath = $(item).attr("importPath");
-            } else {
-                selected.importPath = selected.importPath.trim();
-            }
-            selected.title = $(item).find('.item-title').text().trim();
-            selected.status = $(item).find('.item-status').text().trim();
-            selected.template = $(item).find('.item-template').text().trim();
-            selected.color = $(item).find(".coloredspan").css("background-color");
-            if (!selected.importPath && selected.parentId == 0) {
-                emptyField++;
-            }
-            if (!selected.importPath && selected.parentId != 0) {
-                if (checked.filter(function (value) {
-                        return value.itemId == selected.parentId;
-                    }).length == 0) {
-                    emptyField++;
-                }
-            }
-            checked.push(selected);
-        });
-        importData.items = checked;
-        var changeStatusSelect = $('#change-status-select').find('option:selected');
-        var newStatusId = $(changeStatusSelect).val();
-        var newStatusName = $(changeStatusSelect).text();
-        var newStatusColor = $(changeStatusSelect).data('color');
-        if (newStatusId && newStatusName) {
-            importData.newStatusId = newStatusId;
-            importData.newStatusName = newStatusName;
-            importData.newStatusColor = newStatusColor;
-        }
-        importData.emptyItems = emptyField;
-        return importData;
-    };
-
-    $.fn.setImportPath = function () {
-        $('.item-mapping-select').find('option:selected').each(function () {
-            var importPath = $(this).attr('importPath');
-            $(this).closest("tr").find('.item-import-path').val(importPath);
-        });
-    };
-
-    $.fn.setOnChangeListeners = function () {
-        $(".item-mapping-select").change(function () {
-            $().setImportPath();
-        });
-    };
-
-    $.fn.fillFilter = function (filterInputId, optionClass, defaultValue) {
-        $(filterInputId).html(function () {
-            var optionsString = "<option value=''>" + defaultValue + "</option>";
-            var values = [];
-            $('#item-list-table').DataTable().rows().nodes().each(function (item) {
-                values.push($(item).find(optionClass).text().trim());
-            });
-            values = values.filter(function (el, index, arr) {
-                return index === arr.indexOf(el);
-            });
-            values.forEach(function (item) {
-                optionsString += "<option value='" + item + "'>" + item + "</option>";
-            });
-            return optionsString;
-        });
-    };
-}(jQuery));
-
 $(function () {
-    var progressbar = $("#progressbar"),
-        progressLabel = $("#progressbar-label");
+        var isMultilocation = document.URL.indexOf(".multilocation.") !== -1;
 
-    var isUpdate = document.URL.indexOf("update") != -1;
-    var processStatus = "imported";
-    var columnTitle = "Import Status";
-    var columnValue = "Imported";
-    if (isUpdate) {
-        processStatus = "updated";
-        columnTitle = "Update Status";
-        columnValue = "Updated";
-    }
-
-    progressbar.progressbar({
-        value: false,
-        change: function () {
-            progressLabel.text(progressbar.progressbar("option", "value") + "/" + progressbar.progressbar("option", "max") + " nodes " + processStatus);
-        }
-    });
-
-    $("#empty-list-modal").dialog({
-        autoOpen: false,
-        modal: true,
-        resizable: false,
-        width: 400,
-        buttons: [
-            {
-                text: "Ok",
-                click: function () {
-                    $(this).dialog("close");
-                }
-            }
-        ]
-    });
-
-    $("#empty-field-modal").dialog({
-        autoOpen: false,
-        modal: true,
-        resizable: false,
-        width: 400,
-        buttons: [
-            {
-                text: "Ok",
-                click: function () {
-                    $(this).dialog("close");
-                    $("#import-items").data("empty", true);
-                    $("#import-items").click();
-                }
-            }, {
-                text: "Cancel",
-                click: function () {
-                    $(this).dialog("close");
-                }
-            }
-        ]
-    });
-
-    function showResults(data) {
-        var json = JSON.parse(data);
-        var importedNumber = json.importedNumber;
-
-        if (importedNumber == 0) {
-            $('#imported-cnt-wrapper').hide();
-        } else {
-            var importedNumberText = (importedNumber == 1) ? importedNumber + " node " + processStatus : importedNumber + " nodes " + processStatus;
-            $('#imported-cnt')[0].innerHTML = importedNumberText;
-        }
-
-        var failedNumber = json.failedNumber;
-
-        if (failedNumber == 0) {
-            $('#failed-cnt-wrapper').hide();
-        } else {
-            var href_text = '<a href="/system/console/status-slinglogs" target="_blank">See log</a>' + " for details";
-            var failedNumberText = (failedNumber == 1) ? failedNumber + " node failed. " + href_text : failedNumber + " nodes failed. " + href_text;
-            $('#failed-cnt')[0].innerHTML = failedNumberText;
-        }
-
-        $('#result-table').DataTable({
-            data: json.importedPages,
-            columns: [
+        $("#empty-list-modal").dialog({
+            autoOpen: false,
+            modal: true,
+            resizable: false,
+            width: 400,
+            buttons: [
                 {
-                    title: "Status", data: 'status',
-                    render: function (data, type, row) {
-                        return '<span class="coloredspan" style="display: inline-block;width: 15px;height: 15px;position: relative;border-radius: 50px; background-color:' + row.color + '"></span> ' + data;
-                    }
-                },
-                {title: "Item Name", data: 'name'},
-                {
-                    title: columnTitle, data: 'importStatus',
-                    render: function (data, type, row) {
-                        return (data != 'Imported') ? data + '. <a href="/system/console/status-slinglogs" target="_blank">See log</a>' + '.' : columnValue;
-                    }
-                },
-                {title: "Template Name", data: 'gcTemplateName'},
-                {
-                    title: "Link in AEM", data: 'aemLink',
-                    render: function (data, type, row) {
-                        return (data != null) ? '<a href="' + data + '.html" target="_blank">Open</a>' : '';
-                    }
-                },
-                {
-                    title: "Link in GC", data: 'gcLink',
-                    render: function (data, type, row) {
-                        return (data != null) ? '<a href="' + data + '" target="_blank">Open</a>' : '';
+                    text: "Ok",
+                    click: function () {
+                        $(this).dialog("close");
                     }
                 }
             ]
         });
-    }
 
-    function getProgress(url) {
-        $.ajax({
-            url: url,
-            cache: false,
-            success: function (data) {
-                try {
-                    var json = JSON.parse(data);
-                    if (json.hasOwnProperty("importData")) {
-                        var importData = JSON.parse(json["importData"]);
-                        progressbar.progressbar("option", "max", importData.totalPagesCount);
-                        progressbar.progressbar("option", "value", importData.importedPagesCount);
-                        if (importData.importedPagesCount == importData.totalPagesCount) {
-                            showResults(importData.importedPagesData);
-                            $('#progressbar-wrapper').hide();
-                            $('#result-table-wrapper').show();
-                        } else {
-                            setTimeout(function () {
-                                getProgress(url)
-                            }, 2000);
-                        }
-                    } else if (json.hasOwnProperty("statusString")) {
-                        progressLabel.text(json["statusString"]);
-                        setTimeout(function () {
-                            getProgress(url)
-                        }, 2000);
-                    } else {
-                        var errorString = "An unexpected error has occurred. Your request cannot be processed at this time.";
-                        if (json.hasOwnProperty("errorString")) {
-                            errorString = json["errorString"];
-                        }
-                        showImportFailedNotification(errorString);
-                    }
-                } catch (e) {
-                    showImportFailedNotification("An unexpected error has occurred. Your request cannot be processed at this time.");
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                showImportFailedNotification("An unexpected error has occurred. Your request cannot be processed at this time.");
+        function findTopParent(selectedRows, itemId, parentId) {
+            var result = itemId;
+            var parentNode = selectedRows.row("[itemId=" + parentId + "]").node();
+            if (parentNode) {
+                result = findTopParent(selectedRows, $(parentNode).attr("itemId"), $(parentNode).attr("parentId"));
             }
-        });
-    }
-
-    $("#confirm-import").click(function () {
-        var itemsToImport = $().fetchItemsToImport();
-        var path = $("#confirm-import").data("path");
-        var isUpdate = $("#confirm-import").data("isupdate");
-        var url;
-        if (isUpdate) {
-            url = path + ".gcimporter.update.json";
-        } else {
-            url = path + ".gcimporter.json";
+            return result;
         }
 
-        $.ajax({
-            url: url,
-            data: 'data=' + btoa(JSON.stringify(itemsToImport)),
-            type: "POST",
-            success: function (data) {
-                try {
-                    var response = JSON.parse(data);
-                    if (response.hasOwnProperty("jobId")) {
-                        getProgress(path + ".importstatus.json?jobId=" + response["jobId"]);
-                        $('#confirmation-table-wrapper').hide();
-                        $('#progressbar-wrapper').show();
-                    } else {
-                        var errorString = "An unexpected error has occurred. Your request cannot be processed at this time.";
-                        if (response.hasOwnProperty("errorString")) {
-                            errorString = response["errorString"];
-                        }
-                        showImportFailedNotification(errorString);
-                    }
-                } catch (e) {
-                    showImportFailedNotification("An unexpected error has occurred. Your request cannot be processed at this time.");
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                showImportFailedNotification("An unexpected error has occurred. Your request cannot be processed at this time.");
+        function getHierarchyItemValues(selectedRows, itemId, parentId, hierarchyName, importPath) {
+            var hierarchyValues = {};
+            var topParentId = itemId;
+            if (!importPath) {
+                importPath = "";
             }
-        });
-    });
+            var importPaths = [];
+            importItemsJson[topParentId].forEach(function (item, index) {
+                importPaths.push(item.importPath + importPath);
+            });
+            hierarchyValues.hierarchyName = hierarchyName;
+            hierarchyValues.topParentId = topParentId;
+            hierarchyValues.importPaths = importPaths;
 
-    function showImportFailedNotification(message) {
-        $('#confirmation-table-wrapper').hide();
-        $('#progressbar-wrapper').hide();
-        $('#imported-cnt-wrapper').hide();
-        $('#failed-cnt').html(message + ' <a href="/system/console/status-slinglogs" target="_blank">See log</a>');
-        $('#result-table-wrapper').show();
-    }
-
-    $("#import-project-select").change(function () {
-        var projectid = $(this).find("option:selected").val();
-        var path = $("#confirm-import").data("path");
-        var spinnerTarget = document.getElementById('import-table');
-        var spinner = new Spinner().spin();
-        $.ajax({
-            url: path + ".ajax.projectId-" + projectid + ".html",
-            type: "GET",
-            cache: false,
-            beforeSend: function () {
-                $(spinnerTarget).addClass('grayout');
-                spinnerTarget.appendChild(spinner.el);
-            },
-            success: function (data) {
-                $("#import-table").html(data);
-                $().initImportTable();
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log("error");
-            },
-            complete: function () {
-                spinner.stop();
-                $(spinnerTarget).removeClass('grayout');
+            var parentNode = selectedRows.row("[itemId=" + parentId + "]", {selected: true}).node();
+            if (parentNode) {
+                hierarchyName = "   " + hierarchyName;
+                topParentId = $(parentNode).attr("itemId");
+                importPath = "/" + $(parentNode).attr("validName") + importPath;
+                hierarchyValues = getHierarchyItemValues(selectedRows, topParentId, $(parentNode).attr("parentId"), hierarchyName, importPath);
             }
-        });
-    });
-
-    $("#import-items").click(function () {
-        if ($('#item-list-table').DataTable().rows({selected: true, filter: 'applied'}).count() < 1) {
-            $("#empty-list-modal").dialog("open");
-            return false;
+            return hierarchyValues;
         }
-        var importData = $().fetchItemsToImport();
 
-        if (!$("#import-items").data("empty")) {
-            if (importData.emptyItems > 0) {
-                $("#empty-field").html(" <b>" + importData.emptyItems + "</b> " +
-                    "page(s) with empty Import Path are found. The pages will be imported to " +
-                    "<b>&#8220;" + defaultImportPath + "&#8221;</b>" +
-                    " by default.");
-                $("#empty-field-modal").dialog("open");
+        function updateChildrenPaths(datatable, id, newValue) {
+            var currentNode = datatable.row("[itemId=" + id + "]").node();
+            $(currentNode).find('.item-import-path').val(newValue);
+            var parentPath = newValue + "/" + $(currentNode).attr("validName");
+            var childrenNodes = datatable.rows("[parentId=" + id + "]").nodes();
+            childrenNodes.each(function (item) {
+                updateChildrenPaths(datatable, $(item).attr('itemId'), parentPath);
+            });
+        }
+
+        function initPathFieldsSingleImport(table) {
+            table.page.len(-1).draw();
+            $('.root-import-path').each(function (index, element) {
+                CQ.Ext.onReady(function () {
+                    new CQ.Ext.form.FormPanel({
+                        id: "import-path-form-panel-" + $(element).attr('id'),
+                        renderTo: document.getElementById($(element).attr('id')),
+                        border: false,
+                        hideLabels: true,
+                        items: [
+                            {
+                                cls: "item-import-path",
+                                id: "import-path-" + $(element).attr('id'),
+                                rootPath: "/content",
+                                xtype: "pathfield",
+                                value: $(element).data("importpath"),
+                                width: 300,
+                                "listeners": {
+                                    "dialogselect": function (pathField, path) {
+                                        GATHERCONTENT.pathFieldEmptyDialogSelectCheck(pathField, path);
+                                        var datatable = $('#review-table').DataTable();
+                                        var childrenNodes = datatable.rows("[parentId=" + $(element).attr('itemId') + "]").nodes();
+                                        childrenNodes.each(function (item) {
+                                            updateChildrenPaths(datatable, $(item).attr('itemId'), pathField.getValue() + "/" +
+                                                $(datatable.row("[itemId=" + $(element).attr('itemId') + "]").node()).attr('validName'));
+                                        });
+                                    },
+                                    "change": function (field) {
+                                        var datatable = $('#review-table').DataTable();
+                                        var childrenNodes = datatable.rows("[parentId=" + $(element).attr('itemId') + "]").nodes();
+                                        childrenNodes.each(function (item) {
+                                            updateChildrenPaths(datatable, $(item).attr('itemId'), field.getValue() + "/" +
+                                                $(datatable.row("[itemId=" + $(element).attr('itemId') + "]").node()).attr('validName'));
+                                        });
+                                    }
+                                }
+                            }
+                        ]
+                    });
+
+                });
+            });
+            table.page.len(10).draw();
+        }
+
+        function buildSingleImportReviewTable(importData, jQueryTableElement) {
+            var options = {
+                order: [],
+                fnCreatedRow: function (nRow, aData, iDataIndex) {
+                    $(nRow).attr("parentId", aData.parentId);
+                    $(nRow).attr("itemId", aData.itemId);
+                    $(nRow).attr("validName", aData.validName);
+                    $(nRow).attr("title", aData.title);
+                    $(nRow).attr("isRoot", aData.isRoot);
+                },
+                columns: [
+                    GATHERCONTENT.dataTablesColumns.status,
+                    GATHERCONTENT.dataTablesColumns.hierarchyTitle,
+                    {
+                        title: "Specify Mapping", data: 'itemId', name: "specify-mapping",
+                        render: function (data, type, row) {
+                            var specifyMappingSelect = '';
+                            importItemsJson[data].forEach(function (item, index) {
+                                if (item.mappingPath && item.mappingName) {
+                                    specifyMappingSelect += "<option value='" + item.mappingPath + "'>" + item.mappingName + "</option>";
+                                }
+                            });
+                            if (!GCStringUtils.isEmpty(specifyMappingSelect)) {
+                                specifyMappingSelect = '<select class="specify-mapping-select full-width">'
+                                    + specifyMappingSelect + '</select>';
+                            }
+                            return specifyMappingSelect;
+                        }
+                    },
+                    {
+                        title: "Import Path", data: 'itemId', name: "import-path",
+                        render: function (data, type, row) {
+                            var importPath = row.mappings[0].importPath;
+                            if (row.isRoot) {
+                                return '<div id="CQ"><div class="root-import-path" itemId="' + row.itemId
+                                    + '" data-importpath="' + importPath + '" id="pathfield_' + row.itemId + '"></div></div>'
+                                    + '<div class="error-validation" id="error-invalid-import-path-'
+                                    + row.itemId + '" style="display: none"></div>';
+                            } else {
+                                return '<input class="item-import-path full-width child-import-path table-text-input" id="item-import-path-' + row.itemId
+                                    + '" disabled type="text" value="' + importPath + '">';
+                            }
+                        }
+                    },
+                    GATHERCONTENT.dataTablesColumns.templateName
+                ],
+                searching: false
+            };
+
+            return GATHERCONTENT.createAndFillDataTable(jQueryTableElement, options, importData.items);
+        }
+
+        function updateMultilocationChildrenPaths(datatable, id, newValues) {
+            var currentNode = datatable.row("[itemId=" + id + "]").node();
+            $(currentNode).find('.specify-location-select').each(function (selectIndex, selectItem) {
+                var specifyLocationSelectOptions = "<option value=''>Select</option>";
+                var currentValue = $(selectItem).find('option:selected').val();
+                newValues.forEach(function (optionItem, optionIndex) {
+                    var selected = '';
+                    if (currentValue === optionItem) {
+                        selected = ' selected="true" ';
+                    }
+                    specifyLocationSelectOptions += "<option" + selected + " value='" + optionItem + "'>" + optionItem + "</option>";
+                });
+                $(selectItem).html(specifyLocationSelectOptions);
+            });
+            newValues.forEach(function (optionItem, optionIndex) {
+                newValues[optionIndex] = optionItem + "/" + $(currentNode).attr("validName");
+            });
+            var childrenNodes = datatable.rows("[parentId=" + id + "]").nodes();
+            childrenNodes.each(function (item) {
+                updateMultilocationChildrenPaths(datatable, $(item).attr('itemId'), $.extend([], newValues));
+            });
+        }
+
+        function multilocationImportPathfieldChangeListener(itemId) {
+            var newValues = [];
+            var datatable = $('#review-table').DataTable();
+            var selfNode = datatable.row("[itemId=" + itemId + "]").node();
+            $(selfNode).find('.item-import-path').each(function (index, item) {
+                var pathfield = CQ.Ext.getCmp($(item).attr('id'));
+                if (!pathfield.disabled) {
+                    newValues.push(pathfield.getValue() + '/' + $(selfNode).attr('validName'));
+                }
+            });
+            var childrenNodes = datatable.rows("[parentId=" + itemId + "]").nodes();
+            childrenNodes.each(function (item) {
+                updateMultilocationChildrenPaths(datatable, $(item).attr('itemId'), $.extend([], newValues));
+            });
+        }
+
+        function initPathFieldsMultilocationImport(table) {
+            table.page.len(-1).draw();
+            $('.root-import-path').each(function (index, element) {
+                CQ.Ext.onReady(function () {
+                    new CQ.Ext.form.FormPanel({
+                        id: "import-path-form-panel-" + $(element).attr('id'),
+                        renderTo: document.getElementById($(element).attr('id')),
+                        border: false,
+                        hideLabels: true,
+                        items: [
+                            {
+                                cls: "item-import-path",
+                                id: "import-path-" + $(element).attr('id'),
+                                disabled: true,
+                                rootPath: "/content",
+                                xtype: "pathfield",
+                                value: $(element).data("importpath"),
+                                width: 300,
+                                "listeners": {
+                                    "dialogselect": function (pathField, path) {
+                                        GATHERCONTENT.pathFieldEmptyDialogSelectCheck(pathField, path);
+                                        multilocationImportPathfieldChangeListener($(element).attr('itemId'));
+                                    },
+                                    "change": function () {
+                                        multilocationImportPathfieldChangeListener($(element).attr('itemId'));
+                                    }
+                                }
+                            }
+                        ]
+                    });
+
+                });
+            });
+            table.page.len(10).draw();
+        }
+
+        function buildMultilocationImportReviewTable(importData, jQueryTableElement) {
+            var options = {
+                order: [],
+                fnCreatedRow: function (nRow, aData, iDataIndex) {
+                    $(nRow).attr("parentId", aData.parentId);
+                    $(nRow).attr("itemId", aData.itemId);
+                    $(nRow).attr("validName", aData.validName);
+                    $(nRow).attr("title", aData.title);
+                    $(nRow).attr("isRoot", aData.isRoot);
+                },
+                columns: [
+                    GATHERCONTENT.dataTablesColumns.status,
+                    GATHERCONTENT.dataTablesColumns.hierarchyTitle,
+                    {
+                        title: "Specify Mapping", data: 'mappings', name: "specify-mapping",
+                        render: function (data, type, row) {
+                            var specifyMappingCheckboxes = '';
+                            data.forEach(function (item, index) {
+                                specifyMappingCheckboxes += '<input class="mapping-checkbox" id="mapping-checkbox_' + row.itemId + "_" + index
+                                    + '" type="checkbox" data-mappingname="' + item.mappingName
+                                    + '" value="' + item.mappingPath + '" data-isroot="' + row.isRoot + '">' + item.mappingName + '<br>';
+                            });
+                            specifyMappingCheckboxes += '<div class="error-validation" id="error-no-checked-mapping-' + row.itemId + '" style="display: none">Select at least one mapping</div>';
+                            return specifyMappingCheckboxes;
+                        }
+                    },
+                    {
+                        title: "Import Path", data: 'mappings', name: "import-path",
+                        render: function (data, type, row) {
+                            if (row.isRoot) {
+                                var specifyLocationPathfields = '';
+                                data.forEach(function (item, index) {
+                                    specifyLocationPathfields += '<div id="CQ"><div class="root-import-path" itemId="'
+                                        + row.itemId + '" data-importpath="' + item.importPath
+                                        + '" id="pathfield_' + row.itemId + '_' + index + '"></div></div>'
+                                        + '<div class="error-validation" id="error-invalid-import-path-'
+                                        + row.itemId + '_' + index + '" style="display: none">Path does not exist</div>'
+                                });
+                                return specifyLocationPathfields;
+                            } else {
+                                var specifyLocationSelects = '';
+                                data.forEach(function (item, outIndex) {
+                                    specifyLocationSelects += '<select id="specify-location-select_' + row.itemId + '_' + outIndex
+                                        + '" disabled class="specify-location-select full-width">';
+                                    specifyLocationSelects += "<option value=''>Select</option>";
+                                    specifyLocationSelects += '</select><br>';
+                                });
+                                return specifyLocationSelects;
+                            }
+                        }
+                    },
+                    GATHERCONTENT.dataTablesColumns.templateName
+                ],
+                searching: false
+            };
+
+            return GATHERCONTENT.createAndFillDataTable(jQueryTableElement, options, importData.items);
+        }
+
+        function buildItemsToImport() {
+            var importData = {};
+            var checked = [];
+            var selectedRows = $('#item-list-table').DataTable().rows({selected: true});
+            selectedRows.nodes().each(function (item) {
+                var selected = {};
+                selected.itemId = $(item).attr("itemId");
+                selected.parentId = $(item).attr("parentId");
+                selected.validName = $(item).attr("validName");
+                selected.title = $(item).attr("title");
+                var hierarchyValues = getHierarchyItemValues(selectedRows, selected.itemId, selected.parentId, selected.title);
+                var rootId = hierarchyValues.topParentId;
+                selected.isRoot = rootId === selected.itemId;
+                var mappings = [];
+                importItemsJson[selected.itemId].forEach(function (item, index) {
+                    var mapping = {};
+                    mapping.mappingName = item.mappingName;
+                    mapping.mappingPath = item.mappingPath;
+                    mapping.importPath = hierarchyValues.importPaths[index];
+                    mappings.push(mapping);
+                });
+                selected.mappings = mappings;
+                selected.hierarchyTitle = hierarchyValues.hierarchyName;
+                selected.status = $(item).find('.item-status').text().trim();
+                selected.template = $(item).find('.item-template').text().trim();
+                selected.color = $(item).find(".coloredspan").css("background-color");
+                checked.push(selected);
+            });
+            importData.items = checked;
+            var changeStatusSelect = $('#change-status-select').find('option:selected');
+            var newStatusId = $(changeStatusSelect).val();
+            var newStatusName = $(changeStatusSelect).text();
+            var newStatusColor = $(changeStatusSelect).data('color');
+            if (newStatusId && newStatusName) {
+                importData.newStatusId = newStatusId;
+                importData.newStatusName = newStatusName;
+                importData.newStatusColor = newStatusColor;
+            }
+            importData.projectName = $("#import-project-select").find("option:selected").text().trim();
+            return importData;
+        }
+
+        $("#import-items").click(function () {
+            if ($('#item-list-table').DataTable().rows({selected: true}).count() < 1) {
+                $("#empty-list-modal").dialog("open");
                 return false;
             }
-        }
-        if ($.fn.dataTable.isDataTable('#confirmation-table')) {
-            $('#confirmation-table').DataTable().destroy();
-        }
-        $('#confirmation-table').DataTable({
-            data: importData.items,
-            columns: [
-                {
-                    title: "Status", data: 'status',
-                    render: function (data, type, row) {
-                        return '<span class="coloredspan" style="display: inline-block;width: 15px;height: 15px;position: relative;border-radius: 50px; background-color:' + row.color + '"></span> ' + data;
+            var importData = buildItemsToImport();
+            var table;
+            if (!isMultilocation) {
+                table = buildSingleImportReviewTable(importData, $('#review-table'));
+                initPathFieldsSingleImport(table);
+            } else {
+                table = buildMultilocationImportReviewTable(importData, $('#review-table'));
+                initPathFieldsMultilocationImport(table);
+            }
+            $(table.column('import-path:name').header()).width(285);
+
+            if (importData.newStatusId && importData.newStatusName) {
+                $('#status-change-header').html('Status in GC will be changed to <span class="coloredspan" style="background-color:' + importData.newStatusColor + '"></span> ' + importData.newStatusName);
+                $('#status-change-header').show();
+            } else {
+                $('#status-change-header').hide();
+            }
+            $('#import-table-wrapper').hide();
+            $('#review-table-wrapper').show();
+            GATHERCONTENT.attachLeavePageHandlers();
+        });
+
+        $("#review-table").on("click", ".mapping-checkbox", function () {
+            var isRoot = $(this).data('isroot');
+            var checkboxId = $(this).attr('id');
+
+            if ($(this).prop('checked')) {
+                if (isRoot) {
+                    var pathfield = CQ.Ext.getCmp(checkboxId.replace('mapping-checkbox', 'import-path-pathfield'));
+                    pathfield.enable();
+                } else {
+                    $('#' + checkboxId.replace('mapping-checkbox', 'specify-location-select')).prop('disabled', false);
+                }
+            } else {
+                if (isRoot) {
+                    var pathfield = CQ.Ext.getCmp(checkboxId.replace('mapping-checkbox', 'import-path-pathfield'));
+                    pathfield.disable();
+                } else {
+                    $('#' + checkboxId.replace('mapping-checkbox', 'specify-location-select')).prop('disabled', true);
+                }
+            }
+            multilocationImportPathfieldChangeListener(findTopParent($('#review-table').DataTable().rows(),
+                $(this).closest("tr").attr('itemId'), $(this).closest("tr").attr('parentId')));
+        });
+
+        function fetchItemsToImport(reviewTable) {
+            reviewTable.page.len(-1).draw();
+
+            var importData = {};
+            var checked = [];
+            var selectedRows = reviewTable.rows();
+            selectedRows.nodes().each(function (item) {
+                var selected = {};
+                selected.itemId = $(item).attr("itemId");
+                selected.parentId = $(item).attr("parentId");
+                selected.validName = $(item).attr("validName");
+                selected.title = $(item).attr("title");
+                selected.hierarchyTitle = $(item).find('.item-title').text();
+                selected.status = $(item).find('.item-status').text().trim();
+                selected.template = $(item).find('.item-template').text().trim();
+                selected.color = $(item).find(".coloredspan").css("background-color");
+
+                var mappings = [];
+                if (!isMultilocation) {
+                    var mapping = {};
+                    var mappingSelect = $(item).find('.specify-mapping-select').find('option:selected');
+                    if (mappingSelect.length) {
+                        mapping.mappingPath = mappingSelect.val().trim();
+                        mapping.mappingName = mappingSelect.text().trim();
                     }
-                },
-                {title: "Item Name", data: 'title'},
-                {title: "Template Name", data: 'template'}
-            ],
-            searching: false
-        });
-        if (importData.newStatusId && importData.newStatusName) {
-            $('#status-change-header').html('Status in GC will be changed to <span class="coloredspan" style="display: inline-block;width: 15px;height: 15px;position: relative;border-radius: 50px; background-color:' + importData.newStatusColor + '"></span> ' + importData.newStatusName);
-            $('#status-change-header').show();
-        } else {
-            $('#status-change-header').hide();
-        }
-        $('#import-table-wrapper').hide();
-        $('#confirmation-table-wrapper').show();
-    });
-
-    $("#cancel-import").click(function () {
-        $('#confirmation-table-wrapper').hide();
-        $("#import-items").data("empty", false);
-        $('#import-table-wrapper').show();
-    });
-
-    $("#import-table").on("click", ".select-checkbox, #all-items-checkbox", function () {
-
-        var table = $('#item-list-table').DataTable();
-        var selectedData = table.rows({selected: true, filter: 'applied'}).nodes();
-        if ($(this).prop('id') == 'all-items-checkbox' || selectedData.length == 0) {
-            table.rows().nodes().each(function (element) {
-                $(element).find('input.item-import-path').removeClass('gc-import-hide-children-import-path');
+                    mapping.importPath = $(item).find('input.item-import-path').val().trim();
+                    mappings.push(mapping);
+                } else {
+                    var checkedMappings = $(item).find('.mapping-checkbox:checked');
+                    checkedMappings.each(function (index, mappingCheckbox) {
+                        var mapping = {};
+                        mapping.mappingName = $(mappingCheckbox).data('mappingname');
+                        mapping.mappingPath = $(mappingCheckbox).val();
+                        var mappingCheckboxId = $(mappingCheckbox).attr('id');
+                        if ($(item).attr('isRoot') === 'true') {
+                            mapping.importPath = $('#' + mappingCheckboxId.replace('mapping-checkbox', 'import-path-pathfield')).val();
+                        } else {
+                            mapping.importPath = $('#' + mappingCheckboxId.replace('mapping-checkbox', 'specify-location-select')).find('option:selected').val();
+                        }
+                        mappings.push(mapping);
+                    });
+                }
+                selected.mappings = mappings;
+                checked.push(selected);
             });
-            return;
-        }
-        var itemContainer = $(this).parent('tr');
 
-        if (!itemContainer.hasClass("selected")) {
-            var findItemImport = itemContainer.find('input.item-import-path');
-            findItemImport.removeClass('gc-import-hide-children-import-path');
+            importData.items = checked;
+            var changeStatusSelect = $('#change-status-select').find('option:selected');
+            var newStatusId = $(changeStatusSelect).val();
+            var newStatusName = $(changeStatusSelect).text();
+            var newStatusColor = $(changeStatusSelect).data('color');
+            if (newStatusId && newStatusName) {
+                importData.newStatusId = newStatusId;
+                importData.newStatusName = newStatusName;
+                importData.newStatusColor = newStatusColor;
+            }
+            importData.projectName = $("#import-project-select").find("option:selected").text().trim();
+            reviewTable.page.len(10).draw();
+            return importData;
         }
 
-        var selectedItemIds = selectedData.toArray().map(function (element) {
-            return $(element).attr("itemId");
+        function splitMultipleItems(importData) {
+            var splittedImportData = $.extend({}, importData);
+            var newItems = [];
+            importData.items.forEach(function (importItem) {
+                if (importItem.mappings) {
+                    if (importItem.mappings.length > 0) {
+                        importItem.mappings.forEach(function (mappingItem) {
+                            var splittedItem = $.extend({}, importItem);
+                            splittedItem.mappingPath = mappingItem.mappingPath;
+                            splittedItem.mappingName = mappingItem.mappingName;
+                            splittedItem.importPath = mappingItem.importPath;
+                            delete splittedItem.mappings;
+                            newItems.push(splittedItem);
+                        });
+                    }
+                }
+
+            });
+            splittedImportData.items = newItems;
+            return splittedImportData;
+        }
+
+        function isValidMultilocationReviewTable(reviewTable) {
+            var isValid = true;
+            var errorPage;
+            var itemsPerPage = reviewTable.page.len();
+            var page = reviewTable.page();
+            reviewTable.page.len(-1).draw();
+
+            $('.item-import-path').removeClass('error-validation');
+            $('.specify-location-select').removeClass('error-validation');
+
+            reviewTable.rows().nodes().each(function (item) {
+                var currentPage = Math.trunc((item.rowIndex - 1) / itemsPerPage);
+                var itemId = $(item).attr("itemId");
+                var parentId = $(item).attr("parentId");
+                var checkedMappings = $(item).find('.mapping-checkbox:checked');
+                if (checkedMappings.length < 1) {
+                    $('#error-no-checked-mapping-' + itemId).show();
+                    isValid = false;
+                    if (!errorPage) {
+                        errorPage = currentPage;
+                    }
+                } else {
+                    $('#error-no-checked-mapping-' + itemId).hide();
+                }
+
+                checkedMappings.each(function (outIndex, outMappingCheckbox) {
+                    var outMappingCheckboxId = $(outMappingCheckbox).attr('id');
+                    var outImportPath = '';
+                    var outElement;
+                    if ($(item).attr('isRoot') === 'true') {
+                        outElement = $('#' + outMappingCheckboxId.replace('mapping-checkbox', 'import-path-pathfield'));
+                        outImportPath = $(outElement).val();
+                        $.ajax({
+                            url: outImportPath + '.valid.html',
+                            type: 'GET',
+                            async: false,
+                            success: function (xhr) {
+                                if (xhr.toString() === "no-valid") {
+                                    isValid = false;
+                                    if (!errorPage) {
+                                        errorPage = currentPage;
+                                    }
+                                    $('#' + outMappingCheckboxId.replace('mapping-checkbox_', 'error-invalid-import-path-')).show();
+                                } else {
+                                    $('#' + outMappingCheckboxId.replace('mapping-checkbox_', 'error-invalid-import-path-')).hide();
+                                }
+                            }
+                        });
+                    } else {
+                        outElement = $('#' + outMappingCheckboxId.replace('mapping-checkbox', 'specify-location-select'));
+                        outImportPath = $(outElement).find('option:selected').val();
+                    }
+                    if (!outImportPath) {
+                        $(outElement).addClass('error-validation');
+                        isValid = false;
+                        if (!errorPage) {
+                            errorPage = currentPage;
+                        }
+                    }
+                    checkedMappings.each(function (insideIndex, insideMappingCheckbox) {
+                        var insideMappingCheckboxId = $(insideMappingCheckbox).attr('id');
+                        var insideImportPath = '';
+                        var insideElement;
+                        if ($(item).attr('isRoot') === 'true') {
+                            insideElement = $('#' + insideMappingCheckboxId.replace('mapping-checkbox', 'import-path-pathfield'));
+                            insideImportPath = $(insideElement).val();
+                        } else {
+                            insideElement = $('#' + insideMappingCheckboxId.replace('mapping-checkbox', 'specify-location-select'));
+                            insideImportPath = $(insideElement).find('option:selected').val();
+                        }
+                        if ((outElement.selector !== insideElement.selector)
+                            && insideImportPath && outImportPath.startsWith(insideImportPath)) {
+                            $(outElement).addClass('error-validation');
+                            $(insideElement).addClass('error-validation');
+                            isValid = false;
+                            if (!errorPage) {
+                                errorPage = currentPage;
+                            }
+                        }
+                    });
+                });
+            });
+            reviewTable.page.len(itemsPerPage).draw();
+            if (isValid) {
+                reviewTable.page(page).draw('page');
+            } else {
+                if (!errorPage) {
+                    errorPage = 0;
+                }
+                reviewTable.page(errorPage).draw('page');
+            }
+            return isValid;
+        }
+
+        function isValidSingleImportReviewTable(reviewTable) {
+            var isValidTable = true;
+            var errorPage;
+            var itemsPerPage = reviewTable.page.len();
+            var page = reviewTable.page();
+            reviewTable.page.len(-1).draw();
+            var validatedImportPaths = {};
+            reviewTable.rows().nodes().each(function (item) {
+                var currentPage = Math.trunc((item.rowIndex - 1) / itemsPerPage);
+                var itemId = $(item).attr("itemId");
+                if ($(item).attr('isRoot') === 'true') {
+                    var importPathSelector = 'import-path-pathfield_' + itemId;
+                    var importPath = $('#' + importPathSelector).val().trim();
+                    var isValidPath;
+                    var errorMessage;
+                    if (GCStringUtils.isEmpty(importPath)) {
+                        isValidPath = false;
+                        errorMessage = "This field is required.";
+                    } else {
+                        errorMessage = "Path does not exist.";
+                        if (validatedImportPaths.hasOwnProperty(importPath)) {
+                            isValidPath = validatedImportPaths[importPath];
+                        } else {
+                            $.ajax({
+                                url: importPath + '.valid.html',
+                                type: 'GET',
+                                async: false,
+                                success: function (xhr) {
+                                    if (xhr.toString() === "no-valid") {
+                                        isValidPath = validatedImportPaths[importPath] = false;
+                                    } else {
+                                        isValidPath = validatedImportPaths[importPath] = true;
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    if (isValidPath) {
+                        $('#' + importPathSelector.replace('import-path-pathfield_', 'error-invalid-import-path-')).html('').hide();
+                    } else {
+                        isValidTable = false;
+                        if (!errorPage) {
+                            errorPage = currentPage;
+                        }
+                        $('#' + importPathSelector.replace('import-path-pathfield_', 'error-invalid-import-path-')).html(errorMessage).show();
+                    }
+                }
+            });
+            reviewTable.page.len(itemsPerPage).draw();
+            if (isValidTable) {
+                reviewTable.page(page).draw('page');
+            } else {
+                if (!errorPage) {
+                    errorPage = 0;
+                }
+                reviewTable.page(errorPage).draw('page');
+            }
+            return isValidTable;
+        }
+
+        $("#confirm-review").click(function () {
+            var reviewTable = $('#review-table').DataTable();
+
+            var isValid = true;
+            if (isMultilocation) {
+                isValid = isValidMultilocationReviewTable(reviewTable);
+            } else {
+                isValid = isValidSingleImportReviewTable(reviewTable);
+            }
+            if (!isValid) {
+                return;
+            }
+
+            var importData = fetchItemsToImport(reviewTable);
+
+            var options = {
+                order: [],
+                fnCreatedRow: function (nRow, aData, iDataIndex) {
+                    $(nRow).attr("parentId", aData.parentId);
+                    $(nRow).attr("itemId", aData.itemId);
+                    $(nRow).attr("validName", aData.validName);
+                    $(nRow).attr("title", aData.title);
+                },
+                columns: [
+                    GATHERCONTENT.dataTablesColumns.status,
+                    GATHERCONTENT.dataTablesColumns.hierarchyTitle,
+                    {
+                        title: "Specify Mapping", data: 'mappings',
+                        render: function (data, type, row) {
+                            var mappings = '';
+                            data.forEach(function (item, index) {
+                                if (item.mappingName) {
+                                    mappings += '<input class="mappingsConfirm full-width" disabled type="text" value="' + GCStringUtils.escapeHTML(item.mappingName) + '">'
+                                }
+                            });
+                            return mappings;
+                        }
+                    },
+                    {
+                        title: "Import Path", data: 'mappings',
+                        render: function (data, type, row) {
+                            var mappings = '';
+                            data.forEach(function (item, index) {
+                                mappings += '<input class="full-width" disabled type="text" value="' + item.importPath + '">'
+                            });
+                            return mappings;
+                        }
+                    },
+                    GATHERCONTENT.dataTablesColumns.templateName
+                ],
+                searching: false
+            };
+            GATHERCONTENT.createAndFillDataTable($('#confirmation-table'), options, importData.items).draw();
+            $('#review-table-wrapper').hide();
+            $('#confirmation-table-wrapper').show();
         });
 
-        selectedData.each(function (element) {
-            var findLocalItem = $(element).find('input.item-import-path');
-            var parentId = $(element).attr('parentId');
-            if (selectedItemIds.indexOf(parentId) > -1) {
-                findLocalItem.addClass('gc-import-hide-children-import-path');
-            }
-            else {
-                findLocalItem.removeClass('gc-import-hide-children-import-path');
-            }
+        $("#confirm-import").click(function () {
+            var itemsToImport = fetchItemsToImport($('#review-table').DataTable());
+            itemsToImport = splitMultipleItems(itemsToImport);
+            var pagePath = $("#confirm-import").data("pagepath");
+            var url = pagePath + ".gcimporter.json";
+
+            $('#confirmation-table-wrapper').hide();
+            GATHERCONTENT.detachLeavePageHandlers();
+            GATHERCONTENT.sendItemsToProcess(url, pagePath, itemsToImport);
         });
 
+        $("#import-project-select").change(function () {
+            var projectid = $(this).find("option:selected").val();
+            var path = $("#confirm-import").data("path");
+            var spinnerTarget = document.getElementById('import-table');
+            var spinner = new Spinner().spin();
+            $.ajax({
+                url: path + ".ajax.projectId-" + projectid + ".html",
+                type: "GET",
+                cache: false,
+                beforeSend: function () {
+                    $(spinnerTarget).addClass('grayout');
+                    spinnerTarget.appendChild(spinner.el);
+                },
+                success: function (data) {
+                    $("#import-table").html(data);
+                    var table = GATHERCONTENT.initImportUpdateTable('item-list-table');
+                    GATHERCONTENT.fillFilter(table, '#status-filter', '.item-status', 'Select Status');
+                    GATHERCONTENT.fillFilter(table, '#template-filter', '.item-template', 'Select Template');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log("error");
+                },
+                complete: function () {
+                    spinner.stop();
+                    $(spinnerTarget).removeClass('grayout');
+                }
+            });
+        });
+
+        $("#cancel-review").click(function () {
+            $('#review-table-wrapper').hide();
+            $('#import-table-wrapper').show();
+            GATHERCONTENT.detachLeavePageHandlers();
+        });
+
+        $("#cancel-import").click(function () {
+            $('#confirmation-table-wrapper').hide();
+            $('#review-table-wrapper').show();
+        });
+    }
+);
+
+$('document').ready(function () {
+    var table = GATHERCONTENT.initImportUpdateTable('item-list-table');
+    GATHERCONTENT.fillFilter(table, '#status-filter', '.item-status', 'Select Status');
+    GATHERCONTENT.fillFilter(table, '#template-filter', '.item-template', 'Select Template');
+    $('#title-filter').on('keyup', (function () {
+        $('#item-list-table').DataTable().column(2).search(this.value, false, false, false).rows().deselect().draw();
+        $('#all-items-checkbox').prop('checked', false);
+    }));
+    $('#status-filter').change(function () {
+        $('#item-list-table').DataTable().column(1).search(this.value, false, false, false).rows().deselect().draw();
+        $('#all-items-checkbox').prop('checked', false);
+    });
+    $('#template-filter').change(function () {
+        $('#item-list-table').DataTable().column(3).search(this.value, false, false, false).rows().deselect().draw();
+        $('#all-items-checkbox').prop('checked', false);
     });
 });
+
 

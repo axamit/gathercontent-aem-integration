@@ -11,6 +11,7 @@ import java.util.List;
 
 /**
  * Sling model class which represents table with items on Import History page.
+ *
  * @author Axamit, gc.support@axamit.com
  */
 @Model(adaptables = Resource.class)

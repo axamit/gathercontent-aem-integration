@@ -1,0 +1,138 @@
+#export-form-panel .x-panel-body {
+    background-color: transparent;
+}
+
+.export-list form .x-form-item-description {
+    padding-left: 0 !important;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+#CQ #CQ-EXPORT-FORM-WRAPPER {
+    padding-left: 220px;
+}
+
+.export-list #CQ select {
+    border: 1px solid rgb(169, 169, 169);
+}
+
+.export-list #CQ .x-form-item-label {
+    width: 145px !important;
+}
+
+.export-list #CQ .x-form-search-trigger {
+    left: 218px;
+}
+
+.span-name {
+    color: red;
+}
+
+#export-table-wrapper {
+    margin-bottom: 40px;
+}
+
+#confirmation-table-wrapper {
+    display: none;
+    margin-bottom: 40px;
+}
+
+#final-confirmation-table-wrapper {
+    display: none;
+    margin-bottom: 40px;
+}
+
+#gcproject-select {
+    width: 440px;
+}
+
+.select-wrapper {
+    padding-left: 220px;
+    margin-top: -16px;
+}
+
+.conf-label {
+    width: 125px;
+    color: #000000;
+}
+
+.conf-wrapper {
+    margin-top: 7px;
+    margin-bottom: 20px;
+}
+
+#empty-list-modal {
+    margin-bottom: 8px;
+    margin-top: 8px;
+}
+.hideElement {
+    visibility: hidden;
+}
+.mappingSpinner {
+    margin-top: 10%;
+}
+.tableFilter {
+    margin-bottom: 10px;
+}
+div.property-description {
+    color: #8F8F8F;
+    font-size: 11px;
+    margin-bottom: 10px;
+ }
+.importPathClass {
+    width: 200% !important;
+}
+
+#CQ .child-import-path {
+    background: rgb(235, 235, 228) none;
+    margin-bottom: 4px;
+}
+
+.targetItem {
+    width: 90%;
+}
+
+.targetItemCQ {
+    width: 90%;
+}
+.importPathClass {
+    width: 200% !important;
+}
+
+.check-box-first-step {
+    margin-left: 40%;
+}
+
+.mapping {
+
+    width: 100%
+
+}
+
+.span-warning {
+
+    color: red
+}
+
+.targetItem {
+    width: 100%;
+}
+
+.targetNewItem {
+    width: 100%;
+}
+
+.importNotRootPathClassImportant {
+    width: 90% !important;
+    background-image: none !important;
+    background-color: rgb(235, 235, 228) !important;
+}
+
+.spec-mapping-title {
+    min-width: 155px;
+}
+
+#CQ .pathfield-label-wrapper {
+    width: 220px;
+    float: left;
+}
