@@ -1,17 +1,17 @@
 # GatherContent AEM integration v1.0
 [![Image of Integration](https://github.com/AntoniBertel/GatherContentAssets/blob/master/GC-AEM.png)](https://gathercontent.com/)
 
-GatherContent’s AEM integration allows content editors to import and update content from GatherContent to AEM. Editors are able to specify mappings, defining which templates and fields should be mapped and then imported. The integration also provides a backward connection, allowing content editors to update the GatherContent workflow status for all items that are successfully imported.
+GatherContent’s AEM integration allows content editors to import and update content from GatherContent to AEM; export and update content from AEM to GatherContent. Editors are able to specify import or export mappings, defining which templates and fields should be mapped and then imported, exported or updated. The integration also allows content editors to update the GatherContent workflow status for all items that are successfully imported, exported or updated.
 
-- [x] Migrate content into AEM
-- [x] Update migrated content in AEM
-- [ ] Import content into GatherContent (soon)
-- [ ] Publish content to AEM (soon)
+- [x] Migrate (import) content from GatherContent into AEM
+- [x] Update migrated (imported) content in AEM
+- [x] Migrate (export) content from AEM into GatherContent
+- [x] Update migrated (exported) content in GatherContent
 
 
-|  **`AEM 6.0`**   |  **`AEM 6.1`** | **`AEM 6.2`** |
-|-------------------|----------------------|------------------|
-|:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |
+|  **`AEM 6.0`**   |  **`AEM 6.1`** | **`AEM 6.2`** | **`AEM 6.3`** |
+|-------------------|----------------------|------------------|------------------|
+|:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |
 
 ## Modules
 
@@ -43,7 +43,7 @@ Or to deploy only the bundle to the author, run
 
 ## Testing
 
-Completed v1.0
+v2.0 is in open beta.
 
 ## Maven settings
 
@@ -55,6 +55,10 @@ The project comes with the auto-public repository configured. To setup the repos
 [![Axamit](https://github.com/AntoniBertel/GatherContentAssets/blob/master/Axamit.png)](https://axamit.com/)
 
 ## Changelog
+15/08/2017 [2.0.2-beta Bug Fix](https://github.com/axamit/gathercontent-aem-integration/releases/tag/2.0.2-beta "Package attached")
+
+12/08/2017 [2.0.1-beta Major Release 2](https://github.com/axamit/gathercontent-aem-integration/releases/tag/2.0.1-beta "Package attached")
+
 27/02/2017 [1.0.38.1 Bug Fix Release](https://github.com/axamit/gathercontent-aem-integration/releases/tag/1.0.38.1 "Package attached")
 
-28/11/2016 [1.0.38 Release](https://github.com/axamit/gathercontent-aem-integration/releases/tag/1.0.38 "Package attached")
+28/11/2016 [1.0.38 Major Release 1](https://github.com/axamit/gathercontent-aem-integration/releases/tag/1.0.38 "Package attached")
