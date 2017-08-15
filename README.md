@@ -59,6 +59,6 @@ The project comes with the auto-public repository configured. To setup the repos
 
 12/08/2017 [2.0.1-beta Major Release 2](https://github.com/axamit/gathercontent-aem-integration/releases/tag/2.0.1-beta "Package attached")
 
-27/02/2017 [1.0.38.1 Bug Fix Release](https://github.com/axamit/gathercontent-aem-integration/releases/tag/1.0.38.1 "Package attached")
+27/02/2017 [1.0.38.1 Bug Fix](https://github.com/axamit/gathercontent-aem-integration/releases/tag/1.0.38.1 "Package attached")
 
 28/11/2016 [1.0.38 Major Release 1](https://github.com/axamit/gathercontent-aem-integration/releases/tag/1.0.38 "Package attached")
