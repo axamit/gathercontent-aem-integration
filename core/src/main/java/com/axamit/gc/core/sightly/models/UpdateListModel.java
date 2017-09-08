@@ -14,6 +14,7 @@ import com.axamit.gc.api.services.GCConfiguration;
 import com.axamit.gc.api.services.GCContentApi;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.pojo.ImportUpdateTableItem;
+import com.axamit.gc.core.pojo.LinkedGCPage;
 import com.axamit.gc.core.pojo.MappingType;
 import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.GCUtil;
@@ -37,9 +38,11 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -58,8 +61,7 @@ public final class UpdateListModel {
 
     private static final String EXPORTED_PAGES_QUERY =
             "SELECT * FROM [cq:PageContent] AS pageContent WHERE ISDESCENDANTNODE(pageContent , '/content')"
-                    + " AND [isGCExportedPage] = true"
-                    + " AND [GCProjectId]='%s'";
+                    + " AND [isGCExportedPage] = true";
 
     private final List<GCProject> projects = new ArrayList<>();
     private List<ImportUpdateTableItem> itemList = new ArrayList<>();
@@ -96,13 +98,19 @@ public final class UpdateListModel {
                         mappedTemplatesAndItems.row(MappingType.ENTRY_PARENT);
                 //Map<String, Set<Map<String, String>>> mappedCustomItemsIds = mappedTemplatesAndItems.row
                 // (MappingType.CUSTOM_ITEM);
-                Map<String, Map<String, Resource>> importedPages = getImportedExportedPages(resource, projectId, IMPORTED_PAGES_QUERY, Constants.GC_IMPORTED_PAGE_ITEM_ID);
-                Map<String, Map<String, Resource>> exportedPages = getImportedExportedPages(resource, projectId, EXPORTED_PAGES_QUERY, Constants.GC_EXPORTED_PAGE_ITEM_ID);
+                Map<String, Set<UpdateResourceUnit>> importedPages = getImportedExportedPages(resource, projectId,
+                        String.format(IMPORTED_PAGES_QUERY, projectId), StringUtils.EMPTY,
+                        Constants.GC_IMPORTED_PAGE_PROJECT_ID, Constants.GC_IMPORTED_PAGE_ITEM_ID,
+                        Constants.GC_IMPORTED_PAGE_MAPPING_PATH);
+                Map<String, Set<UpdateResourceUnit>> exportedPages = getImportedExportedPages(resource, projectId,
+                        EXPORTED_PAGES_QUERY, Constants.GC_EXPORTED_PAGES_MAP,
+                        Constants.GC_EXPORTED_PAGE_PROJECT_ID, Constants.GC_EXPORTED_PAGE_ITEM_ID,
+                        Constants.GC_EXPORTED_PAGE_MAPPING_PATH);
                 String slug = getSlug(gcContentApi, gcContext, accountId);
 
                 for (GCItem gcItem : allGcItems) {
-                    Map<String, Resource> importedPagesForItem = importedPages.get(gcItem.getId());
-                    Map<String, Resource> exportedPagesForItem = exportedPages.get(gcItem.getId());
+                    Set<UpdateResourceUnit> importedPagesForItem = importedPages.get(gcItem.getId());
+                    Set<UpdateResourceUnit> exportedPagesForItem = exportedPages.get(gcItem.getId());
                     if ((importedPagesForItem != null || exportedPagesForItem != null)
                             && (mappedTemplatesIds.containsKey(gcItem.getTemplateId())
                             || GCItemType.ENTRY_PARENT.equals(gcItem.getItemType()) && mappedEntriesIds.containsKey(gcItem.getId()) && Constants.MAPPING_TYPE_IMPORT.equals(side)
@@ -110,13 +118,11 @@ public final class UpdateListModel {
                             || GCItemType.ITEM.equals(gcItem.getItemType()) && gcItem.getTemplateId() == null)) {
                         switch (side) {
                             case Constants.MAPPING_TYPE_EXPORT:
-                                addItemsFromPages(exportedPagesForItem, Constants.GC_EXPORTED_PAGE_MAPPING_PATH,
-                                        gcItem, slug);
+                                addItemsFromPages(exportedPagesForItem, gcItem, slug);
                                 break;
                             case Constants.MAPPING_TYPE_IMPORT:
                             default:
-                                addItemsFromPages(importedPagesForItem, Constants.GC_IMPORTED_PAGE_MAPPING_PATH,
-                                        gcItem, slug);
+                                addItemsFromPages(importedPagesForItem, gcItem, slug);
                         }
                     }
                 }
@@ -128,11 +134,10 @@ public final class UpdateListModel {
         }
     }
 
-    private void addItemsFromPages(Map<String, Resource> pagesForItem, String pageMappingPath, GCItem gcItem,
-                                   String slug) {
-        if (pagesForItem != null) {
-            for (Resource pageResource : pagesForItem.values()) {
-                ImportUpdateTableItem listItem = createImportUpdateTableItem(gcItem, pageResource, slug, pageMappingPath);
+    private void addItemsFromPages(Set<UpdateResourceUnit> updateResourceUnits, GCItem gcItem, String slug) {
+        if (updateResourceUnits != null) {
+            for (UpdateResourceUnit updateResourceUnit : updateResourceUnits) {
+                ImportUpdateTableItem listItem = createImportUpdateTableItem(gcItem, updateResourceUnit, slug);
                 if (listItem != null) {
                     itemList.add(listItem);
                 }
@@ -140,9 +145,9 @@ public final class UpdateListModel {
         }
     }
 
-    private static ImportUpdateTableItem createImportUpdateTableItem(GCItem gcItem, Resource importedPageResource,
-                                                                     String slug,
-                                                                     String pageMappingPropertyName) {
+    private static ImportUpdateTableItem createImportUpdateTableItem(GCItem gcItem, UpdateResourceUnit updateResourceUnit,
+                                                                     String slug) {
+        Resource importedPageResource = updateResourceUnit.getPageResource();
         ResourceResolver resourceResolver = importedPageResource.getResourceResolver();
         PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
         String importPath = pageManager.getContainingPage(importedPageResource).getPath();
@@ -150,7 +155,7 @@ public final class UpdateListModel {
         String gcPath = "https://" + slug + ".gathercontent.com/item/" + gcItem.getId();
         ValueMap valueMap = importedPageResource.getValueMap();
         Calendar calendar = valueMap.get(NameConstants.PN_PAGE_LAST_MOD, Calendar.class);
-        String mappingPath = valueMap.get(pageMappingPropertyName, String.class);
+        String mappingPath = updateResourceUnit.linkedGCPage.getGcMappingPath();
         Resource mappingResource = resourceResolver.getResource(mappingPath);
         if (mappingResource == null) {
             //! Log
@@ -182,27 +187,35 @@ public final class UpdateListModel {
 
     }
 
-    private static Map<String, Map<String, Resource>> getImportedExportedPages(Resource resource,
-                                                                               final String projectId, final String query,
-                                                                               final String itemIdPropertyName) {
+    private static Map<String, Set<UpdateResourceUnit>> getImportedExportedPages(final Resource resource,
+                                                                                 final String projectId,
+                                                                                 final String query,
+                                                                                 final String linkedPagesMapPN,
+                                                                                 final String projectIdPN,
+                                                                                 final String itemIdPN,
+                                                                                 final String mappingPathPN) {
         ResourceResolver resourceResolver = resource.getResourceResolver();
-        Iterator<Resource> importedPagesResources =
-                resourceResolver.findResources(String.format(query, projectId), Query.JCR_SQL2);
-        Map<String, Map<String, Resource>> importedPages = new HashMap<>();
-        while (importedPagesResources.hasNext()) {
-            Resource importedPageResource = importedPagesResources.next();
-            String itemId = importedPageResource.getValueMap().get(itemIdPropertyName, String.class);
-            if (StringUtils.isNotEmpty(itemId)) {
-                Map<String, Resource> resources = importedPages.get(itemId);
-                if (resources == null) {
-                    resources = new HashMap<>();
-                    importedPages.put(itemId, resources);
+        Iterator<Resource> linkedPagesResources =
+                resourceResolver.findResources(query, Query.JCR_SQL2);
+        Map<String, Set<UpdateResourceUnit>> linkedResources = new HashMap<>();
+        while (linkedPagesResources.hasNext()) {
+            Resource linkedPageResource = linkedPagesResources.next();
+            Map<String, LinkedGCPage> linkedGCPages =
+                    GCUtil.getLinkedGCPages(linkedPageResource.getValueMap(),
+                            linkedPagesMapPN, projectIdPN, itemIdPN, mappingPathPN);
+            for (LinkedGCPage linkedGCPage : linkedGCPages.values()) {
+                if (projectId.equals(linkedGCPage.getGcProjectId())) {
+                    UpdateResourceUnit updateResourceUnit = new UpdateResourceUnit(linkedPageResource, linkedGCPage);
+                    Set<UpdateResourceUnit> updateResourceUnits = linkedResources.get(linkedGCPage.getGcItemId());
+                    if (updateResourceUnits == null) {
+                        updateResourceUnits = new HashSet<>();
+                        linkedResources.put(linkedGCPage.getGcItemId(), updateResourceUnits);
+                    }
+                    updateResourceUnits.add(updateResourceUnit);
                 }
-
-                resources.put(importedPageResource.getPath(), importedPageResource);
             }
         }
-        return importedPages;
+        return linkedResources;
     }
 
     private static String getSlug(GCContentApi gcContentApi, final GCContext gcContext,
@@ -229,6 +242,59 @@ public final class UpdateListModel {
         for (ImportUpdateTableItem importUpdateTableItem : items) {
             importUpdateTableItem.setHierarchyTitle(GCUtil.getHierarchyName(items, importUpdateTableItem.getParentId(),
                     importUpdateTableItem.getTitle()));
+        }
+    }
+
+    /**
+     * Class represent unit for updating.
+     */
+    static class UpdateResourceUnit {
+        private Resource pageResource;
+        private LinkedGCPage linkedGCPage;
+
+        /**
+         * Public constructor.
+         *
+         * @param pageResource AEM page Resource.
+         * @param linkedGCPage LinkedGCPage.
+         */
+        UpdateResourceUnit(Resource pageResource, LinkedGCPage linkedGCPage) {
+            this.pageResource = pageResource;
+            this.linkedGCPage = linkedGCPage;
+        }
+
+        public Resource getPageResource() {
+            return pageResource;
+        }
+
+        public void setPageResource(Resource pageResource) {
+            this.pageResource = pageResource;
+        }
+
+        public LinkedGCPage getLinkedGCPage() {
+            return linkedGCPage;
+        }
+
+        public void setLinkedGCPage(LinkedGCPage linkedGCPage) {
+            this.linkedGCPage = linkedGCPage;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            UpdateResourceUnit that = (UpdateResourceUnit) o;
+            return Objects.equals(pageResource.getPath(), that.pageResource.getPath())
+                    && Objects.equals(linkedGCPage, that.linkedGCPage);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(pageResource.getPath(), linkedGCPage);
         }
     }
 }

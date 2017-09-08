@@ -4,6 +4,8 @@
 
 package com.axamit.gc.api.services;
 
+import com.adobe.granite.license.ProductInfo;
+import com.adobe.granite.license.ProductInfoService;
 import com.axamit.gc.api.GCContext;
 import com.axamit.gc.api.dto.GCAccount;
 import com.axamit.gc.api.dto.GCConfig;
@@ -17,8 +19,12 @@ import com.axamit.gc.core.util.GCStringUtil;
 import com.axamit.gc.core.util.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
@@ -44,6 +50,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.sling.commons.json.JSONObject;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,6 +84,42 @@ public final class GCContentApiImpl implements GCContentApi {
     private static final String PARAM_NAME = "name";
     private static final String PARAM_TYPE = "type";
     private static final String JSON_DATA_NODE_NAME = "data";
+    private static final String AEM_PRODUCT_INFO_NAME = "Adobe Experience Manager";
+    private static String userAgentInfo;
+
+    @Reference
+    private ProductInfoService productInfoService;
+
+    /**
+     * Activates or updates the service.
+     *
+     * @param componentContext context.
+     */
+    @Activate
+    @Modified
+    void activate(final ComponentContext componentContext) {
+        setUserAgentInfo(componentContext);
+    }
+
+    private void setUserAgentInfo(final ComponentContext componentContext) {
+        ProductInfo[] infos = productInfoService.getInfos();
+        String productInfoString = StringUtils.EMPTY;
+        if (infos != null && infos.length > 0) {
+            ProductInfo aemProductInfo = null;
+            for (ProductInfo productInfo : infos) {
+                if (AEM_PRODUCT_INFO_NAME.equals(productInfo.getName())) {
+                    aemProductInfo = productInfo;
+                    break;
+                }
+            }
+            if (aemProductInfo == null) {
+                aemProductInfo = infos[0];
+            }
+            productInfoString = "-" + aemProductInfo.getVersion().toString();
+        }
+        userAgentInfo = "Integration-AEM" + productInfoString + "/"
+                + componentContext.getUsingBundle().getVersion().toString();
+    }
 
     /**
      * @inheritDoc
@@ -143,8 +186,8 @@ public final class GCContentApiImpl implements GCContentApi {
             if (statusCode != HttpStatus.SC_ACCEPTED) {
                 String responseEntityContent = EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8);
                 LOGGER.error("Requested GatherContent URL: " + httpPost.getURI()
-                    + System.lineSeparator() + "Response: " + httpResponse.toString()
-                    + System.lineSeparator() + "ResponseEntity: " + responseEntityContent);
+                        + System.lineSeparator() + "Response: " + httpResponse.toString()
+                        + System.lineSeparator() + "ResponseEntity: " + responseEntityContent);
             } else if (headers != null) {
                 for (String header : headers) {
                     Header firstHeader = httpResponse.getFirstHeader(header);
@@ -187,7 +230,7 @@ public final class GCContentApiImpl implements GCContentApi {
     }
 
     private static String apiCall(final String url, final GCContext gcContext, final Iterable<NameValuePair> params)
-        throws GCException {
+            throws GCException {
         StringBuilder requestUrl = new StringBuilder(gcContext.getApiURL()).append(url);
         if (params != null) {
             requestUrl.append("?").append(URLEncodedUtils.format(params, StandardCharsets.UTF_8));
@@ -208,8 +251,8 @@ public final class GCContentApiImpl implements GCContentApi {
                 return stringBuilder.toString(); //new String(httpResponse.getEntity().getContent());
             } else {
                 throw new GCException("Requested GatherContent URL: " + httpUriRequest.getURI()
-                    + System.lineSeparator() + "Response: " + httpResponse.toString()
-                    + System.lineSeparator() + "ResponseEntity: " + stringBuilder.toString());
+                        + System.lineSeparator() + "Response: " + httpResponse.toString()
+                        + System.lineSeparator() + "ResponseEntity: " + stringBuilder.toString());
             }
         } catch (IOException e) {
             LOGGER.error("Request to GatherContent URL: {} failed. {}", httpUriRequest.getURI(), e.getMessage());
@@ -276,7 +319,7 @@ public final class GCContentApiImpl implements GCContentApi {
             Header header = new BasicHeader(entry.getKey(), entry.getValue());
             httpUriRequest.setHeader(header);
         }
-
+        httpUriRequest.addHeader(new BasicHeader(HttpHeaders.USER_AGENT, userAgentInfo));
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
         String username = gcContext.getUsername();
         String apiKey = gcContext.getApikey();

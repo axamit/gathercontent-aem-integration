@@ -10,6 +10,7 @@ import com.axamit.gc.api.dto.GCTime;
 import com.axamit.gc.api.services.GCContentApi;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.pojo.ImportItem;
+import com.axamit.gc.core.pojo.LinkedGCPage;
 import com.axamit.gc.core.pojo.MappingType;
 import com.axamit.gc.core.pojo.helpers.GCHierarchySortable;
 import com.axamit.gc.core.pojo.helpers.TreeNode;
@@ -36,6 +37,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -322,16 +324,59 @@ public enum GCUtil {
      * @param projectId          GatherContent Project ID that will be associated with AEM page.
      * @param itemId             GatherContent Item ID that will be associated with AEM page.
      * @param mappingPath        Path to mapping that will be associated with AEM page.
+     * @throws GCException          If any error occurs during serializing of links to exported pages
      * @throws PersistenceException If any error occurs during saving changes to JCR Repository
      */
     public static void addGCExportProperties(final ResourceResolver resourceResolver,
                                              final ModifiableValueMap modifiableValueMap, final String projectId,
-                                             final String itemId, final String mappingPath) throws PersistenceException {
+                                             final String itemId, final String mappingPath)
+            throws PersistenceException, GCException {
+
+        final Map<String, LinkedGCPage> linkedGCPages = getLinkedGCPages(modifiableValueMap,
+                Constants.GC_EXPORTED_PAGES_MAP, Constants.GC_EXPORTED_PAGE_PROJECT_ID,
+                Constants.GC_EXPORTED_PAGE_ITEM_ID, Constants.GC_EXPORTED_PAGE_MAPPING_PATH);
+
+        final LinkedGCPage newLinkedGCPage = new LinkedGCPage(projectId, itemId, mappingPath);
+        linkedGCPages.put(itemId, newLinkedGCPage);
+
+        modifiableValueMap.put(Constants.GC_EXPORTED_PAGES_MAP, JSONUtil.fromObjectToJsonString(linkedGCPages));
         modifiableValueMap.put(Constants.GC_EXPORTED_PAGE_MARKER, true);
-        modifiableValueMap.put(Constants.GC_EXPORTED_PAGE_PROJECT_ID, projectId);
-        modifiableValueMap.put(Constants.GC_EXPORTED_PAGE_ITEM_ID, itemId);
-        modifiableValueMap.put(Constants.GC_EXPORTED_PAGE_MAPPING_PATH, mappingPath);
         resourceResolver.commit();
+    }
+
+    /**
+     * Get Map of linked GC items to this AEM page.
+     *
+     * @param valueMap         ValueMap of AEM page.
+     * @param linkedPagesMapPN Map of linked GatherContent pages property name.
+     * @param projectIdPN      GatherContent Project ID property name.
+     * @param itemIdPN         GatherContent Item ID property name.
+     * @param mappingPathPN    Path to mapping property name.
+     * @return Map of linked GC items
+     */
+    public static Map<String, LinkedGCPage> getLinkedGCPages(final ValueMap valueMap,
+                                                             final String linkedPagesMapPN, final String projectIdPN,
+                                                             final String itemIdPN, final String mappingPathPN) {
+        final String linkedPagesJson = valueMap.get(linkedPagesMapPN, String.class);
+
+        if (StringUtils.isNotEmpty(linkedPagesJson)) {
+            try {
+                return JSONUtil.fromJsonToMapObject(linkedPagesJson, String.class, LinkedGCPage.class);
+            } catch (GCException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        } else {
+            final Map<String, LinkedGCPage> linkedGCPageMap = new HashMap<>();
+            final String projectId = valueMap.get(projectIdPN, String.class);
+            final String itemId = valueMap.get(itemIdPN, String.class);
+            final String mappingPath = valueMap.get(mappingPathPN, String.class);
+            if (StringUtils.isNotEmpty(projectId) && StringUtils.isNotEmpty(itemId)
+                    && StringUtils.isNotEmpty(mappingPath)) {
+                linkedGCPageMap.put(itemId, new LinkedGCPage(projectId, itemId, mappingPath));
+            }
+            return linkedGCPageMap;
+        }
+        return Collections.emptyMap();
     }
 
     /**

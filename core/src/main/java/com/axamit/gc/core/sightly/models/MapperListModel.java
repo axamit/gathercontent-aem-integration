@@ -86,6 +86,11 @@ public final class MapperListModel {
 
         for (Resource mappingResource : mappingResources) {
             MapperModel mapperModel = mappingResource.adaptTo(MapperModel.class);
+            if (mapperModel == null) {
+                LOGGER.error("Can not adapt mapping \"{}\" to model {}", mappingResource.getPath(),
+                        MapperModel.class.getName());
+                continue;
+            }
             String type = mapperModel.getType();
             if (isExport && Constants.MAPPING_TYPE_EXPORT.equals(type)
                     || !isExport && !Constants.MAPPING_TYPE_EXPORT.equals(type)) {

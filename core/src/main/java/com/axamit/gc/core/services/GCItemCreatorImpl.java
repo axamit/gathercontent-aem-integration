@@ -36,7 +36,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.api.resource.ResourceUtil;
-import org.apache.sling.api.resource.ValueMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +91,7 @@ public final class GCItemCreatorImpl implements GCItemCreator {
         MapperModel mapperModel = mappingResource.adaptTo(MapperModel.class);
         if (mapperModel == null) {
             LOGGER.error("Can not adapt mapping \"{}\" to model {}", importItem.getMappingPath(),
-                MapperModel.class.getName());
+                    MapperModel.class.getName());
             return null;
         }
         return mapperModel;
@@ -101,12 +100,12 @@ public final class GCItemCreatorImpl implements GCItemCreator {
     private static void updateGCSpecialPropertiesInAEMPage(ResourceResolver resourceResolver, PageManager pageManager,
                                                            String projectId, String itemId, ImportItem importItem) {
         ModifiableValueMap modifiableValueMap = pageManager.getPage(importItem.getImportPath()) != null
-            ? pageManager.getPage(importItem.getImportPath()).getContentResource().adaptTo(ModifiableValueMap.class)
-            : resourceResolver.getResource(importItem.getImportPath()).adaptTo(ModifiableValueMap.class);
+                ? pageManager.getPage(importItem.getImportPath()).getContentResource().adaptTo(ModifiableValueMap.class)
+                : resourceResolver.getResource(importItem.getImportPath()).adaptTo(ModifiableValueMap.class);
         try {
             GCUtil.addGCExportProperties(resourceResolver, modifiableValueMap, projectId,
-                itemId, importItem.getMappingPath() == null ? "" : importItem.getMappingPath());
-        } catch (PersistenceException e) {
+                    itemId, importItem.getMappingPath() == null ? StringUtils.EMPTY : importItem.getMappingPath());
+        } catch (PersistenceException | GCException e) {
             LOGGER.error(e.getMessage(), e);
         }
     }
@@ -173,8 +172,8 @@ public final class GCItemCreatorImpl implements GCItemCreator {
                 if (createdItemId != null) { //! Else? I would log and early break/return
                     GCData statusData = new GCData();
                     if (!importItemsToMerge.isEmpty() && importItemsToMerge.get(0).getNewStatusData().getId() != null
-                        && gContentApi.updateItemStatus(gcContext, createdItemId,
-                        importItemsToMerge.get(0).getNewStatusData().getId())) {
+                            && gContentApi.updateItemStatus(gcContext, createdItemId,
+                            importItemsToMerge.get(0).getNewStatusData().getId())) {
                         statusData = importItemsToMerge.get(0).getNewStatusData();
                     } else {
                         List<GCData> gcDataList = gContentApi.statusesByProjectId(gcContext, projectId);
@@ -191,15 +190,15 @@ public final class GCItemCreatorImpl implements GCItemCreator {
                     ImmutableList.Builder<ImportResultItem> importResultItemList = ImmutableList.builder();
                     for (ImportItem importItem : importItemsToMerge) {
                         updateGCSpecialPropertiesInAEMPage(resourceResolver, pageManager, gcItem.getProjectId(),
-                            createdItemId, importItem);
+                                createdItemId, importItem);
                         importResultItemList.add(new ImportResultItem(statusData.getName(),
-                            gcItem.getName(), importItem.getAemTitle(), ImportResultItem.IMPORTED,
-                            importItem.getTemplate(),
-                            //! OSGI configurable mask like "https://{0}.gathercontent.com/item/" would be great.
-                            "https://" + importItem.getSlug() + ".gathercontent.com/item/" + createdItemId,
-                            importItem.getImportPath(), statusData.getColor(), gcItem.getPosition(), createdItemId,
-                            gcItem.getParentId(), importItem.getImportIndex(), importItem.getMappingName())
-                            .setType(findOutFolderOrPage(pageManager, importItem)));
+                                gcItem.getName(), importItem.getAemTitle(), ImportResultItem.IMPORTED,
+                                importItem.getTemplate(),
+                                //! OSGI configurable mask like "https://{0}.gathercontent.com/item/" would be great.
+                                "https://" + importItem.getSlug() + ".gathercontent.com/item/" + createdItemId,
+                                importItem.getImportPath(), statusData.getColor(), gcItem.getPosition(), createdItemId,
+                                gcItem.getParentId(), importItem.getImportIndex(), importItem.getMappingName())
+                                .setType(findOutFolderOrPage(pageManager, importItem)));
                     }
                     return importResultItemList.build();
                 }
@@ -220,8 +219,8 @@ public final class GCItemCreatorImpl implements GCItemCreator {
         for (ImportItem importItem : importItemsToMerge) {
             LOGGER.error("Couldn't export AEM page {}", importItem.getImportPath());
             importResultItemList.add(new ImportResultItem().setImportStatus(ImportResultItem.NOT_IMPORTED)
-                .setGcTemplateName(importItem.getTemplate()).setAemLink(importItem.getImportPath())
-                .setAemTitle(importItem.getAemTitle()).setImportIndex(importItem.getImportIndex()));
+                    .setGcTemplateName(importItem.getTemplate()).setAemLink(importItem.getImportPath())
+                    .setAemTitle(importItem.getAemTitle()).setImportIndex(importItem.getImportIndex()));
         }
         return importResultItemList.build();
     }
@@ -240,12 +239,12 @@ public final class GCItemCreatorImpl implements GCItemCreator {
                     //! First-time create in loop?
                     if (gcItem == null) {
                         gcItem =
-                            createGCItem(projectId, mapperModel, importItem.getGcTargetItemId(), importItem.getTitle());
+                                createGCItem(projectId, mapperModel, importItem.getGcTargetItemId(), importItem.getTitle());
                     }
                     if (mapping != null && page != null) {
                         for (Map.Entry<String, FieldMappingProperties> mapEntry : mapping.entrySet()) {
                             updateGCProperty(gcItem, page, mapEntry.getKey(), mapEntry.getValue(), resourceResolver,
-                                pluginConfigPath);
+                                    pluginConfigPath);
                         }
                     } else {
                         LOGGER.error("No mapped properties in the mapping \"{}\"", importItem.getMappingPath());
@@ -278,11 +277,7 @@ public final class GCItemCreatorImpl implements GCItemCreator {
                 Map<String, FieldMappingProperties> mapping = mapperModel.getMapper();
                 mappingName = mapperModel.getMappingName();
 
-                ValueMap pageValueMap = null;
-                if (page.hasContent()) {
-                    pageValueMap = page.getContentResource().getValueMap();
-                }
-                GCItem gcItem = resolveGcItem(gcContext, pageValueMap);
+                GCItem gcItem = gContentApi.itemById(gcContext, importItem.getItemId());
 
                 if (gcItem != null) {
                     if (mapping == null) {
@@ -291,35 +286,35 @@ public final class GCItemCreatorImpl implements GCItemCreator {
                     } else {
                         for (Map.Entry<String, FieldMappingProperties> mapEntry : mapping.entrySet()) {
                             updateGCProperty(gcItem, page, mapEntry.getKey(), mapEntry.getValue(),
-                                resourceResolver, pluginConfigPath);
+                                    resourceResolver, pluginConfigPath);
                         }
                     }
 
                     Boolean isUpdatedSuccessfully =
-                        gContentApi.updateItem(gcItem.getConfig(), gcItem.getId(), gcContext);
+                            gContentApi.updateItem(gcItem.getConfig(), gcItem.getId(), gcContext);
 
                     if (isUpdatedSuccessfully) {
                         Boolean updateItemStatus = false;
                         if (importItem.getNewStatusData().getId() != null) {
                             updateItemStatus = gContentApi
-                                .updateItemStatus(gcContext, gcItem.getId(), importItem.getNewStatusData().getId());
+                                    .updateItemStatus(gcContext, gcItem.getId(), importItem.getNewStatusData().getId());
                         }
                         final GCData statusData =
-                            updateItemStatus ? importItem.getNewStatusData() : gcItem.getStatus().getData();
+                                updateItemStatus ? importItem.getNewStatusData() : gcItem.getStatus().getData();
                         updateGCSpecialPropertiesInAEMPage(resourceResolver, pageManager, gcItem.getProjectId(),
-                            gcItem.getId(), importItem);
-                        return new ImportResultItem(statusData.getName(), page.getTitle(),
-                            gcItem.getName(), ImportResultItem.IMPORTED, importItem.getTemplate(),
-                            //! OSGI configurable mask like "https://{0}.gathercontent.com/item/" would be great.
-                            "https://" + importItem.getSlug() + ".gathercontent.com/item/" + gcItem.getId(),
-                            importItem.getImportPath(), statusData.getColor(),
-                            gcItem.getPosition(), gcItem.getId(), gcItem.getParentId(), importItem.getImportIndex(), mappingName);
+                                gcItem.getId(), importItem);
+                        return new ImportResultItem(statusData.getName(), gcItem.getName(), page.getTitle(),
+                                ImportResultItem.IMPORTED, importItem.getTemplate(),
+                                //! OSGI configurable mask like "https://{0}.gathercontent.com/item/" would be great.
+                                "https://" + importItem.getSlug() + ".gathercontent.com/item/" + gcItem.getId(),
+                                importItem.getImportPath(), statusData.getColor(),
+                                gcItem.getPosition(), gcItem.getId(), gcItem.getParentId(), importItem.getImportIndex(), mappingName);
                     } else {
                         LOGGER.error("Couldn't update item {}", importItem.getItemId());
                         return new ImportResultItem(null, null, null, ImportResultItem.NOT_IMPORTED,
-                            importItem.getTemplate(), "https://" + importItem.getSlug() + ".gathercontent.com/item/"
-                            + gcItem.getId(), importItem.getImportPath(), null, gcItem.getPosition(), gcItem.getId(),
-                            gcItem.getParentId(), importItem.getImportIndex(), mappingName);
+                                importItem.getTemplate(), "https://" + importItem.getSlug() + ".gathercontent.com/item/"
+                                + gcItem.getId(), importItem.getImportPath(), null, gcItem.getPosition(), gcItem.getId(),
+                                gcItem.getParentId(), importItem.getImportIndex(), mappingName);
                     }
                 }
             }
@@ -339,22 +334,8 @@ public final class GCItemCreatorImpl implements GCItemCreator {
                 null, importItem.getImportPath(), null, null, null, null, importItem.getImportIndex(), mappingName);
     }
 
-    private GCItem resolveGcItem(GCContext gcContext, ValueMap pageValueMap) throws GCException {
-        if (pageValueMap != null) {
-            String gcItemID = pageValueMap.get(Constants.GC_EXPORTED_PAGE_ITEM_ID, String.class);
-            if (StringUtils.isNotEmpty(gcItemID)) {
-                return gContentApi.itemById(gcContext, gcItemID);
-            }
-            gcItemID = pageValueMap.get(Constants.GC_IMPORTED_PAGE_ITEM_ID, String.class);
-            if (StringUtils.isNotEmpty(gcItemID)) {
-                return gContentApi.itemById(gcContext, gcItemID);
-            }
-        }
-        return null;
-    }
-
     private ResourceResolver getPageCreatorResourceResolver() throws LoginException {
         return ResourceResolverUtil.getResourceResolver(resourceResolverFactory,
-            Constants.PAGE_CREATOR_SUBSERVICE_NAME);
+                Constants.PAGE_CREATOR_SUBSERVICE_NAME);
     }
 }

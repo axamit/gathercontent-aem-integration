@@ -127,7 +127,7 @@ public class MapperModel {
 
     private Map<String, FieldMappingProperties> mapper;
 
-    private final PluginsConfigurationListModel pluginsConfigurationListModel;
+    private PluginsConfigurationListModel pluginsConfigurationListModel;
 
     private Map<String, String> metaMapper;
 
@@ -140,8 +140,6 @@ public class MapperModel {
      */
     public MapperModel(final Resource resource) {
         this.resource = resource;
-
-        pluginsConfigurationListModel = detect(resource);
     }
 
     private PluginsConfigurationListModel detect(Resource configResource) {
@@ -172,6 +170,7 @@ public class MapperModel {
         gcContext = gcConfiguration.getGCContext(resource);
         accountId = gcConfiguration.getAccountId(resource);
         mappingType = Objects.firstNonNull(MappingType.of(mappingTypeStr), MappingType.TEMPLATE);
+        pluginsConfigurationListModel = detect(resource);
     }
 
     public MappingType getMappingType() {

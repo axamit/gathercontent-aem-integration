@@ -134,7 +134,7 @@ public enum Constants {
     /**
      * JCR property name of imported page from GatherContent contains GatherContent project ID.
      */
-    static final String GC_IMPORTED_PAGE_PROJECT_ID = "GCProjectId";
+    public static final String GC_IMPORTED_PAGE_PROJECT_ID = "GCProjectId";
     /**
      * JCR property name of exported page to GatherContent contains GatherContent project ID.
      */
@@ -143,6 +143,7 @@ public enum Constants {
      * JCR property name of imported page from GatherContent contains GatherContent item ID.
      */
     public static final String GC_IMPORTED_PAGE_ITEM_ID = "GCItemId";
+    public static final String GC_EXPORTED_PAGES_MAP = "GCExportedPagesMap";
     /**
      * JCR property name of exported page to GatherContent contains GatherContent item ID.
      */
