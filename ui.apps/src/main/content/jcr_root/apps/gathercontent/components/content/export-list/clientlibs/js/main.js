@@ -25,15 +25,11 @@
             var val = $(this).val();
             if (oldVal === undefined || oldVal === "") {
                 if (newVal !== "") {
-                    val = newVal + "/" + val;
+                    val = newVal + val;
                 }
             }
             else {
-                if (newVal === "") {
-                    oldVal = oldVal + '/';
-                }
                 val = val.replace(oldVal, newVal);
-                oldVal = oldVal.substring(0, oldVal.length - 1);
             }
             $(this).val(val);
         });
@@ -180,9 +176,11 @@
                     var mappingPath = choosenOption.attr('data-mappingPath');
                 }
                 var pathfieldObject = CQ.Ext.getCmp("import-path-" + path);
-                var targetItem = "/";
                 var targetItemId;
-                targetItem += GCStringUtils.escapeHTML(targetItems.eq(rowIdx).val());
+                var targetItem = GCStringUtils.escapeHTML(targetItems.eq(rowIdx).val());
+                if(GCStringUtils.isEmpty(targetItem)){
+                    targetItem = "/";
+                }
 
                 if (pathfieldObject != null && pathfieldObject.browseDialog != null && pathfieldObject.browseDialog.treePanel != null
                     && pathfieldObject.browseDialog.treePanel.selModel != null && pathfieldObject.browseDialog.treePanel.selModel.selNode != null) {
@@ -513,7 +511,7 @@ $(function () {
                     parentNewItemName = $('[id="new-item-name-' + parentPath + '"').val();
                     tryCount++;
                 }
-                var childValue = (parentTargetItem === "") ? parentNewItemName : parentTargetItem + "/" + parentNewItemName;
+                var childValue = parentTargetItem + "/" + parentNewItemName;
                 var el = '<input type="text" size="24" autocomplete="off" id="import-path-' + $(element).attr('id') + '" name="import-path-' + $(element).attr('id')
                     + '" class="importNotRootPathClassImportant x-form-text x-form-field x-form-focus child-import-path full-width" readonly ' +
                     'value = "' + childValue + '">';
@@ -686,7 +684,7 @@ $(function () {
                     title: "Specify Mapping",
                     data: "",
                     mRender: function (data, type, full) {
-                        return full.mappingName;
+                        return "<input class='full-width table-text-input' autocomplete='off' disabled readonly"  + " value='" + full.mappingName + "'>";
                     },
                     defaultContent: '',
                     "width": "20%"
@@ -706,7 +704,7 @@ $(function () {
                     title: "Target Item",
                     defaultContent: '',
                     mRender: function (data, type, full) {
-                        return full.targetItem;
+                        return "<input class='full-width table-text-input' autocomplete='off' disabled readonly"  + " value='" + full.targetItem + "'>";
                     },
                     "width": "20%"
 

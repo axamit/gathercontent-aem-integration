@@ -311,7 +311,7 @@ CQ.form.GCItemsPathField = CQ.Ext.extend(CQ.Ext.form.ComboBox, {
                 getSelectedPath: function () {
                     try {
                         var str = this.treePanel.getSelectionModel().getSelectedNode().getPath();
-                        str = str.substr(str.indexOf('\/', str.indexOf('.tree')) + 1);
+                        str = str.substr(str.indexOf('.json') + 5);
                         // console.log(str);
                         if (str.indexOf('.tree') !== -1) {
                             str = "";
