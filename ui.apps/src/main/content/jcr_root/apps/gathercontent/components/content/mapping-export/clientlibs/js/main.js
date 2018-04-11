@@ -218,15 +218,15 @@ $(function () {
                 url: path + ".gctemplates.mappingType-" + mappingType + ".projectId-" + projectId + ".json",
                 type: "GET",
                 cache: false,
+                dataType:'json',
                 beforeSend: function () {
                     $(targetSelect).prop('disabled', true);
                     $(spinnerTarget).addClass('grayout');
                     spinnerTarget.appendChild(spinner.el);
                 },
                 success: function (data) {
-                    var json = JSON.parse(data);
-                    if (json.gctemplates) {
-                        json.gctemplates.forEach(function (item, index) {
+                    if (data.gctemplates) {
+                        data.gctemplates.forEach(function (item, index) {
                             optionsString += "<option value='" + item.value + "'>" + item.text + "</option>";
                         });
                     }
