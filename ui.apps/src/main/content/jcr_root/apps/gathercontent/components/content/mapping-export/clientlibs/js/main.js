@@ -225,7 +225,7 @@ $(function () {
                     spinnerTarget.appendChild(spinner.el);
                 },
                 success: function (data) {
-                    if (data.ates) {
+                    if (data.gctemplates) {
                         data.gctemplates.forEach(function (item, index) {
                             optionsString += "<option value='" + item.value + "'>" + item.text + "</option>";
                         });
