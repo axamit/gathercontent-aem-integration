@@ -9,8 +9,8 @@ $(function () {
             url: path + ".gcme.json",
             type: "GET",
             cache: false,
-            success: function (data) {
-                var response = JSON.parse(data);
+            dataType: 'json',
+            success: function (response) {
                 if (response.success) {
                     $('#testConnectionOutput').addClass("success-connection").removeClass("error-connection");
                     $('#testConnectionOutput').html("Connection successful");

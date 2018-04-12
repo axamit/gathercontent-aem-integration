@@ -252,11 +252,11 @@
             url: path + ".gcprojects.mapped.export.json",
             type: "GET",
             cache: false,
+            dataType:'json',
             beforeSend: function () {
                 $("#gcproject-select").prop('disabled', true);
             },
-            success: function (data) {
-                var json = JSON.parse(data);
+            success: function (json) {
                 var optionsString = "<option value=''>Select Project</option>";
                 if (json.gcprojects) {
                     json.gcprojects.forEach(function (item, index) {
@@ -334,11 +334,11 @@ $(function () {
             url: path + ".gcstatuses.projectId-" + projectid + ".json",
             type: "GET",
             cache: false,
+            dataType: 'json',
             beforeSend: function () {
                 $("#change-status-select").prop('disabled', true);
             },
-            success: function (data) {
-                var json = JSON.parse(data);
+            success: function (json) {
                 var optionsString = "<option value=''>- Don't change status -</option>";
                 if (json.gcstatuses) {
                     json.gcstatuses.forEach(function (item, index) {

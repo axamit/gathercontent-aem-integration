@@ -108,11 +108,11 @@ $(function () {
             url: path + ".gcstatuses.projectId-" + projectId + ".json",
             type: "GET",
             cache: false,
+            dataType: 'json',
             beforeSend: function () {
                 $("#change-status-select").prop('disabled', true);
             },
-            success: function (data) {
-                var json = JSON.parse(data);
+            success: function (json) {
                 var optionsString = "<option value=''>- Don't change status -</option>";
                 if (json.gcstatuses) {
                     json.gcstatuses.forEach(function (item, index) {

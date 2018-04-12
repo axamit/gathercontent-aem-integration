@@ -74,9 +74,9 @@ var GATHERCONTENT = GATHERCONTENT || {};
             url: url,
             data: 'data=' + GCStringUtils.utf8_to_b64(JSON.stringify(itemsToImport)),            //old way : btoa(JSON.stringify(itemsToImport)),
             type: "POST",
-            success: function (data) {
+            dataType: 'json',
+            success: function (response) {
                 try {
-                    var response = JSON.parse(data);
                     if (response.hasOwnProperty("jobId")) {
                         window.location.href = pagePath + ".jobs.html/" + response["jobId"];
                     } else {

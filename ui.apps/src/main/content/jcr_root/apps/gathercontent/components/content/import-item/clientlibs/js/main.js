@@ -12,9 +12,9 @@ $(function () {
         $.ajax({
             url: url,
             cache: false,
-            success: function (data) {
+            dataType: 'json',
+            success: function (json) {
                 try {
-                    var json = JSON.parse(data);
                     if (json.hasOwnProperty("importData")) {
                         var importData = JSON.parse(json["importData"]);
                         progressbar.progressbar("option", "max", importData.totalPagesCount);
