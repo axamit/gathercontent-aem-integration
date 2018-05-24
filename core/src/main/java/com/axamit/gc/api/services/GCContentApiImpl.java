@@ -209,13 +209,10 @@ public final class GCContentApiImpl implements GCContentApi {
     @Override
     public GCTemplate template(final GCContext gcContext, final String projectId,
                                final String templateId) throws GCException {
-        List<GCTemplate> templates = templates(gcContext, projectId);
-        for (GCTemplate template : templates) {
-            if (templateId.equals(template.getId())) {
-                return template;
-            }
-        }
-        return null;
+        String content = apiCall("/templates/" + templateId, gcContext);
+        JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
+        String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
+        return JSONUtil.fromJsonToObject(extractedResult, GCTemplate.class);
     }
 
     /**
