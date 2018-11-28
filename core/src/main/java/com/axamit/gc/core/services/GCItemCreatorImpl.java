@@ -11,6 +11,7 @@ import com.axamit.gc.api.dto.GCElement;
 import com.axamit.gc.api.dto.GCElementType;
 import com.axamit.gc.api.dto.GCItem;
 import com.axamit.gc.api.services.GCContentApi;
+import com.axamit.gc.api.services.GCContentNewApi;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.pojo.FieldMappingProperties;
 import com.axamit.gc.core.pojo.ImportItem;
@@ -58,6 +59,9 @@ public final class GCItemCreatorImpl implements GCItemCreator {
 
     @Reference
     private GCContentApi gContentApi;
+
+    @Reference
+    private GCContentNewApi gcContentNewApi;
 
     @Reference
     private GCPluginManager gcPluginManager;
@@ -123,7 +127,7 @@ public final class GCItemCreatorImpl implements GCItemCreator {
 
     private void updateGCProperty(final GCItem gcItem, final Page page, final String key,
                                   final FieldMappingProperties fieldMappingProperties,
-                                  final ResourceResolver resourceResolver, final String configurationPath) {
+                                  final ResourceResolver resourceResolver, final String configurationPath, final GCContext gcContext) {
         GCElement gcElement = findByKey(gcItem, key);
         if (gcElement != null) {
             if (!fieldMappingProperties.getPath().isEmpty()) {
@@ -137,6 +141,9 @@ public final class GCItemCreatorImpl implements GCItemCreator {
                         try {
                             GCPlugin gcPlugin = gcPluginManager.getPlugin(resourceResolver, configurationPath,
                                     gcElement.getType().getType(), gcElement.getLabel(), fieldMappingProperties.getPlugin());
+                            if (isNewEditorMultifieldElement(gcContext, gcElement)) {
+                                gcElement.setType(GCElementType.MULTIVALUE_NEW_EDITOR);
+                            }
                             if (gcPlugin != null) {
                                 gcPlugin.transformFromAEMtoGC(resourceResolver, page, gcElement, propertyPath, propertyValue);
                             }
@@ -156,6 +163,11 @@ public final class GCItemCreatorImpl implements GCItemCreator {
         }
     }
 
+    private boolean isNewEditorMultifieldElement(GCContext gcContext, GCElement gcElement) {
+        GCElementType elementType = gcElement.getType();
+        return (gcContext.isNewEditor() && (elementType.equals(GCElementType.CHOICE_CHECKBOX) || elementType.equals(GCElementType.CHOICE_RADIO)));
+    }
+
     /**
      * @inheritDoc
      */
@@ -166,9 +178,11 @@ public final class GCItemCreatorImpl implements GCItemCreator {
         try {
             resourceResolver = getPageCreatorResourceResolver();
             PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
-            GCItem gcItem = createMergedGCItem(importItemsToMerge, projectId, resourceResolver, pageManager);
+            GCItem gcItem = createMergedGCItem(importItemsToMerge, projectId, resourceResolver, pageManager, gcContext);
             if (gcItem != null) { //! Else? I would log and early break/return
-                String createdItemId = gContentApi.createItem(gcItem, gcContext);
+                String createdItemId = gcContext.isNewEditor() ?
+                        gcContentNewApi.createItem(gcItem, gcContext) :
+                        gContentApi.createItem(gcItem, gcContext);
                 if (createdItemId != null) { //! Else? I would log and early break/return
                     GCData statusData = new GCData();
                     if (!importItemsToMerge.isEmpty() && importItemsToMerge.get(0).getNewStatusData().getId() != null
@@ -226,7 +240,7 @@ public final class GCItemCreatorImpl implements GCItemCreator {
     }
 
     private GCItem createMergedGCItem(final Iterable<ImportItem> importItemsToMerge, final String projectId,
-                                      final ResourceResolver resourceResolver, final PageManager pageManager) {
+                                      final ResourceResolver resourceResolver, final PageManager pageManager, final GCContext gcContext) {
         GCItem gcItem = null;
         for (ImportItem importItem : importItemsToMerge) {
             if (importItem.getMappingPath() != null) {
@@ -244,7 +258,7 @@ public final class GCItemCreatorImpl implements GCItemCreator {
                     if (mapping != null && page != null) {
                         for (Map.Entry<String, FieldMappingProperties> mapEntry : mapping.entrySet()) {
                             updateGCProperty(gcItem, page, mapEntry.getKey(), mapEntry.getValue(), resourceResolver,
-                                    pluginConfigPath);
+                                    pluginConfigPath, gcContext);
                         }
                     } else {
                         LOGGER.error("No mapped properties in the mapping \"{}\"", importItem.getMappingPath());
@@ -286,11 +300,12 @@ public final class GCItemCreatorImpl implements GCItemCreator {
                     } else {
                         for (Map.Entry<String, FieldMappingProperties> mapEntry : mapping.entrySet()) {
                             updateGCProperty(gcItem, page, mapEntry.getKey(), mapEntry.getValue(),
-                                    resourceResolver, pluginConfigPath);
+                                    resourceResolver, pluginConfigPath, gcContext);
                         }
                     }
 
-                    Boolean isUpdatedSuccessfully =
+                    Boolean isUpdatedSuccessfully =gcContext.isNewEditor()?
+                            gcContentNewApi.updateItem(gcItem.getConfig(), gcItem.getId(), gcContext):
                             gContentApi.updateItem(gcItem.getConfig(), gcItem.getId(), gcContext);
 
                     if (isUpdatedSuccessfully) {

@@ -64,6 +64,7 @@ public final class ImportJobConsumer implements JobConsumer {
     public static final String JOB_PARAM_CONTEXT_USERNAME = "context_username"; //context bug with objects serialization
     public static final String JOB_PARAM_CONTEXT_KEY = "context_key"; //context bug with objects serialization
     public static final String JOB_PARAM_ACCOUNT_ID = "account_id"; // account id
+    public static final String JOB_PARAM_NEW_EDITOR = "new_editor";
     public static final String JOB_PARAM_UPDATE_FLAG = "update";
     public static final String IMPORT_SIDE_UPDATE_FLAG = "gc"; // update flag
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportJobConsumer.class);
@@ -143,7 +144,8 @@ public final class ImportJobConsumer implements JobConsumer {
         String data = (String) job.getProperty(JOB_PARAM_DATA);
         String username = (String) job.getProperty(JOB_PARAM_CONTEXT_USERNAME);
         String apiKey = (String) job.getProperty(JOB_PARAM_CONTEXT_KEY);
-        final GCContext gcContext = GCContext.build(username, apiKey);
+        Boolean isNewEditor = (Boolean) job.getProperty(JOB_PARAM_NEW_EDITOR);
+        final GCContext gcContext = GCContext.build(username, apiKey, isNewEditor);
         final String statusStore = (String) job.getProperty(JOB_PARAM_STATUS_STORE);
         String accountId = (String) job.getProperty(JOB_PARAM_ACCOUNT_ID);
         Boolean isUpdate = job.getProperty(JOB_PARAM_UPDATE_FLAG, false);

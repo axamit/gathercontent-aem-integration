@@ -28,6 +28,7 @@ public abstract class GCAbstractServlet extends SlingAllMethodsServlet {
 
     private static final String REQUEST_PN_GC_USERNAME = "gcUsername";
     private static final String REQUEST_PN_GC_API_KEY = "gcApikey";
+    private static final String REQUEST_PN_GC_NEW_EDITOR = "isNewEditor";
     protected static final String JSON_PN_TEXT = "text";
     protected static final String JSON_PN_VALUE = "value";
     protected static final String JSON_PN_QTIP = "qtip";
@@ -48,8 +49,9 @@ public abstract class GCAbstractServlet extends SlingAllMethodsServlet {
         GCContext gcContext;
         String gcUsername = request.getParameter(REQUEST_PN_GC_USERNAME);
         String gcApiKey = request.getParameter(REQUEST_PN_GC_API_KEY);
+        String isNewEditor = request.getParameter(REQUEST_PN_GC_NEW_EDITOR);
         if (gcUsername != null && gcApiKey != null) {
-            gcContext = GCContext.build(gcUsername, gcApiKey);
+            gcContext = GCContext.build(gcUsername, gcApiKey, Boolean.valueOf(isNewEditor));
         } else {
             Resource resource = request.getResource();
             gcContext = gcConfiguration.getGCContext(resource);

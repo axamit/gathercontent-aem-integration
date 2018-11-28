@@ -5,6 +5,7 @@
 package com.axamit.gc.core.services.plugins;
 
 import com.axamit.gc.api.dto.GCElement;
+import com.axamit.gc.api.dto.GCElementType;
 import com.axamit.gc.api.dto.GCOption;
 import com.axamit.gc.core.filters.MultipleFieldFilter;
 import com.axamit.gc.core.filters.SystemFieldFilter;
@@ -22,16 +23,17 @@ import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.RepositoryException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.UUID;
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.RepositoryException;
 
 /**
  * Plugin for transformation 'choice_checkbox' and 'choice_radio' GatherContent types.
@@ -59,8 +61,8 @@ public final class MultiplePropertiesPlugin implements GCPlugin {
             Property valuesProperty = valuesResource.adaptTo(Property.class);
             if (valuesProperty != null) {
                 List<String> values = valuesProperty.isMultiple()
-                    ? Arrays.asList(PropertiesUtil.toStringArray(valuesProperty.getValues(), new String[0]))
-                    : ImmutableList.of(valuesProperty.getString());
+                        ? Arrays.asList(PropertiesUtil.toStringArray(valuesProperty.getValues(), new String[0]))
+                        : ImmutableList.of(valuesProperty.getString());
                 for (ListIterator<String> it = values.listIterator(); it.hasNext(); ) {
                     String value = it.next();
                     if (StringUtils.EMPTY.equals(value)) {
@@ -93,7 +95,7 @@ public final class MultiplePropertiesPlugin implements GCPlugin {
 
     @Override
     public Collection<Property> filter(final ResourceResolver resourceResolver, final Collection<Property> properties)
-        throws RepositoryException {
+            throws RepositoryException {
         return MultipleFieldFilter.INSTANCE.filter(SystemFieldFilter.INSTANCE.filter(properties));
     }
 
@@ -102,11 +104,11 @@ public final class MultiplePropertiesPlugin implements GCPlugin {
                                      final String propertyPath, final GCElement gcElement,
                                      final Collection<String> updatedProperties,
                                      final Map<String, List<Asset>> gcAssets)
-        throws RepositoryException {
+            throws RepositoryException {
         Node node = page.adaptTo(Node.class);
         if (node == null || !node.hasProperty(propertyPath)) {
             LOGGER.warn("Property '{}' does not exist in the AEM template. "
-                + "The AEM template has probably been modified after mapping. Please review.", propertyPath);
+                    + "The AEM template has probably been modified after mapping. Please review.", propertyPath);
             return;
         }
         String relativePath = GCStringUtil.getRelativeNodePathFromPropertyPath(propertyPath);
@@ -151,22 +153,36 @@ public final class MultiplePropertiesPlugin implements GCPlugin {
             List<String> defaultValues = resolvePropertyValues(defaultValuesResource);
 
             List<GCOption> optionList = new ArrayList<>();
-            for (String value : values) {
-                GCOption gcOption = new GCOption();
-                gcOption.setName("op" + UUID.randomUUID());
-                gcOption.setLabel(value);
-                if (defaultValues.contains(value)) {
-                    gcOption.setSelected(true);
-                } else {
-                    gcOption.setSelected(false);
+
+            if (gcElement.getType().equals(GCElementType.MULTIVALUE_NEW_EDITOR)) {
+                optionList = gcElement.getOptions();
+                Iterator<GCOption> optionIterator = optionList.iterator();
+                Iterator<String> valueIterator = values.iterator();
+                while (optionIterator.hasNext() && valueIterator.hasNext()) {
+                    if (defaultValues.contains(valueIterator.next())) {
+                        optionIterator.next().setSelected(true);
+                    } else {
+                        optionIterator.next().setSelected(false);
+                    }
                 }
-                gcOption.setValue(null);
-                optionList.add(gcOption);
+            } else {
+                for (String value : values) {
+                    GCOption gcOption = new GCOption();
+                    gcOption.setName("op" + UUID.randomUUID());
+                    gcOption.setLabel(value);
+                    if (defaultValues.contains(value)) {
+                        gcOption.setSelected(true);
+                    } else {
+                        gcOption.setSelected(false);
+                    }
+                    gcOption.setValue(null);
+                    optionList.add(gcOption);
+                }
             }
             if (!optionList.isEmpty()) {
                 if (gcElement.getOtherOption() != null && gcElement.getOtherOption()) {
                     optionList.get(optionList.size() - 1)
-                        .setEscapedValue(resolveOtherOptionPropertyValue(resourceResolver.getResource(propertyPath)));
+                            .setEscapedValue(resolveOtherOptionPropertyValue(resourceResolver.getResource(propertyPath)));
                 }
                 gcElement.setOptions(optionList);
             }

@@ -26,6 +26,7 @@ public final class GCConfigurationImpl implements GCConfiguration {
 
     private static final String PATH_GC_APIKEY = "gcApikey";
     private static final String PATH_GC_USERNMAME = "gcUsername";
+    private static final String PATH_GC_IS_NEW_EDITOR = "isNewEditor";
     private static final String PATH_GC_ACCOUNT_ID = "accountId";
 
     private static String getProperty(final Resource resource, final String path) {
@@ -52,7 +53,8 @@ public final class GCConfigurationImpl implements GCConfiguration {
         //! Use Sling Models resource mapping and resource.adaptTo(Credentials.class)
         String username = getProperty(resource, PATH_GC_USERNMAME);
         String apikey = getProperty(resource, PATH_GC_APIKEY);
-        return GCContext.build(username, apikey);
+        String isNewEditor = getProperty(resource, PATH_GC_IS_NEW_EDITOR);
+        return GCContext.build(username, apikey, Boolean.valueOf(isNewEditor));
     }
 
 }

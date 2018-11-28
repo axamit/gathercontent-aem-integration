@@ -24,7 +24,8 @@ public enum GCElementType {
     @JsonProperty("choice_checkbox")
     CHOICE_CHECKBOX("choice_checkbox"),
     @JsonProperty("section")
-    SECTION("section");
+    SECTION("section"),
+    MULTIVALUE_NEW_EDITOR("multivalue_new_editor");
     private final String type;
 
     /**

@@ -90,6 +90,7 @@ public final class GCImporterServlet extends GCAbstractServlet {
                 params.put(ImportJobConsumer.JOB_PARAM_DATA, data);
                 params.put(ImportJobConsumer.JOB_PARAM_CONTEXT_KEY, gcContext.getApikey());
                 params.put(ImportJobConsumer.JOB_PARAM_CONTEXT_USERNAME, gcContext.getUsername());
+                params.put(ImportJobConsumer.JOB_PARAM_NEW_EDITOR, gcContext.isNewEditor());
                 params.put(ImportJobConsumer.JOB_PARAM_ACCOUNT_ID, accountId);
                 params.put(ImportJobConsumer.JOB_PARAM_STATUS_STORE, page.getPath());
                 Job importJob = jobManager.addJob(ImportJobConsumer.JOB_TOPIC, params);
