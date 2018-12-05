@@ -36,12 +36,17 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.apache.sling.commons.json.JSONArray;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +74,7 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
     private static final String PARAM_PROJECT_ID = "project_id";
     private static final String PARAM_TEMPLATE_ID = "template_id";
     private static final String PARAM_CONTENT = "content[%s]";
+    private static final String PARAM_CONTENT_JSON = "content";
     private static final String PARAM_CONTENT_MULTIVALUE = "content[%s][][id]";
     private static final String PARAM_NAME = "name";
     private static final String PARAM_ROOT = "root";
@@ -161,18 +167,57 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
      * @inheritDoc
      */
     @Override
-    public Boolean updateItem(final List<GCConfig> gcConfigs, final String itemId, final GCContext gcContext)
-            throws GCException {
-        List<NameValuePair> params = new ArrayList<>();
-        addNewEditorRequestParams(params, gcConfigs);
-        return Boolean.parseBoolean(newApiPostCall("/items/" + itemId + "/update-content", gcContext, params)
+    public Boolean updateItem(final List<GCConfig> gcConfigs, final String itemId, final GCContext gcContext) {
+        Boolean result;
+        StringEntity stringEntity = buildHttpUpdateEntity(gcConfigs);
+        result = Boolean.parseBoolean(newApiPostCall("/items/" + itemId + "/update-content", gcContext, stringEntity)
                 .get(SUCCESS_POST_CALL_FLAG));
+        return result;
+    }
+
+    private StringEntity buildHttpUpdateEntity(final List<GCConfig> gcConfigs) {
+        String stringEntity = StringUtils.EMPTY;
+        try {
+            JSONObject configJsonObject = new JSONObject();
+            for (GCConfig gcConfig : gcConfigs) {
+                for (GCElement element : gcConfig.getElements()) {
+                    if (element.getOptions() == null) {
+                        if (StringUtils.isNotEmpty(element.getValue())) {
+
+                            configJsonObject.put(element.getName(), element.getValue());
+
+                        }
+                    } else {
+                        JSONArray jsonArray = new JSONArray();
+                        for (GCOption option : element.getOptions()) {
+                            if (option.getSelected()) {
+                                jsonArray.put(new JSONObject().put(ID_PARAMETER, option.getName()));
+                            }
+                        }
+                        configJsonObject.put(element.getName(), jsonArray);
+                    }
+                }
+            }
+
+            stringEntity = new JSONObject().put(PARAM_CONTENT_JSON, configJsonObject).toString();
+        } catch (JSONException e) {
+            LOGGER.error("Failed create JSON Object", e);
+        }
+
+        return new StringEntity(stringEntity, ContentType.APPLICATION_JSON);
     }
 
     private static Map<String, String> newApiPostCall(final String url, final GCContext gcContext,
                                                       final List<NameValuePair> params) {
+        UrlEncodedFormEntity httpEntity = new UrlEncodedFormEntity(params, StandardCharsets.UTF_8);
+        return newApiPostCall(url, gcContext, httpEntity);
+    }
+
+
+    private static <T extends StringEntity> Map<String, String> newApiPostCall(final String url, final GCContext gcContext,
+                                                                               final T httpEntity) {
         HttpPost httpPost = new HttpPost(gcContext.getApiURL() + url);
-        httpPost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
+        httpPost.setEntity(httpEntity);
         Map<String, String> returnObject = new HashMap<>();
 
         HttpClient httpClient = setNewHeadersAndAuth(httpPost, gcContext);
