@@ -182,11 +182,7 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
             for (GCConfig gcConfig : gcConfigs) {
                 for (GCElement element : gcConfig.getElements()) {
                     if (element.getOptions() == null) {
-                        if (StringUtils.isNotEmpty(element.getValue())) {
-
-                            configJsonObject.put(element.getName(), element.getValue());
-
-                        }
+                        configJsonObject.put(element.getName(), element.getValue());
                     } else {
                         JSONArray jsonArray = new JSONArray();
                         for (GCOption option : element.getOptions()) {
