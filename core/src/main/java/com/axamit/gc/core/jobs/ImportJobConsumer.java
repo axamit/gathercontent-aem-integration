@@ -71,6 +71,18 @@ public final class ImportJobConsumer implements JobConsumer {
     private static final int STATUS_UPDATE_PERIODICITY = 10;
     private static final double MAX_PERCENTS = 100;
     private final Lock statusUpdateLock = new ReentrantLock();
+    private static final Map<String, String> SYMBOL_MAP;
+
+    static {
+        SYMBOL_MAP = new HashMap<>();
+        SYMBOL_MAP.put("&amp;", "&");
+        SYMBOL_MAP.put("&lt;", "<");
+        SYMBOL_MAP.put("&gt;", ">");
+        SYMBOL_MAP.put("&quot;", "\"");
+        SYMBOL_MAP.put("&#39;", "'");
+        SYMBOL_MAP.put("&#x2F;", "/");
+    }
+
     @Reference
     private PageCreator pageCreator;
     @Reference
@@ -171,6 +183,7 @@ public final class ImportJobConsumer implements JobConsumer {
         ImportData importData = JSONUtil.fromJsonToObject(data, ImportData.class);
         final String projectId = importData.getProjectId();
         final List<ImportItem> importItemList = Collections.synchronizedList(importData.getItems());
+        encodeImportItemTitle(importItemList);
         final GCData newStatusData = new GCData();
         newStatusData.setId(importData.getNewStatusId());
         newStatusData.setColor(importData.getNewStatusColor());
@@ -342,6 +355,14 @@ public final class ImportJobConsumer implements JobConsumer {
             LOGGER.error(e.getMessage(), e);
         } finally {
             statusUpdateLock.unlock();
+        }
+    }
+
+    private void encodeImportItemTitle(final List<ImportItem> items) {
+        for (ImportItem item : items) {
+            for (Map.Entry<String, String> entry : SYMBOL_MAP.entrySet()) {
+                item.setTitle(item.getTitle().replaceAll(entry.getKey(), entry.getValue()));
+            }
         }
     }
 }

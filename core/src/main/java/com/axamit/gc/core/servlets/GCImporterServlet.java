@@ -44,17 +44,7 @@ public final class GCImporterServlet extends GCAbstractServlet {
     public static final String SINGLE_SPACE_IN_ENCODED_BASE_64 = "\\s";
     public static final String PLUS_SYMBOL = "+";
     public static final String DATA_REQUEST_PARAMETER = "data";
-    public static final Map<String, String> SYMBOL_MAP;
 
-    static {
-        SYMBOL_MAP = new HashMap<>();
-        SYMBOL_MAP.put("&amp;", "&");
-        SYMBOL_MAP.put("&lt;", "<");
-        SYMBOL_MAP.put("&gt;", ">");
-        SYMBOL_MAP.put("&quot;", "\"");
-        SYMBOL_MAP.put("&#39;", "'");
-        SYMBOL_MAP.put("&#x2F;", "/");
-    }
 
     @Reference
     private JobManager jobManager;
@@ -71,9 +61,6 @@ public final class GCImporterServlet extends GCAbstractServlet {
         try {
             String data = Base64.decode(request.getRequestParameter(DATA_REQUEST_PARAMETER).getString()
                     .replaceAll(SINGLE_SPACE_IN_ENCODED_BASE_64, PLUS_SYMBOL));
-            for (Map.Entry<String, String> entry : SYMBOL_MAP.entrySet()) {
-                data = data.replaceAll(entry.getKey(), entry.getValue());
-            }
             Map<String, Object> params = new HashMap<>();
             String[] selectors = request.getRequestPathInfo().getSelectors();
             params.put(ImportJobConsumer.JOB_PARAM_UPDATE_FLAG, false);
