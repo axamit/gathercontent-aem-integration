@@ -9,9 +9,9 @@ GatherContent’s AEM integration allows content editors to import and update co
 - [x] Update migrated (exported) content in GatherContent
 
 
-|  **`AEM 6.0`**   |  **`AEM 6.1`** | **`AEM 6.2`** | **`AEM 6.3`** |
-|-------------------|----------------------|------------------|------------------|
-|:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |
+|  **`AEM 6.0`**   |  **`AEM 6.1`** | **`AEM 6.2`** | **`AEM 6.3`** | **`AEM 6.4`** |
+|-------------------|----------------------|------------------|------------------|------------------|
+|:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |
 
 ## Modules
 
@@ -52,6 +52,8 @@ The project comes with the auto-public repository configured. To setup the repos
 [![Axamit](https://github.com/AntoniBertel/GatherContentAssets/blob/master/Axamit.png)](https://axamit.com/)
 
 ## Changelog
+07/12/2018 [2.0.7-beta Tech Changes](https://github.com/axamit/gathercontent-aem-integration/releases/tag/2.0.7-beta "Package attached")
+
 24/05/2018 [2.0.6-beta Bug Fix](https://github.com/axamit/gathercontent-aem-integration/releases/tag/2.0.6-beta "Package attached")
 
 12/04/2018 [2.0.5-beta Bug Fix](https://github.com/axamit/gathercontent-aem-integration/releases/tag/2.0.5-beta "Package attached")
