@@ -4,6 +4,8 @@
 
 package com.axamit.gc.core.util;
 
+import com.adobe.granite.license.ProductInfo;
+import com.adobe.granite.license.ProductInfoService;
 import com.axamit.gc.api.GCContext;
 import com.axamit.gc.api.dto.GCProject;
 import com.axamit.gc.api.dto.GCTime;
@@ -76,6 +78,8 @@ public enum GCUtil {
     private static final Map<String, String> SIDE_PREDICATES = ImmutableMap
             .of(Constants.MAPPING_TYPE_EXPORT, EXPORT_MAPPING_QUERY_PREDICATE, Constants.MAPPING_TYPE_IMPORT,
                     IMPORT_MAPPING_QUERY_PREDICATE);
+
+    private static final String AEM_PRODUCT_INFO_NAME = "Adobe Experience Manager";
 
     /**
      * Build a list with hierarchical tree representations of items, when all 'parent' items have links to 'children'.
@@ -505,5 +509,24 @@ public enum GCUtil {
             LOGGER.error("Item date parse failed", e);
             return null;
         }
+    }
+
+    public static String getUserAgentInfo(ProductInfoService productInfoService) {
+        ProductInfo[] infos = productInfoService.getInfos();
+        String productInfoString = StringUtils.EMPTY;
+        if (infos != null && infos.length > 0) {
+            ProductInfo aemProductInfo = null;
+            for (ProductInfo productInfo : infos) {
+                if (AEM_PRODUCT_INFO_NAME.equals(productInfo.getName())) {
+                    aemProductInfo = productInfo;
+                    break;
+                }
+            }
+            if (aemProductInfo == null) {
+                aemProductInfo = infos[0];
+            }
+            productInfoString = "-" + aemProductInfo.getVersion().toString();
+        }
+        return productInfoString;
     }
 }
