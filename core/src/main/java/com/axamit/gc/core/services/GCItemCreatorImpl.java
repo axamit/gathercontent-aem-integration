@@ -165,7 +165,7 @@ public final class GCItemCreatorImpl implements GCItemCreator {
 
     private boolean isNewEditorMultifieldElement(GCContext gcContext, GCElement gcElement) {
         GCElementType elementType = gcElement.getType();
-        return (gcContext.isNewEditor() && (elementType.equals(GCElementType.CHOICE_CHECKBOX) || elementType.equals(GCElementType.CHOICE_RADIO)));
+        return (gcContext.isNewEditor() && (GCElementType.CHOICE_CHECKBOX.equals(elementType) || GCElementType.CHOICE_RADIO.equals(elementType)));
     }
 
     /**

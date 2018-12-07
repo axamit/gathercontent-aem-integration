@@ -23,6 +23,7 @@ import com.axamit.gc.core.util.GCUtil;
 import com.axamit.gc.core.util.JSONUtil;
 import com.day.cq.wcm.api.Page;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
@@ -71,17 +72,14 @@ public final class ImportJobConsumer implements JobConsumer {
     private static final int STATUS_UPDATE_PERIODICITY = 10;
     private static final double MAX_PERCENTS = 100;
     private final Lock statusUpdateLock = new ReentrantLock();
-    private static final Map<String, String> SYMBOL_MAP;
-
-    static {
-        SYMBOL_MAP = new HashMap<>();
-        SYMBOL_MAP.put("&amp;", "&");
-        SYMBOL_MAP.put("&lt;", "<");
-        SYMBOL_MAP.put("&gt;", ">");
-        SYMBOL_MAP.put("&quot;", "\"");
-        SYMBOL_MAP.put("&#39;", "'");
-        SYMBOL_MAP.put("&#x2F;", "/");
-    }
+    private static final Map<String, String> SYMBOL_MAP = ImmutableMap.<String, String>builder()
+            .put("&amp;", "&")
+            .put("&lt;", "<")
+            .put("&gt;", ">")
+            .put("&quot;", "\"")
+            .put("&#39;", "'")
+            .put("&#x2F;", "/")
+            .build();
 
     @Reference
     private PageCreator pageCreator;
@@ -156,7 +154,7 @@ public final class ImportJobConsumer implements JobConsumer {
         String data = (String) job.getProperty(JOB_PARAM_DATA);
         String username = (String) job.getProperty(JOB_PARAM_CONTEXT_USERNAME);
         String apiKey = (String) job.getProperty(JOB_PARAM_CONTEXT_KEY);
-        Boolean isNewEditor = (Boolean) job.getProperty(JOB_PARAM_NEW_EDITOR);
+        Boolean isNewEditor = job.getProperty(JOB_PARAM_NEW_EDITOR, Boolean.class);
         final GCContext gcContext = GCContext.build(username, apiKey, isNewEditor);
         final String statusStore = (String) job.getProperty(JOB_PARAM_STATUS_STORE);
         String accountId = (String) job.getProperty(JOB_PARAM_ACCOUNT_ID);

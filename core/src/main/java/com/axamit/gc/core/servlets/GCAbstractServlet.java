@@ -7,6 +7,7 @@ package com.axamit.gc.core.servlets;
 import com.axamit.gc.api.GCContext;
 import com.axamit.gc.api.services.GCConfiguration;
 import com.axamit.gc.api.services.GCContentApi;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -49,9 +50,9 @@ public abstract class GCAbstractServlet extends SlingAllMethodsServlet {
         GCContext gcContext;
         String gcUsername = request.getParameter(REQUEST_PN_GC_USERNAME);
         String gcApiKey = request.getParameter(REQUEST_PN_GC_API_KEY);
-        String isNewEditor = request.getParameter(REQUEST_PN_GC_NEW_EDITOR);
+        boolean isNewEditor = BooleanUtils.toBoolean(request.getParameter(REQUEST_PN_GC_NEW_EDITOR));
         if (gcUsername != null && gcApiKey != null) {
-            gcContext = GCContext.build(gcUsername, gcApiKey, Boolean.valueOf(isNewEditor));
+            gcContext = GCContext.build(gcUsername, gcApiKey, isNewEditor);
         } else {
             Resource resource = request.getResource();
             gcContext = gcConfiguration.getGCContext(resource);

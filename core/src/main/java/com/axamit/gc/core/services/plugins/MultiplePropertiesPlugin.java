@@ -159,11 +159,8 @@ public final class MultiplePropertiesPlugin implements GCPlugin {
                 Iterator<GCOption> optionIterator = optionList.iterator();
                 Iterator<String> valueIterator = values.iterator();
                 while (optionIterator.hasNext() && valueIterator.hasNext()) {
-                    if (defaultValues.contains(valueIterator.next())) {
-                        optionIterator.next().setSelected(true);
-                    } else {
-                        optionIterator.next().setSelected(false);
-                    }
+                    final boolean selected = defaultValues.contains(valueIterator.next());
+                    optionIterator.next().setSelected(selected);
                 }
             } else {
                 for (String value : values) {

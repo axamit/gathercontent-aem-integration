@@ -16,6 +16,7 @@ import com.axamit.gc.api.dto.GCProject;
 import com.axamit.gc.api.dto.GCTemplate;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.util.GCStringUtil;
+import com.axamit.gc.core.util.GCUtil;
 import com.axamit.gc.core.util.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.codec.binary.Base64;
@@ -85,7 +86,6 @@ public final class GCContentApiImpl implements GCContentApi {
     private static final String PARAM_TYPE = "type";
     private static final String PARAM_ROOT = "root";
     private static final String JSON_DATA_NODE_NAME = "data";
-    private static final String AEM_PRODUCT_INFO_NAME = "Adobe Experience Manager";
     private static String userAgentInfo;
 
     @Reference
@@ -103,25 +103,10 @@ public final class GCContentApiImpl implements GCContentApi {
     }
 
     private void setUserAgentInfo(final ComponentContext componentContext) {
-        ProductInfo[] infos = productInfoService.getInfos();
-        String productInfoString = StringUtils.EMPTY;
-        if (infos != null && infos.length > 0) {
-            ProductInfo aemProductInfo = null;
-            for (ProductInfo productInfo : infos) {
-                if (AEM_PRODUCT_INFO_NAME.equals(productInfo.getName())) {
-                    aemProductInfo = productInfo;
-                    break;
-                }
-            }
-            if (aemProductInfo == null) {
-                aemProductInfo = infos[0];
-            }
-            productInfoString = "-" + aemProductInfo.getVersion().toString();
-        }
+        String productInfoString = GCUtil.getUserAgentInfo(productInfoService);
         userAgentInfo = "Integration-AEM" + productInfoString + "/"
                 + componentContext.getUsingBundle().getVersion().toString();
     }
-
     /**
      * @inheritDoc
      */

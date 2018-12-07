@@ -13,8 +13,10 @@ import com.axamit.gc.api.dto.GCItem;
 import com.axamit.gc.api.dto.GCOption;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.util.GCStringUtil;
+import com.axamit.gc.core.util.GCUtil;
 import com.axamit.gc.core.util.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.felix.scr.annotations.Activate;
@@ -80,7 +82,6 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
     private static final String PARAM_ROOT = "root";
     private static final String JSON_DATA_NODE_NAME = "data";
     private static final String ID_PARAMETER = "id";
-    private static final String AEM_PRODUCT_INFO_NAME = "Adobe Experience Manager";
     private static String userAgentInfo;
 
     @Reference
@@ -98,25 +99,10 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
     }
 
     private void setUserAgentInfo(final ComponentContext componentContext) {
-        ProductInfo[] infos = productInfoService.getInfos();
-        String productInfoString = StringUtils.EMPTY;
-        if (infos != null && infos.length > 0) {
-            ProductInfo aemProductInfo = null;
-            for (ProductInfo productInfo : infos) {
-                if (AEM_PRODUCT_INFO_NAME.equals(productInfo.getName())) {
-                    aemProductInfo = productInfo;
-                    break;
-                }
-            }
-            if (aemProductInfo == null) {
-                aemProductInfo = infos[0];
-            }
-            productInfoString = "-" + aemProductInfo.getVersion().toString();
-        }
+        String productInfoString = GCUtil.getUserAgentInfo(productInfoService);
         userAgentInfo = "Integration-AEM" + productInfoString + "/"
                 + componentContext.getUsingBundle().getVersion().toString();
     }
-
 
     /**
      * @inheritDoc
@@ -149,17 +135,25 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         for (GCConfig gcConfig : gcConfigs) {
             for (GCElement element : gcConfig.getElements()) {
                 if (element.getOptions() == null) {
-                    if (StringUtils.isNotEmpty(element.getValue())) {
-                        params.add(new BasicNameValuePair(String.format(PARAM_CONTENT, element.getName()), element.getValue()));
-                    }
+                    setTextValue(params, element);
                 } else {
-                    for (GCOption option : element.getOptions()) {
-                        if (option.getSelected()) {
-                            params.add(new BasicNameValuePair(String.format(PARAM_CONTENT_MULTIVALUE, element.getName()), option.getName()));
-                        }
-                    }
+                    setMultifieldValue(params, element);
                 }
             }
+        }
+    }
+
+    private void setMultifieldValue(List<NameValuePair> params, GCElement element) {
+        for (GCOption option : element.getOptions()) {
+            if (option.getSelected()) {
+                params.add(new BasicNameValuePair(String.format(PARAM_CONTENT_MULTIVALUE, element.getName()), option.getName()));
+            }
+        }
+    }
+
+    private void setTextValue(List<NameValuePair> params, GCElement element) {
+        if (StringUtils.isNotEmpty(element.getValue())) {
+            params.add(new BasicNameValuePair(String.format(PARAM_CONTENT, element.getName()), element.getValue()));
         }
     }
 
@@ -168,11 +162,9 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
      */
     @Override
     public Boolean updateItem(final List<GCConfig> gcConfigs, final String itemId, final GCContext gcContext) {
-        Boolean result;
         StringEntity stringEntity = buildHttpUpdateEntity(gcConfigs);
-        result = Boolean.parseBoolean(newApiPostCall("/items/" + itemId + "/update-content", gcContext, stringEntity)
+        return BooleanUtils.toBoolean(newApiPostCall("/items/" + itemId + "/update-content", gcContext, stringEntity)
                 .get(SUCCESS_POST_CALL_FLAG));
-        return result;
     }
 
     private StringEntity buildHttpUpdateEntity(final List<GCConfig> gcConfigs) {
@@ -184,13 +176,7 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
                     if (element.getOptions() == null) {
                         configJsonObject.put(element.getName(), element.getValue());
                     } else {
-                        JSONArray jsonArray = new JSONArray();
-                        for (GCOption option : element.getOptions()) {
-                            if (option.getSelected()) {
-                                jsonArray.put(new JSONObject().put(ID_PARAMETER, option.getName()));
-                            }
-                        }
-                        configJsonObject.put(element.getName(), jsonArray);
+                        createMultifieldJson(configJsonObject, element);
                     }
                 }
             }
@@ -201,6 +187,16 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         }
 
         return new StringEntity(stringEntity, ContentType.APPLICATION_JSON);
+    }
+
+    private void createMultifieldJson(JSONObject configJsonObject, GCElement element) throws JSONException {
+        JSONArray jsonArray = new JSONArray();
+        for (GCOption option : element.getOptions()) {
+            if (option.getSelected()) {
+                jsonArray.put(new JSONObject().put(ID_PARAMETER, option.getName()));
+            }
+        }
+        configJsonObject.put(element.getName(), jsonArray);
     }
 
     private static Map<String, String> newApiPostCall(final String url, final GCContext gcContext,
