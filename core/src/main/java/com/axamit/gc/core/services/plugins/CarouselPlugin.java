@@ -63,28 +63,24 @@ public final class CarouselPlugin extends ExportOnlyPlugin {
         if (parentNode != null) {
             boolean isAssetsEmpty = gcAssets == null || gcAssets.isEmpty();
             String name = itemNodeName.replaceAll(ALL_DIGITS_REGEXP, StringUtils.EMPTY);
-            NodeIterator nodes = parentNode.getNodes(name + "*");
-            while (nodes.hasNext()) {
-                Node targetNode = nodes.nextNode();
-                targetNode.remove();
-            }
+
+            // remove all carousel items except mapped item
+            clearCarouselItems(parentNode, name, itemNodeName);
+
             if (isAssetsEmpty) {
                 LOGGER.warn("Empty assets in {}", propertyPath);
                 return;
             }
             List<Asset> assets = gcAssets.get(gcElement.getName());
             //create new node for new slide for every asset, except destination node
-            if (assets != null && !assets.isEmpty()) { //! Else?
-                if (JcrUtils.getNodeIfExists(node, itemNodePath) == null) {
-                    JcrUtil.createUniqueNode(parentNode, itemNodeName, JcrConstants.NT_UNSTRUCTURED, node.getSession());
-                }
+            if (assets != null && !assets.isEmpty()) {
                 Node destinationNode = node.getNode(itemNodePath);
-                String property = GCStringUtil.getPropertyNameFromPropertyPath(propertyPath);
+                String mappedProperty = GCStringUtil.getPropertyNameFromPropertyPath(propertyPath);
                 boolean isDestinationUpdated = false;
                 for (Asset asset : assets) {
                     if (asset != null) {  //! Else?
                         if (!isDestinationUpdated) {
-                            destinationNode.setProperty(property, asset.getPath());
+                            destinationNode.setProperty(mappedProperty, asset.getPath());
                             isDestinationUpdated = true;
                         } else {
                             Node copy = JcrUtil.createUniqueNode(parentNode, name,
@@ -93,10 +89,20 @@ public final class CarouselPlugin extends ExportOnlyPlugin {
                             while (propertyIterator.hasNext()) {
                                 JcrUtil.copy(propertyIterator.nextProperty(), copy, null);
                             }
-                            copy.setProperty(property, asset.getPath());
+                            copy.setProperty(mappedProperty, asset.getPath());
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private void clearCarouselItems(Node parentNode, String name, String mappedNodeName) throws RepositoryException {
+        NodeIterator nodes = parentNode.getNodes(name + "*");
+        while (nodes.hasNext()) {
+            Node targetNode = nodes.nextNode();
+            if (!mappedNodeName.equals(targetNode.getName())) {
+                targetNode.remove();
             }
         }
     }

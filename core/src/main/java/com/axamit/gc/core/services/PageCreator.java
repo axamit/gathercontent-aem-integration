@@ -29,13 +29,14 @@ public interface PageCreator {
     /**
      * Creates a new Asset at the given path in AEM JCR repository. Remote URL is used as a source.
      *
+     * @param gcContext  <code>{@link GCContext}</code> object.
      * @param parentPath The path of the asset to be created.
      * @param sourceURL  Remote URL of source.
      * @param mimetype   The mime type of the new asset's original binary.
      * @param doSave     Whether the repository changes are saved or not.
      * @return The newly created asset.
      */
-    Asset createAsset(String parentPath, String sourceURL, String mimetype, boolean doSave);
+    Asset createAsset(GCContext gcContext, String parentPath, String sourceURL, String mimetype, boolean doSave);
 
     /**
      * Update page that already exists in AEM. It used during update process. During new import process it should be
