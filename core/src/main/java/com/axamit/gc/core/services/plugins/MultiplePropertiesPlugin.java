@@ -43,8 +43,11 @@ import java.util.UUID;
 @Service(value = GCPlugin.class)
 @Component
 public final class MultiplePropertiesPlugin implements GCPlugin {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiplePropertiesPlugin.class);
     private static final String WHITESPACE_REPLACEMENT_FOR_EMPTY_LABEL = " ";
+    private static final int VALUE_INDEX = 0;
+    private static final String VALUE_TEXT_SPLITTER = "=";
 
     private static String resolveOtherOptionPropertyValue(Resource resource) {
         if (resource != null) {
@@ -159,7 +162,8 @@ public final class MultiplePropertiesPlugin implements GCPlugin {
                 Iterator<GCOption> optionIterator = optionList.iterator();
                 Iterator<String> valueIterator = values.iterator();
                 while (optionIterator.hasNext() && valueIterator.hasNext()) {
-                    final boolean selected = defaultValues.contains(valueIterator.next());
+                    final String checkboxValue = valueIterator.next().split(VALUE_TEXT_SPLITTER)[VALUE_INDEX];
+                    final boolean selected = defaultValues.contains(checkboxValue);
                     optionIterator.next().setSelected(selected);
                 }
             } else {

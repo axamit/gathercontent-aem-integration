@@ -31,27 +31,10 @@ import com.day.cq.wcm.api.NameConstants;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
 import com.day.cq.wcm.api.WCMException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.commons.JcrUtils;
-import org.apache.sling.api.resource.LoginException;
-import org.apache.sling.api.resource.ModifiableValueMap;
-import org.apache.sling.api.resource.PersistenceException;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ResourceResolverFactory;
-import org.apache.sling.api.resource.ResourceUtil;
-import org.apache.sling.commons.mime.MimeTypeService;
-import org.apache.sling.commons.osgi.PropertiesUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -70,6 +53,24 @@ import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Query;
+import javax.net.ssl.HttpsURLConnection;
+import javax.xml.bind.DatatypeConverter;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.commons.JcrUtils;
+import org.apache.sling.api.resource.LoginException;
+import org.apache.sling.api.resource.ModifiableValueMap;
+import org.apache.sling.api.resource.PersistenceException;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ResourceResolverFactory;
+import org.apache.sling.api.resource.ResourceUtil;
+import org.apache.sling.commons.mime.MimeTypeService;
+import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * OSGI service implements <code>{@link PageCreator}</code> interface which provides methods to create pages, assets
@@ -129,14 +130,17 @@ public final class PageCreatorImpl implements PageCreator {
      * @inheritDoc
      */
     @Override
-    public Asset createAsset(final String parentPath, final String sourceURL, final String mimeType,
+    public Asset createAsset(final GCContext gcContext, final String parentPath, final String sourceId, final String mimeType,
                              final boolean doSave) {
         ResourceResolver resourceResolver = null;
         Asset result = null;
         try {
             resourceResolver = getPageCreatorResourceResolver();
             AssetManager assetManager = resourceResolver.adaptTo(AssetManager.class);
-            URLConnection urlConnection = new URL(sourceURL).openConnection();
+
+            String hostUrl = gcContext.getApiURL() + "/files/" + sourceId + "/download";
+            HttpsURLConnection urlConnection = (HttpsURLConnection) new URL(hostUrl).openConnection();
+            setAuthorizationAndHeaders(gcContext, urlConnection);
             //urlConnection.setConnectTimeout(10000);
             //urlConnection.setReadTimeout(30000);
             String mimeTypeForAsset;
@@ -158,6 +162,15 @@ public final class PageCreatorImpl implements PageCreator {
             }
         }
         return result;
+    }
+
+    private void setAuthorizationAndHeaders(GCContext gcContext, HttpsURLConnection urlConnection) {
+        final String userpass = gcContext.getUsername() + ":" + gcContext.getApikey();
+        final String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes(StandardCharsets.UTF_8));
+        urlConnection.setRequestProperty("Authorization", basicAuth);
+        for (Map.Entry<String, String> entry : gcContext.getHeaders().entrySet()) {
+            urlConnection.setRequestProperty(entry.getKey(), entry.getValue());
+        }
     }
 
     /**
@@ -322,10 +335,10 @@ public final class PageCreatorImpl implements PageCreator {
     public Map<String, List<Asset>> createGCAssets(final GCContext gcContext, final GCItem gcItem, final String importDAMPath)
         throws GCException {
         List<GCFile> files = gcContentApi.filesByItemId(gcContext, gcItem.getId());
-        return uploadFiles(gcItem, files, importDAMPath);
+        return uploadFiles(gcContext, gcItem, files, importDAMPath);
     }
 
-    private Map<String, List<Asset>> uploadFiles(final GCItem gcItem, final Iterable<GCFile> files,
+    private Map<String, List<Asset>> uploadFiles(final GCContext gcContext, final GCItem gcItem, final Iterable<GCFile> files,
                                                  final String importDAMPath) {
         Map<String, List<Asset>> assetMap = new HashMap<>();
 
@@ -333,7 +346,7 @@ public final class PageCreatorImpl implements PageCreator {
 
             String parentPath = createAssetFolderStructure(gcItem, gcFile, importDAMPath);
             if (StringUtils.isNotEmpty(parentPath)) {
-                Asset asset = createAsset(parentPath, gcFile.getUrl(), null, true);
+                Asset asset = createAsset(gcContext, parentPath, gcFile.getId(), null, true);
                 List<Asset> assets;
                 if (assetMap.containsKey(gcFile.getField())) {
                     assets = assetMap.get(gcFile.getField());

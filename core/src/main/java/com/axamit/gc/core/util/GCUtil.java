@@ -158,7 +158,7 @@ public enum GCUtil {
                 properties.put(Constants.GC_TEMPLATE_NAME_PN, templateName);
                 properties.put(Constants.MAPPING_NAME_PN, mappingName);
                 properties.put(Constants.MAPPING_PATH_PARAM_NAME, mappingPath);
-                properties.put(Constants.AEM_IMPORT_PATH_PN, importPath);
+                properties.put(Constants.AEM_IMPORT_PATH_PN, StringUtils.defaultIfBlank(importPath, StringUtils.EMPTY));
                 Set<Map<String, String>> templateMappingsById = mappedTemplatesAndItems.get(mappingType, templateId);
                 //if this is the first mapping for this templateId
                 if (templateMappingsById == null) {
