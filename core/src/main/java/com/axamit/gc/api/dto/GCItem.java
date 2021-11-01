@@ -4,45 +4,50 @@
 
 package com.axamit.gc.api.dto;
 
+import com.axamit.gc.api.dto.helpers.GCContentMapSerializer;
 import com.axamit.gc.core.util.GCUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * The <code>GCItem</code> class represents items (pages) in GatherContent.
  *
  * @author Axamit, gc.support@axamit.com
- * @see <a href="https://gathercontent.com/developers/items/get-items-by-id/">Item</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public final class GCItem {
-    private String id;
-    private String projectId;
-    private String parentId;
-    private String templateId;
-    private String customStateId;
+
+    private Integer id;
+    private Integer projectId;
+    private String folderUuid;
+    private Integer templateId;
+    private String structureUuid;
     private Integer position;
     private String name;
-    private List<GCConfig> config;
-    private String notes;
-    private Boolean overdue;
     private String archivedBy;
     private String archivedAt;
-    private GCTime createdAt;
-    private GCTime updatedAt;
-    private GCStatus status;
-    private GCItemType itemType;
+    private String createdAt;
+    private String updatedAt;
+    private String nextDueAt;
+    private String completedAt;
+    private Integer statusId;
+
+    @JsonSerialize(using = GCContentMapSerializer.class)
+    private Map<String, GCContent> content;
 
     /**
      * @return Item ID.
      */
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(final String id) {
+    public void setId(final Integer id) {
         this.id = id;
     }
 
@@ -50,49 +55,52 @@ public final class GCItem {
      * @return Project ID.
      */
     @JsonProperty("project_id")
-    public String getProjectId() {
+    public Integer getProjectId() {
         return projectId;
     }
 
     @JsonProperty("project_id")
-    public void setProjectId(final String projectId) {
+    public void setProjectId(final Integer projectId) {
         this.projectId = projectId;
     }
 
     /**
-     * @return Item ID of parent item.
+     * @return Parent folder uuid.
      */
-    @JsonProperty("parent_id")
-    public String getParentId() {
-        return parentId;
+    @JsonProperty("folder_uuid")
+    public String getFolderUuid() {
+        return folderUuid;
     }
 
-    @JsonProperty("parent_id")
-    public void setParentId(final String parentId) {
-        this.parentId = parentId;
+    @JsonProperty("folder_uuid")
+    public void setFolderUuid(String folderUuid) {
+        this.folderUuid = folderUuid;
     }
 
     /**
      * @return Template ID.
      */
     @JsonProperty("template_id")
-    public String getTemplateId() {
+    public Integer getTemplateId() {
         return templateId;
     }
 
     @JsonProperty("template_id")
-    public void setTemplateId(final String templateId) {
+    public void setTemplateId(final Integer templateId) {
         this.templateId = templateId;
     }
 
-    @JsonProperty("custom_state_id")
-    public String getCustomStateId() {
-        return customStateId;
+    /**
+     * @return Structure Uuid.
+     */
+    @JsonProperty("structure_uuid")
+    public String getStructureUuid() {
+        return structureUuid;
     }
 
-    @JsonProperty("custom_state_id")
-    public void setCustomStateId(final String customStateId) {
-        this.customStateId = customStateId;
+    @JsonProperty("structure_uuid")
+    public void setStructureUuid(String structureUuid) {
+        this.structureUuid = structureUuid;
     }
 
     /**
@@ -122,39 +130,6 @@ public final class GCItem {
         this.name = name;
     }
 
-    /**
-     * @return List of item field configs.
-     */
-    public List<GCConfig> getConfig() {
-        return config;
-    }
-
-    public void setConfig(final List<GCConfig> config) {
-        this.config = config;
-    }
-
-    /**
-     * @return Item notes.
-     */
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(final String notes) {
-        this.notes = notes;
-    }
-
-    /**
-     * @return A boolean governing is this item overdue or not.
-     */
-    public Boolean getOverdue() {
-        return overdue;
-    }
-
-    public void setOverdue(final Boolean overdue) {
-        this.overdue = overdue;
-    }
-
     @JsonProperty("archived_by")
     public String getArchivedBy() {
         return archivedBy;
@@ -176,26 +151,15 @@ public final class GCItem {
     }
 
     /**
-     * @return Live status.
-     */
-    public GCStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(final GCStatus status) {
-        this.status = status;
-    }
-
-    /**
      * @return Creation date of item in GatherContent.
      */
     @JsonProperty("created_at")
-    public GCTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
     @JsonProperty("created_at")
-    public void setCreatedAt(final GCTime createdAt) {
+    public void setCreatedAt(final String createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -203,25 +167,50 @@ public final class GCItem {
      * @return Last update date of item in GatherContent.
      */
     @JsonProperty("updated_at")
-    public GCTime getUpdatedAt() {
+    public String getUpdatedAt() {
         return updatedAt;
     }
 
     @JsonProperty("updated_at")
-    public void setUpdatedAt(final GCTime updatedAt) {
+    public void setUpdatedAt(final String updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    /**
-     * @return Last type of item in GatherContent.
-     */
-    @JsonProperty("type")
-    public GCItemType getItemType() {
-        return itemType;
+    @JsonProperty("next_due_at")
+    public String getNextDueAt() {
+        return nextDueAt;
     }
 
-    @JsonProperty("type")
-    public void setItemType(GCItemType itemType) {
-        this.itemType = itemType;
+    @JsonProperty("next_due_at")
+    public void setNextDueAt(String nextDueAt) {
+        this.nextDueAt = nextDueAt;
+    }
+
+    @JsonProperty("completed_at")
+    public String getCompletedAt() {
+        return completedAt;
+    }
+
+    @JsonProperty("completed_at")
+    public void setCompletedAt(String completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    @JsonProperty("status_id")
+    public Integer getStatusId() {
+        return statusId;
+    }
+
+    @JsonProperty("status_id")
+    public void setStatusId(Integer statusId) {
+        this.statusId = statusId;
+    }
+
+    public Map<String, GCContent> getContent() {
+        return content;
+    }
+
+    public void setContent(Map<String, GCContent> content) {
+        this.content = content;
     }
 }

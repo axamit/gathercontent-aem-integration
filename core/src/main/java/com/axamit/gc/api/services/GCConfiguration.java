@@ -28,5 +28,5 @@ public interface GCConfiguration {
      * @param resource Resource of current cloudservice configuration or any of its children resources.
      * @return Account ID of cloudservice config.
      */
-    String getAccountId(Resource resource);
+    Integer getAccountId(Resource resource);
 }

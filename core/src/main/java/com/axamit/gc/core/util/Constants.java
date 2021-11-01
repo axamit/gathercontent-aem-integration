@@ -164,7 +164,7 @@ public enum Constants {
     /**
      * Date format used for items in <a href="https://gathercontent.com/developers/items/get-items/">GatherContent</a>.
      */
-    static final String ITEM_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String ITEM_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
     /**
      * Property for mapping GatherContent Item Name to AEM field (JCR property).
      */
@@ -183,6 +183,7 @@ public enum Constants {
 
     public static final String NEXT_LEVEL_HIERARCHY_INDENT = "   ";
 
-    public static final String CAROUSEL_PLUGIN = "com.axamit.gc.core.services.plugins.CarouselPlugin";
-
+    public static final String JSON_PN_TEXT = "text";
+    public static final String JSON_PN_VALUE = "value";
+    public static final String JSON_PN_QTIP = "qtip";
 }

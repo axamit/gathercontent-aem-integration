@@ -6,6 +6,7 @@ package com.axamit.gc.core.pojo;
 
 import com.axamit.gc.core.pojo.helpers.GCHierarchySortable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The <code>ImportResultItem</code> represents result of an import of page.
@@ -26,8 +27,8 @@ public final class ImportResultItem implements GCHierarchySortable {
     private String aemLink;
     private String color;
     private Integer position;
-    private String id;
-    private String parentId;
+    private Integer id;
+    private String folderUuid;
     private String type;
     private Integer importIndex;
     private String mappingName;
@@ -51,14 +52,14 @@ public final class ImportResultItem implements GCHierarchySortable {
      * @param color          Color of Live status in GatherContent.
      * @param position       Position in GatherContent list of items.
      * @param id             GatherContent Item ID.
-     * @param parentId       GatherContent Item ID of parent item.
+     * @param folderUuid       GatherContent
      * @param importIndex    Index number as it came to be processed.
      * @param mappingName    Mapping Name.
      */
     @SuppressWarnings("checkstyle:parameternumber")
     public ImportResultItem(final String status, final String name, final String aemTitle, final String importStatus,
                             final String gcTemplateName, final String gcLink, final String aemLink,
-                            final String color, final Integer position, final String id, final String parentId,
+                            final String color, final Integer position, final Integer id, final String folderUuid,
                             final Integer importIndex, final String mappingName) {
         this.status = status;
         this.name = name;
@@ -70,7 +71,7 @@ public final class ImportResultItem implements GCHierarchySortable {
         this.color = color;
         this.position = position;
         this.id = id;
-        this.parentId = parentId;
+        this.folderUuid = folderUuid;
         this.importIndex = importIndex;
         this.mappingName = mappingName;
     }
@@ -221,9 +222,10 @@ public final class ImportResultItem implements GCHierarchySortable {
 
     /**
      * @inheritDoc
+     * @return
      */
     @Override
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -231,7 +233,7 @@ public final class ImportResultItem implements GCHierarchySortable {
      * @param id New GatherContent Item ID to set.
      * @return ImportResultItem himself.
      */
-    public ImportResultItem setId(String id) {
+    public ImportResultItem setId(Integer id) {
         this.id = id;
         return this;
     }
@@ -240,16 +242,18 @@ public final class ImportResultItem implements GCHierarchySortable {
      * @inheritDoc
      */
     @Override
-    public String getParentId() {
-        return parentId;
+    @JsonProperty("folder_uuid")
+    public String getFolderUuid() {
+        return folderUuid;
     }
 
     /**
-     * @param parentId New GatherContent Item ID of parent item to set.
+     * @param folderUuid New GatherContent Item ID of parent item to set.
      * @return ImportResultItem himself.
      */
-    public ImportResultItem setParentId(String parentId) {
-        this.parentId = parentId;
+    @JsonProperty("folder_uuid")
+    public ImportResultItem setFolderUuid(String folderUuid) {
+        this.folderUuid = folderUuid;
         return this;
     }
 
@@ -315,7 +319,7 @@ public final class ImportResultItem implements GCHierarchySortable {
             + ", color='" + color + '\''
             + ", position=" + position
             + ", id='" + id + '\''
-            + ", parentId='" + parentId + '\''
+            + ", folderUuid='" + folderUuid + '\''
             + ", type='" + type + '\''
             + ", importIndex=" + importIndex
             + '}';

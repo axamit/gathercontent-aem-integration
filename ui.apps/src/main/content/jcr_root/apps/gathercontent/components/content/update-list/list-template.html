@@ -4,12 +4,13 @@
         <tr>
             <th><input id="all-items-checkbox" type="checkbox"></th>
             <th>Status</th>
+            <th>Folder</th>
             <th>Item Name</th>
             <th>Mapping Name</th>
             <th>Path in AEM</th>
             <th>Path in GC</th>
             <th>Last updated in AEM</th>
-            <th>Last updated in GATHERCONTENT</th>
+            <th>Last updated in GC</th>
         </tr>
         </thead>
         <tbody data-sly-list.item="${itemList.itemList}">
@@ -21,6 +22,7 @@
                 ${item.status}
             </td>
             <td><span class="item-title">${item.hierarchyTitle}</span></td>
+            <td><span class="item-title">${item.title}</span></td>
             <td><span class="mapping-name">${item.mappingName}</span></td>
             <td><a href="${item.importPath}.html" target="_blank">${item.importPath}</a></td>
             <td><a href="${item.gcPath}" target="_blank">${item.gcPath}</a></td>

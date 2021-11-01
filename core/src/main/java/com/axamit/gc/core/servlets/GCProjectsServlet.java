@@ -8,6 +8,7 @@ import com.axamit.gc.api.GCContext;
 import com.axamit.gc.api.dto.GCProject;
 import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.GCUtil;
+import com.axamit.gc.core.util.JSONUtil;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -36,13 +37,14 @@ public final class GCProjectsServlet extends GCAbstractServlet {
     @Override
     protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
             throws ServletException, IOException {
-        GCContext gcContext = getGCContext(request);
-        String accountId = getGcConfiguration().getAccountId(request.getResource());
-        JSONObject jsonObject = new JSONObject();
-        String[] selectors = request.getRequestPathInfo().getSelectors();
-        Boolean mapped = false;
+        final GCContext gcContext = getGCContext(request);
+        final Integer accountId = gcConfiguration.getAccountId(request.getResource());
+        final JSONObject jsonObject = new JSONObject();
+        final String[] selectors = request.getRequestPathInfo().getSelectors();
+
+        boolean mapped = false;
         String side = Constants.MAPPING_TYPE_IMPORT;
-        Set<String> mappedProjectsIds = null;
+        Set<Integer> mappedProjectsIds = null;
         for (String selector : selectors) {
             if (Constants.MAPPED_ITEMS_SELECTOR.equals(selector)) {
                 mapped = true;
@@ -58,20 +60,16 @@ public final class GCProjectsServlet extends GCAbstractServlet {
 
         if (gcContext != null) {
             try {
-                List<GCProject> gcProjects = getGcContentApi().projects(gcContext, accountId);
-                JSONArray jsonArray = new JSONArray();
+                final List<GCProject> gcProjects = gcContentApi.projects(gcContext, accountId);
+                final JSONArray jsonArray = new JSONArray();
                 for (GCProject gcProject : gcProjects) {
                     if (!mapped || mappedProjectsIds != null && mappedProjectsIds.contains(gcProject.getId())) {
-                        JSONObject jsonObjectTemplate = new JSONObject();
-                        jsonObjectTemplate.put(JSON_PN_TEXT, gcProject.getName());
-                        jsonObjectTemplate.put(JSON_PN_VALUE, gcProject.getId());
-                        jsonObjectTemplate.put(JSON_PN_TEXT, gcProject.getName());
-                        jsonArray.put(jsonObjectTemplate);
+                        JSONUtil.addMappingEntry(jsonArray, gcProject.getName(), String.valueOf(gcProject.getId()), null);
                     }
                 }
                 jsonObject.put(JSON_PN_PROJECTS, jsonArray);
             } catch (Exception e) {
-                getLOGGER().error("Failed create JSON Object {}", e.getMessage());
+                LOGGER.error("Failed create JSON Object {}", e.getMessage());
             }
         }
         response.getWriter().write(jsonObject.toString());

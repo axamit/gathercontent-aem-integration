@@ -13,10 +13,10 @@ public interface GCHierarchySortable {
     /**
      * @return GatherContent Item ID.
      */
-    String getId();
+    Integer getId();
 
     /**
      * @return GatherContent Item ID of parent item.
      */
-    String getParentId();
+    String getFolderUuid();
 }

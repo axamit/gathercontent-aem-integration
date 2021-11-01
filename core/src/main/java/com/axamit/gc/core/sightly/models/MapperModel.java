@@ -5,19 +5,15 @@
 package com.axamit.gc.core.sightly.models;
 
 import com.axamit.gc.api.GCContext;
-import com.axamit.gc.api.dto.GCConfig;
-import com.axamit.gc.api.dto.GCItem;
-import com.axamit.gc.api.dto.GCItemType;
-import com.axamit.gc.api.dto.GCProject;
-import com.axamit.gc.api.dto.GCTemplate;
-import com.axamit.gc.api.dto.GCTime;
+import com.axamit.gc.api.dto.*;
 import com.axamit.gc.api.services.GCConfiguration;
 import com.axamit.gc.api.services.GCContentApi;
+import com.axamit.gc.api.services.GCContentNewApi;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.pojo.FieldMappingProperties;
 import com.axamit.gc.core.pojo.MappingType;
-import com.axamit.gc.core.services.GCPluginManager;
-import com.axamit.gc.core.services.PageCreator;
+import com.axamit.gc.core.services.plugins.GCPluginManager;
+import com.axamit.gc.core.services.AEMPageModifier;
 import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.GCUtil;
 import com.axamit.gc.core.util.JSONUtil;
@@ -33,16 +29,12 @@ import org.apache.sling.models.annotations.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.jcr.RepositoryException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 /**
@@ -53,12 +45,14 @@ import javax.jcr.RepositoryException;
 @Model(adaptables = Resource.class)
 public class MapperModel {
     private static final Logger LOGGER = LoggerFactory.getLogger(MapperModel.class);
-    private static final long MILLISECONDS_IN_SECOND = 1000;
+
     private final Resource resource;
     @Inject
-    private PageCreator pageCreator;
+    private AEMPageModifier aemPageModifier;
     @Inject
     private GCContentApi gcContentApi;
+    @Inject
+    private GCContentNewApi gcContentNewApi;
     @Inject
     private GCPluginManager gcPluginManager;
     @Inject
@@ -71,10 +65,10 @@ public class MapperModel {
     private String mappingName;
     @Inject
     @Optional
-    private String projectId;
+    private Integer projectId;
     @Inject
     @Optional
-    private String templateId;
+    private Integer templateId;
     @Inject
     @Optional
     private String mappingTypeStr;
@@ -113,17 +107,17 @@ public class MapperModel {
 
     private Map<String, Map<String, String>> fieldsMappings;
 
-    private String accountId;
+    private Integer accountId;
 
-    private GCTemplate gctemplate;
+    private GCTemplate gcTemplate;
 
     private GCItem customItem;
 
-    private List<GCConfig> gcConfigs;
+    private List<GCTemplateField> gcTemplateFields;
 
-    private Map<String, String> projects;
+    private Map<Integer, String> projects;
 
-    private Map<String, String> templates;
+    private Map<Integer, String> templates;
 
     private Map<String, FieldMappingProperties> mapper;
 
@@ -181,19 +175,19 @@ public class MapperModel {
         this.mappingType = mappingType;
     }
 
-    public String getProjectId() {
+    public Integer getProjectId() {
         return projectId;
     }
 
-    public void setProjectId(final String projectId) {
+    public void setProjectId(final Integer projectId) {
         this.projectId = projectId;
     }
 
-    public String getTemplateId() {
+    public Integer getTemplateId() {
         return templateId;
     }
 
-    public void setTemplateId(final String templateId) {
+    public void setTemplateId(final Integer templateId) {
         this.templateId = templateId;
     }
 
@@ -221,40 +215,47 @@ public class MapperModel {
         this.templateName = templateName;
     }
 
-    public String getAccountId() {
+    public Integer getAccountId() {
         return accountId;
     }
 
-    public void setAccountId(final String accountId) {
+    public void setAccountId(final Integer accountId) {
         this.accountId = accountId;
     }
 
     /**
      * @return GatherContent template object of <code>{@link GCTemplate}</code> type.
      */
-    private GCTemplate getGctemplate() {
-        if (gctemplate == null && StringUtils.isNotEmpty(templatePath) && StringUtils.isNotEmpty(projectId)
-            && StringUtils.isNotEmpty(accountId) && StringUtils.isNotEmpty(templateId)
-            && MappingType.TEMPLATE == mappingType) {
+    private GCTemplate getGcTemplate() {
+        if (gcTemplate == null
+                && StringUtils.isNotEmpty(templatePath)
+                && projectId != null && projectId != 0
+                && accountId != null && accountId != 0
+                && templateId != null && templateId != 0
+                && MappingType.TEMPLATE == mappingType) {
             try {
-                gctemplate = gcContentApi.template(gcContext, projectId, templateId);
+                gcTemplate = gcContentNewApi.template(gcContext, templateId);
+                templateName = gcTemplate.getData().getName();
             } catch (GCException e) {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return gctemplate;
+        return gcTemplate;
     }
 
-    public void setGctemplate(final GCTemplate gctemplate) {
-        this.gctemplate = gctemplate;
+    public void setGcTemplate(final GCTemplate gcTemplate) {
+        this.gcTemplate = gcTemplate;
     }
 
     private GCItem getCustomItem() {
-        if (customItem == null && StringUtils.isNotEmpty(templatePath) && StringUtils.isNotEmpty(projectId)
-            && StringUtils.isNotEmpty(accountId) && StringUtils.isNotEmpty(templateId)
-            && (MappingType.ENTRY_PARENT == mappingType || MappingType.CUSTOM_ITEM == mappingType)) {
+        if (customItem == null
+                && StringUtils.isNotEmpty(templatePath)
+                && projectId != null && projectId != 0
+                && accountId != null && accountId != 0
+                && templateId != null && templateId != 0
+                && (MappingType.ENTRY_PARENT == mappingType || MappingType.CUSTOM_ITEM == mappingType)) {
             try {
-                customItem = gcContentApi.itemById(gcContext, templateId);
+                customItem = gcContentNewApi.itemById(gcContext, templateId);
             } catch (GCException e) {
                 LOGGER.error(e.getMessage(), e);
             }
@@ -267,33 +268,41 @@ public class MapperModel {
     }
 
     /**
-     * @return List of GatherContent <code>{@link GCConfig}</code> objects of mapped Item/Template.
+     * @return List of GatherContent <code>{@link GCTemplateGroup}</code> objects of mapped Item/Template.
      */
-    public List<GCConfig> getGcConfigs() {
-        if (gcConfigs == null && StringUtils.isNotEmpty(templatePath) && StringUtils.isNotEmpty(accountId)
-            && StringUtils.isNotEmpty(projectId) && StringUtils.isNotEmpty(templateId)) {
+    public List<GCTemplateField> getGcTemplateFields() {
+        if (gcTemplateFields == null
+                && StringUtils.isNotEmpty(templatePath)
+                && accountId != null && accountId != 0
+                && projectId != null && projectId != 0
+                && templateId != null && templateId != 0) {
             switch (mappingType) {
-                case ENTRY_PARENT:
-                case CUSTOM_ITEM:
-                    customItem = getCustomItem();
-                    if (customItem != null) {
-                        gcConfigs = customItem.getConfig();
-                    }
-                    return gcConfigs;
+                //TODO
+//                case ENTRY_PARENT:
+//                case CUSTOM_ITEM:
+//                    customItem = getCustomItem();
+//                    if (customItem != null) {
+//                        gcGroups = customItem.getConfig();
+//                    }
+//                    return gcTemplateFields;
                 case TEMPLATE:
                 default:
-                    gctemplate = getGctemplate();
-                    if (gctemplate != null) {
-                        gcConfigs = gctemplate.getConfig();
+                    gcTemplate = getGcTemplate();
+                    if (gcTemplate != null) {
+                        gcTemplateFields = GCUtil.getFieldsByTemplate(gcTemplate);
                     }
-                    return gcConfigs;
+                    return gcTemplateFields;
             }
         }
-        return gcConfigs;
+        return gcTemplateFields;
     }
 
-    public void setGcConfigs(List<GCConfig> gcConfigs) {
-        this.gcConfigs = gcConfigs;
+    public void setGcTemplateFields(List<GCTemplateField> gcTemplateFields) {
+        this.gcTemplateFields = gcTemplateFields;
+    }
+
+    public List<GCTemplateGroup> getGcTemplateGroups() {
+        return gcTemplate.getRelated().getStructure().getGroups();
     }
 
     /**
@@ -341,11 +350,11 @@ public class MapperModel {
      */
     public Map<String, Map<String, String>> getFieldsMappings() {
         if (fieldsMappings == null) {
-            gcConfigs = getGcConfigs();
-            if (gcConfigs != null && StringUtils.isNotEmpty(templatePath)) {
+            gcTemplateFields = getGcTemplateFields();
+            if (gcTemplateFields != null && StringUtils.isNotEmpty(templatePath)) {
                 try {
-                    fieldsMappings = pageCreator
-                        .getFieldsMappings(gcConfigs, false, true, templatePath, getPluginConfigPath(),
+                    fieldsMappings = aemPageModifier
+                        .getFieldsMappings(gcTemplateFields, false, true, templatePath, getPluginConfigPath(),
                             StringUtils.EMPTY);
                 } catch (LoginException | RepositoryException e) {
                     LOGGER.error(e.getMessage(), e);
@@ -361,11 +370,11 @@ public class MapperModel {
      */
     public Map<String, Map<String, String>> getAbsFieldsMappings() {
         if (fieldsMappings == null) {
-            gcConfigs = getGcConfigs();
-            if (gcConfigs != null && StringUtils.isNotEmpty(templatePath)) {
+            gcTemplateFields = getGcTemplateFields();
+            if (gcTemplateFields != null && StringUtils.isNotEmpty(templatePath)) {
                 try {
-                    fieldsMappings = pageCreator
-                        .getFieldsMappings(gcConfigs, true, false, templatePath, getPluginConfigPath(),
+                    fieldsMappings = aemPageModifier
+                        .getFieldsMappings(gcTemplateFields, true, false, templatePath, getPluginConfigPath(),
                             abstractTemplateLimitPath);
                 } catch (LoginException | RepositoryException e) {
                     LOGGER.error(e.getMessage(), e);
@@ -415,34 +424,19 @@ public class MapperModel {
      */
     public String getLastUpdated() {
         switch (mappingType) {
-            case ENTRY_PARENT:
-            case CUSTOM_ITEM:
-                customItem = getCustomItem();
-                if (customItem == null || customItem.getUpdatedAt() == null) {
-                    return Constants.UNAVAILABLE_TEMPLATE;
-                }
-                SimpleDateFormat outputSimpleDateFormatWithTimeZone =
-                    GCUtil.getOutputSimpleDateFormatWithTimeZone(customItem.getUpdatedAt(),
-                        Constants.OUTPUT_DATE_FORMAT);
-                Date dateFromGCItem = GCUtil.getDateFromGCItem(customItem.getUpdatedAt());
-                if (dateFromGCItem != null) {
-                    return outputSimpleDateFormatWithTimeZone.format(dateFromGCItem);
-                }
-                break;
+            //TODO
+//            case ENTRY_PARENT:
+//            case CUSTOM_ITEM:
+//                customItem = getCustomItem();
+//                if (customItem != null && customItem.getUpdatedAt() != null) {
+//                    return customItem.getUpdatedAt();
+//                }
             case TEMPLATE:
             default:
-                gctemplate = getGctemplate();
-                if (gctemplate == null || StringUtils.isEmpty(gctemplate.getUpdatedAt())) {
-                    return Constants.UNAVAILABLE_TEMPLATE;
+                gcTemplate = getGcTemplate();
+                if (gcTemplate != null && !StringUtils.isEmpty(gcTemplate.getData().getUpdatedAt())) {
+                    return gcTemplate.getData().getUpdatedAt();
                 }
-                try {
-                    Date date = new Date(Long.parseLong(gctemplate.getUpdatedAt()) * MILLISECONDS_IN_SECOND);
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Constants.OUTPUT_DATE_FORMAT);
-                    return simpleDateFormat.format(date);
-                } catch (NumberFormatException e) {
-                    LOGGER.error("Fail to parse template date in GATHERCONTENT", e);
-                }
-                break;
         }
         return Constants.UNAVAILABLE_TEMPLATE;
     }
@@ -451,18 +445,14 @@ public class MapperModel {
      * @return Date of last modification of mapping.
      */
     public String getLastMapped() {
-        customItem = getCustomItem();
-        GCTime gcTime = null;
-        if (customItem != null) {
-            gcTime = customItem.getUpdatedAt();
-        }
-        SimpleDateFormat dateFormat =
-            GCUtil.getOutputSimpleDateFormatWithTimeZone(gcTime, Constants.OUTPUT_DATE_FORMAT);
         if (lastMapped != null) {
-            Date date = new Date(Long.parseLong(lastMapped));
-            return dateFormat.format(date);
+            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.ITEM_DATE_FORMAT);
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(Long.parseLong(lastMapped));
+            return dateFormat.format(calendar.getTime());
+        } else {
+            return StringUtils.EMPTY;
         }
-        return null;
     }
 
     public void setLastMapped(final String lastMapped) {
@@ -472,7 +462,7 @@ public class MapperModel {
     /**
      * @return Map with GatherContent project ID as a key and GatherContent project name as a value.
      */
-    public Map<String, String> getProjects() {
+    public Map<Integer, String> getProjects() {
         if (projects == null && accountId != null) {
             try {
                 List<GCProject> gcProjects = gcContentApi.projects(gcContext, accountId);
@@ -490,32 +480,33 @@ public class MapperModel {
     /**
      * @return Map with GatherContent template ID as a key and GatherContent template name as a value.
      */
-    public Map<String, String> getTemplates() {
+    public Map<Integer, String> getTemplates() {
         if (templates == null) {
             try {
-                if (StringUtils.isNotEmpty(projectId)) {
+                if (projectId != null && projectId != 0) {
                     templates = new HashMap<>();
                     switch (mappingType) {
-                        case ENTRY_PARENT:
-                            List<GCItem> gcEntryParentItems = gcContentApi.itemsByProjectId(gcContext, projectId);
-                            for (GCItem gcItem : gcEntryParentItems) {
-                                if (GCItemType.ENTRY_PARENT == gcItem.getItemType()) {
-                                    templates.put(gcItem.getId(), gcItem.getName());
-                                }
-                            }
-                            break;
-                        case CUSTOM_ITEM:
-                            List<GCItem> gcCustomItems = gcContentApi.itemsByProjectId(gcContext, projectId);
-                            for (GCItem gcItem : gcCustomItems) {
-                                if (GCItemType.ITEM == gcItem.getItemType() && gcItem.getTemplateId() == null) {
-                                    templates.put(gcItem.getId(), gcItem.getName());
-                                }
-                            }
-                            break;
+                        //TODO
+//                        case ENTRY_PARENT:
+//                            List<GCItemNew> gcEntryParentItems = gcContentNewApi.itemsByProjectId(gcContext, projectId);
+//                            for (GCItemNew gcItem : gcEntryParentItems) {
+//                                if (GCItemType.ENTRY_PARENT == gcItem.getItemType()) {
+//                                    templates.put(gcItem.getId(), gcItem.getName());
+//                                }
+//                            }
+//                            break;
+//                        case CUSTOM_ITEM:
+//                            List<GCItemNew> gcCustomItems = gcContentNewApi.itemsByProjectId(gcContext, projectId);
+//                            for (GCItemNew gcItem : gcCustomItems) {
+//                                if (GCItemType.ITEM == gcItem.getItemType() && gcItem.getTemplateId() == null) {
+//                                    templates.put(gcItem.getId(), gcItem.getName());
+//                                }
+//                            }
+//                            break;
                         case TEMPLATE:
                         default:
-                            List<GCTemplate> gcTemplates = gcContentApi.templates(gcContext, projectId);
-                            for (GCTemplate gcTemplate : gcTemplates) {
+                            List<GCTemplateData> gcTemplates = gcContentNewApi.templates(gcContext, projectId);
+                            for (GCTemplateData gcTemplate : gcTemplates) {
                                 templates.put(gcTemplate.getId(), gcTemplate.getName());
                             }
                             break;

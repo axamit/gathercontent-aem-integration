@@ -22,7 +22,7 @@ public enum Renderer {
     MAPPING_EXPORT(Constants.MAPPING_EXPORT_SELECTOR),
     CREDENTIALS("credentials");
 
-    private String type;
+    private final String type;
 
     /**
      * Constructor.

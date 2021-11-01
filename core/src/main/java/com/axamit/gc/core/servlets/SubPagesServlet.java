@@ -52,13 +52,13 @@ public class SubPagesServlet extends SlingAllMethodsServlet {
     @Override
     protected final void doPost(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
             throws ServletException, IOException {
-        String[] roots = request.getParameterValues(REQUEST_PARAMETER_DATA);
-        ResourceResolver resourceResolver = request.getResourceResolver();
+        final String[] roots = request.getParameterValues(REQUEST_PARAMETER_DATA);
+        final ResourceResolver resourceResolver = request.getResourceResolver();
 
-        List<PageWrap> pageWrapList = new ArrayList<>();
+        final List<PageWrap> pageWrapList = new ArrayList<>();
         for (String root : roots) {
             if (StringUtils.isNotEmpty(root)) {
-                Resource rootResource = resourceResolver.getResource(root);
+                final Resource rootResource = resourceResolver.getResource(root);
                 if (rootResource != null) {
                     addPagesTree(pageWrapList, rootResource);
                 }
@@ -75,12 +75,12 @@ public class SubPagesServlet extends SlingAllMethodsServlet {
     }
 
     private void addPagesTree(List<PageWrap> pageWrapSet, Resource root) {
-        Boolean isHidden = root.getValueMap().get(HIDDEN_PROPERTY, Boolean.FALSE);
+        final Boolean isHidden = root.getValueMap().get(HIDDEN_PROPERTY, Boolean.FALSE);
         if (ACCEPTABLE_RESOURCE_TYPES.contains(root.getResourceType()) && !isHidden) {
             pageWrapSet.add(new PageWrap(root));
         }
         if (!isHidden) {
-            Iterator<Resource> children = root.listChildren();
+            final Iterator<Resource> children = root.listChildren();
             while (children.hasNext()) {
                 addPagesTree(pageWrapSet, children.next());
             }

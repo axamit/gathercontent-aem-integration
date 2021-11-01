@@ -47,18 +47,18 @@ public final class GCCopyMappingServlet extends SlingAllMethodsServlet {
     @Override
     protected void doPost(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
             throws ServletException, IOException {
-        String nodePath = request.getParameter(COPY_RESOURCE_PATH_PN);
-        String newName = request.getParameter(COPY_RESOURCE_NEW_NAME_PN);
+        final String nodePath = request.getParameter(COPY_RESOURCE_PATH_PN);
+        final String newName = request.getParameter(COPY_RESOURCE_NEW_NAME_PN);
 
-        ResourceResolver resourceResolver = request.getResourceResolver();
-        Resource targetResource = resourceResolver.getResource(nodePath);
+        final ResourceResolver resourceResolver = request.getResourceResolver();
+        final Resource targetResource = resourceResolver.getResource(nodePath);
         boolean result = false;
         String editLink = null;
         try {
             if (targetResource != null) {
-                Node from = targetResource.adaptTo(Node.class);
-                String newNodeName = from.getName().concat(String.valueOf(System.currentTimeMillis()));
-                Node copiedNode = JcrUtil.copy(from, from.getParent(), newNodeName);
+                final Node from = targetResource.adaptTo(Node.class);
+                final String newNodeName = from.getName().concat(String.valueOf(System.currentTimeMillis()));
+                final Node copiedNode = JcrUtil.copy(from, from.getParent(), newNodeName);
                 copiedNode.setProperty(Constants.MAPPING_NAME_PN, newName);
                 resourceResolver.commit();
                 result = true;
@@ -73,7 +73,7 @@ public final class GCCopyMappingServlet extends SlingAllMethodsServlet {
                         concat(".html");
             }
 
-            JSONObject responseObject = new JSONObject();
+            final JSONObject responseObject = new JSONObject();
             responseObject.put("result", result);
             responseObject.put("editLink", editLink);
             response.getWriter().write(responseObject.toString());

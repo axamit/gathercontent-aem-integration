@@ -7,7 +7,7 @@ package com.axamit.gc.core.servlets;
 import com.axamit.gc.api.GCContext;
 import com.axamit.gc.api.services.GCConfiguration;
 import com.axamit.gc.api.services.GCContentApi;
-import org.apache.commons.lang3.BooleanUtils;
+import com.axamit.gc.api.services.GCContentNewApi;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -25,20 +25,19 @@ import org.slf4j.LoggerFactory;
 @Component(componentAbstract = true)
 public abstract class GCAbstractServlet extends SlingAllMethodsServlet {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     private static final String REQUEST_PN_GC_USERNAME = "gcUsername";
     private static final String REQUEST_PN_GC_API_KEY = "gcApikey";
-    private static final String REQUEST_PN_GC_NEW_EDITOR = "isNewEditor";
-    protected static final String JSON_PN_TEXT = "text";
-    protected static final String JSON_PN_VALUE = "value";
-    protected static final String JSON_PN_QTIP = "qtip";
 
     @Reference
-    private GCConfiguration gcConfiguration;
+    protected GCConfiguration gcConfiguration;
 
     @Reference
-    private GCContentApi gcContentApi;
+    protected GCContentApi gcContentApi;
+
+    @Reference
+    protected GCContentNewApi gcContentNewApi;
 
     /**
      * Get <code>{@link GCContext}</code> for current cloudservice configuration.
@@ -48,13 +47,12 @@ public abstract class GCAbstractServlet extends SlingAllMethodsServlet {
      */
     protected final GCContext getGCContext(final SlingHttpServletRequest request) {
         GCContext gcContext;
-        String gcUsername = request.getParameter(REQUEST_PN_GC_USERNAME);
-        String gcApiKey = request.getParameter(REQUEST_PN_GC_API_KEY);
-        boolean isNewEditor = BooleanUtils.toBoolean(request.getParameter(REQUEST_PN_GC_NEW_EDITOR));
+        final String gcUsername = request.getParameter(REQUEST_PN_GC_USERNAME);
+        final String gcApiKey = request.getParameter(REQUEST_PN_GC_API_KEY);
         if (gcUsername != null && gcApiKey != null) {
-            gcContext = GCContext.build(gcUsername, gcApiKey, isNewEditor);
+            gcContext = GCContext.build(gcUsername, gcApiKey);
         } else {
-            Resource resource = request.getResource();
+            final Resource resource = request.getResource();
             gcContext = gcConfiguration.getGCContext(resource);
         }
 
@@ -65,20 +63,8 @@ public abstract class GCAbstractServlet extends SlingAllMethodsServlet {
      * @param request <code>{@link SlingHttpServletRequest}</code> object.
      * @return Account ID for credentials selected in current cloudservice configuration.
      */
-    protected final String getAccountId(final SlingHttpServletRequest request) {
-        Resource resource = request.getResource();
+    protected final Integer getAccountId(final SlingHttpServletRequest request) {
+        final Resource resource = request.getResource();
         return gcConfiguration.getAccountId(resource);
-    }
-
-    public final GCConfiguration getGcConfiguration() {
-        return gcConfiguration;
-    }
-
-    public final GCContentApi getGcContentApi() {
-        return gcContentApi;
-    }
-
-    public final Logger getLOGGER() {
-        return logger;
     }
 }

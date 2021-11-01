@@ -18,15 +18,13 @@ public final class GCContext implements Serializable {
 
     private static final String API_URL = "https://api.gathercontent.com";
     private final Map<String, String> headers = ImmutableMap.of("Accept", "application/vnd.gathercontent.v0.5+json");
-    private final Map<String, String> newEditorHeaders = ImmutableMap.of("Accept", "application/vnd.gathercontent.v0.6+json");
+    private final Map<String, String> newApiHeaders = ImmutableMap.of("Accept", "application/vnd.gathercontent.v2+json");
     private String username;
     private String apikey;
-    private Boolean isNewEditor;
 
-    private GCContext(final String username, final String apikey, final boolean isNewEditor) {
+    private GCContext(final String username, final String apikey) {
         this.username = username;
         this.apikey = apikey;
-        this.isNewEditor = isNewEditor;
     }
 
     /**
@@ -36,8 +34,8 @@ public final class GCContext implements Serializable {
      * @param apikey   GatherContent Api Key,
      * @return Created <code>{@link GCContext}</code> object.
      */
-    public static GCContext build(final String username, final String apikey, final Boolean isNewEditor) {
-        return new GCContext(username, apikey, isNewEditor);
+    public static GCContext build(final String username, final String apikey) {
+        return new GCContext(username, apikey);
     }
 
     public String getUsername() {
@@ -60,19 +58,11 @@ public final class GCContext implements Serializable {
         return headers;
     }
 
-    public Map<String, String> getNewEditorHeaders() {
-        return newEditorHeaders;
+    public Map<String, String> getNewApiHeaders() {
+        return newApiHeaders;
     }
 
     public String getApiURL() {
         return API_URL;
-    }
-
-    public Boolean isNewEditor() {
-        return isNewEditor;
-    }
-
-    public void setNewEditor(Boolean newEditor) {
-        isNewEditor = newEditor;
     }
 }

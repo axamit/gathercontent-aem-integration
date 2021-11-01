@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.slf4j.Logger;
@@ -188,6 +189,14 @@ public enum JSONUtil {
             map.put(fieldMapping.getKey(), fieldMappingProperties);
         }
         return map;
+    }
+
+    public static void addMappingEntry(JSONArray jsonArray, String text, String value, String qtip) throws JSONException {
+        JSONObject jsonObjectAccount = new JSONObject();
+        jsonObjectAccount.put(Constants.JSON_PN_TEXT, text);
+        jsonObjectAccount.put(Constants.JSON_PN_VALUE, value);
+        jsonObjectAccount.put(Constants.JSON_PN_QTIP, qtip);
+        jsonArray.put(jsonObjectAccount);
     }
 
 }

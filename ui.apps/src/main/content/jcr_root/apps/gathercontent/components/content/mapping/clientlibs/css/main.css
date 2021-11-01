@@ -123,3 +123,16 @@ form {
 form.hide {
     display: none;
 }
+
+.component-box {
+    padding: 10px;
+    border: 1px solid;
+}
+
+.disabled-gray {
+    background-color: #eee;
+}
+
+.warn {
+    color: red;
+}

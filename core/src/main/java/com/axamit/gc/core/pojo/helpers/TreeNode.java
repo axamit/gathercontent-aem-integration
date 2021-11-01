@@ -17,8 +17,8 @@ public class TreeNode<T> {
     private List<T> data = new ArrayList<>();
     private List<TreeNode<T>> children = new ArrayList<>();
     private TreeNode parent;
-    private String id;
-    private String parentId;
+    private Integer id;
+    private Integer parentId;
 
     /**
      * Tree node constructor.
@@ -27,7 +27,7 @@ public class TreeNode<T> {
      * @param id       Current data item id.
      * @param parentId Parent id of data item.
      */
-    public TreeNode(T data, String id, String parentId) {
+    public TreeNode(T data, Integer id, Integer parentId) {
         this.data.add(data);
         this.id = id;
         this.parentId = parentId;
@@ -79,19 +79,19 @@ public class TreeNode<T> {
         this.parent = parent;
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public String getParentId() {
+    public Integer getParentId() {
         return parentId;
     }
 
-    public void setParentId(String parentId) {
+    public void setParentId(Integer parentId) {
         this.parentId = parentId;
     }
 

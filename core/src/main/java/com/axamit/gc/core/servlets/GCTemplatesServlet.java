@@ -5,18 +5,17 @@
 package com.axamit.gc.core.servlets;
 
 import com.axamit.gc.api.GCContext;
-import com.axamit.gc.api.dto.GCItem;
-import com.axamit.gc.api.dto.GCItemType;
-import com.axamit.gc.api.dto.GCTemplate;
+import com.axamit.gc.api.dto.GCTemplateData;
 import com.axamit.gc.core.pojo.MappingType;
 import com.axamit.gc.core.util.Constants;
+import com.axamit.gc.core.util.JSONUtil;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.HttpConstants;
 import org.apache.sling.commons.json.JSONArray;
-import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -39,17 +38,16 @@ public final class GCTemplatesServlet extends GCAbstractServlet {
     @Override
     protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
             throws ServletException, IOException {
-        GCContext gcContext = getGCContext(request);
-        String[] selectors = request.getRequestPathInfo().getSelectors();
-        String projectId = null;
+        final GCContext gcContext = getGCContext(request);
+        final String[] selectors = request.getRequestPathInfo().getSelectors();
+        Integer projectId = null;
         MappingType mappingType = MappingType.TEMPLATE;
         for (String selector : selectors) {
             if (selector.startsWith(Constants.PROJECT_ID_SELECTOR)) {
-                projectId = selector.substring(Constants.PROJECT_ID_SELECTOR.length());
+                projectId = NumberUtils.toInt(selector.substring(Constants.PROJECT_ID_SELECTOR.length()), 0);
             }
             if (selector.startsWith(Constants.MAPPING_TYPE_SELECTOR)) {
-                MappingType mappingTypeFromSelector =
-                        MappingType.of(selector.substring(Constants.MAPPING_TYPE_SELECTOR.length()));
+                MappingType mappingTypeFromSelector = MappingType.of(selector.substring(Constants.MAPPING_TYPE_SELECTOR.length()));
                 if (mappingTypeFromSelector != null) {
                     mappingType = mappingTypeFromSelector;
                 }
@@ -57,62 +55,55 @@ public final class GCTemplatesServlet extends GCAbstractServlet {
         }
 
         if (projectId == null) {
-            projectId = request.getResource().adaptTo(ValueMap.class).get(Constants.GC_PROJECT_ID_PN, String.class);
+            projectId = NumberUtils.toInt(request.getResource().adaptTo(ValueMap.class).get(Constants.GC_PROJECT_ID_PN, String.class), 0);
         }
 
-        JSONObject jsonObject = new JSONObject();
-        JSONArray jsonArray = new JSONArray();
+        final JSONObject jsonObject = new JSONObject();
+        final JSONArray jsonArray = new JSONArray();
 
-        if (gcContext != null && projectId != null) {
+        if (gcContext != null && projectId != 0) {
             switch (mappingType) {
-                case CUSTOM_ITEM:
-                    try {
-                        List<GCItem> gcItems = getGcContentApi().itemsByProjectId(gcContext, projectId);
-                        for (GCItem gcItem : gcItems) {
-                            if (GCItemType.ITEM.equals(gcItem.getItemType()) && gcItem.getTemplateId() == null) {
-                                addMappingEntry(jsonArray, gcItem.getName(), gcItem.getId(), gcItem.getName());
-                            }
-                        }
-                        jsonObject.put("gctemplates", jsonArray);
-                    } catch (Exception e) {
-                        getLOGGER().error("Failed create JSON Object {}", e.getMessage());
-                    }
-                    break;
-                case ENTRY_PARENT:
-                    try {
-                        List<GCItem> gcItems = getGcContentApi().itemsByProjectId(gcContext, projectId);
-                        for (GCItem gcItem : gcItems) {
-                            if (GCItemType.ENTRY_PARENT.equals(gcItem.getItemType())) {
-                                addMappingEntry(jsonArray, gcItem.getName(), gcItem.getId(), gcItem.getName());
-                            }
-                        }
-                        jsonObject.put("gctemplates", jsonArray);
-                    } catch (Exception e) {
-                        getLOGGER().error("Failed create JSON Object {}", e.getMessage());
-                    }
-                    break;
+                //TODO
+//                case CUSTOM_ITEM:
+//                    try {
+//                        List<GCItemNew> gcItems = getGcContentNewApi().itemsByProjectId(gcContext, projectId);
+//                        for (GCItemNew gcItem : gcItems) {
+//                            if (GCItemType.ITEM.equals(gcItem.getItemType()) && gcItem.getTemplateId() == null) {
+//                                JSONUtil.addMappingEntry(jsonArray, gcItem.getName(), gcItem.getId(), gcItem.getName());
+//                            }
+//                        }
+//                        jsonObject.put("gctemplates", jsonArray);
+//                    } catch (Exception e) {
+//                        LOGGER.error("Failed create JSON Object {}", e.getMessage());
+//                    }
+//                    break;
+//                case ENTRY_PARENT:
+//                    try {
+//                        List<GCItemNew> gcItems = getGcContentNewApi().itemsByProjectId(gcContext, projectId);
+//                        for (GCItemNew gcItem : gcItems) {
+//                            if (GCItemType.ENTRY_PARENT.equals(gcItem.getItemType())) {
+//                                JSONUtil.addMappingEntry(jsonArray, gcItem.getName(), gcItem.getId(), gcItem.getName());
+//                            }
+//                        }
+//                        jsonObject.put("gctemplates", jsonArray);
+//                    } catch (Exception e) {
+//                        LOGGER.error("Failed create JSON Object {}", e.getMessage());
+//                    }
+//                    break;
                 case TEMPLATE:
                 default:
                     try {
-                        List<GCTemplate> templates = getGcContentApi().templates(gcContext, projectId);
-                        for (GCTemplate template : templates) {
-                            addMappingEntry(jsonArray, template.getName(), template.getId(), template.getDescription());
+                        final List<GCTemplateData> templates = gcContentNewApi.templates(gcContext, projectId);
+                        for (GCTemplateData template : templates) {
+                            JSONUtil.addMappingEntry(jsonArray, template.getName(), String.valueOf(template.getId()), null);
                         }
                         jsonObject.put("gctemplates", jsonArray);
                     } catch (Exception e) {
-                        getLOGGER().error("Failed create JSON Object {}", e.getMessage());
+                        LOGGER.error("Failed create JSON Object {}", e.getMessage());
                     }
                     break;
             }
         }
         response.getWriter().write(jsonObject.toString());
-    }
-
-    private void addMappingEntry(JSONArray jsonArray, String text, String value, String qtip) throws JSONException {
-        JSONObject jsonObjectTemplate = new JSONObject();
-        jsonObjectTemplate.put("text", text);
-        jsonObjectTemplate.put("value", value);
-        jsonObjectTemplate.put("qtip", qtip);
-        jsonArray.put(jsonObjectTemplate);
     }
 }

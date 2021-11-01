@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.axamit.gc</groupId>
         <artifactId>gathercontent</artifactId>
-        <version>2.0.8-beta</version>
+        <version>2.0.9-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>gathercontent.core</artifactId>
@@ -32,6 +32,14 @@
                         <Embed-Dependency>jackson-databind,jackson-core,jackson-annotations,failsafe;scope=compile|runtime</Embed-Dependency>
                         <Sling-Model-Packages>com.axamit.gc</Sling-Model-Packages>
                     </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
         </plugins>

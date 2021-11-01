@@ -103,7 +103,7 @@ $(function () {
         };
 
         var gcTemplateNameColumn = {
-            title: "Template Name", data: 'gcTemplateName',
+            title: "Template Name in GC", data: 'gcTemplateName',
             render: function (data, type, row) {
                 return (data != null ? GCStringUtils.escapeHTML(data) : '');
             }
@@ -130,11 +130,11 @@ $(function () {
             columns.push(aemLinkColumn);
             columns.push(gcLinkColumn);
         } else {
-            columns.push(GATHERCONTENT.dataTablesColumns.status);
             columns.push(nameColumn);
             columns.push(GATHERCONTENT.dataTablesColumns.mappingName);
             columns.push(importStatusColumn);
             columns.push(gcTemplateNameColumn);
+            columns.push(GATHERCONTENT.dataTablesColumns.status);
             columns.push(aemLinkColumn);
             columns.push(gcLinkColumn);
         }

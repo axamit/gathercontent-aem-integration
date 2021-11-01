@@ -1,0 +1,15 @@
+<div data-sly-test="${wcmmode.edit}">Files Container</div>
+<sly data-sly-use.container="com.axamit.gc.core.sightly.containers.FilesComponentContainer"
+     data-sly-test="${container.files}">
+    <h2>Files</h2>
+    <div >
+        <ul data-sly-list.file="${container.files}">
+            <sly data-sly-test.image="${file.fileType == 'IMAGE'}">
+                <img src="${file.path}" title="${file.fileName}" width="200px"/>
+            </sly>
+            <li data-sly-test="${!image}">
+                <a href="${file.path}">${file.fileName}</a>
+            </li>
+        </ul>
+    </div>
+</sly>

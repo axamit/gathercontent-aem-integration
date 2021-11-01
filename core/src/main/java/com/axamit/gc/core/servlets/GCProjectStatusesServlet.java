@@ -5,13 +5,12 @@
 package com.axamit.gc.core.servlets;
 
 import com.axamit.gc.api.GCContext;
-import com.axamit.gc.api.dto.GCData;
-import com.axamit.gc.api.services.GCContentApi;
+import com.axamit.gc.api.dto.GCStatus;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.JSONUtil;
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -38,27 +37,25 @@ public final class GCProjectStatusesServlet extends GCAbstractServlet {
     protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
         throws IOException {
 
-        GCContext gcContext = getGCContext(request);
-        GCContentApi gcContentApi = getGcContentApi();
+        final GCContext gcContext = getGCContext(request);
 
-        String[] selectors = request.getRequestPathInfo().getSelectors();
-        String projectId = null;
+        final String[] selectors = request.getRequestPathInfo().getSelectors();
+        Integer projectId = null;
 
         for (String selector : selectors) {
             if (selector.startsWith(Constants.PROJECT_ID_SELECTOR)) {
-                projectId = selector.substring(Constants.PROJECT_ID_SELECTOR.length());
+                projectId = NumberUtils.toInt(selector.substring(Constants.PROJECT_ID_SELECTOR.length()), 0);
                 break;
             }
         }
 
-        if (StringUtils.isNotEmpty(projectId)) {
+        if (projectId != null && projectId != 0) {
             try {
-                List<GCData> gcDataList = gcContentApi.statusesByProjectId(gcContext, projectId);
-                response.getWriter().write(
-                        JSONUtil.fromObjectToJsonString(ImmutableMap.of(JSON_PN_STATUSES, gcDataList)));
+                List<GCStatus> gcStatusList = gcContentApi.statusesByProjectId(gcContext, projectId);
+                response.getWriter().write(JSONUtil.fromObjectToJsonString(ImmutableMap.of(JSON_PN_STATUSES, gcStatusList)));
                 return;
             } catch (GCException e) {
-                getLOGGER().error(e.getMessage(), e);
+                LOGGER.error(e.getMessage(), e);
             }
         }
 

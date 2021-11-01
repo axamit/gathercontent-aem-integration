@@ -7,11 +7,11 @@ package com.axamit.gc.core.sightly.models;
 import com.axamit.gc.api.GCContext;
 import com.axamit.gc.api.dto.GCItem;
 import com.axamit.gc.api.dto.GCTemplate;
+import com.axamit.gc.api.dto.GCTemplateData;
 import com.axamit.gc.api.services.GCConfiguration;
-import com.axamit.gc.api.services.GCContentApi;
+import com.axamit.gc.api.services.GCContentNewApi;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.util.Constants;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.models.annotations.Model;
@@ -35,7 +35,7 @@ public final class MapperListModel {
     private static final Logger LOGGER = LoggerFactory.getLogger(MapperListModel.class);
 
     @Inject
-    private GCContentApi gcContentApi;
+    private GCContentNewApi gcContentNewApi;
 
     @Inject
     private GCConfiguration gcConfiguration;
@@ -43,7 +43,7 @@ public final class MapperListModel {
     @Inject
     private SlingHttpServletRequest request;
 
-    private Resource resource;
+    private final Resource resource;
 
     private List<MapperModel> mappingList;
 
@@ -68,8 +68,8 @@ public final class MapperListModel {
         mappingList = new ArrayList<>();
         Iterable<Resource> mappingResources = resource.getChildren();
         GCContext gcContext = gcConfiguration.getGCContext(resource);
-        Map<String, List<GCTemplate>> templatesByProject = new HashMap<>();
-        Map<String, List<GCItem>> itemsByProject = new HashMap<>();
+        Map<Integer, List<GCTemplateData>> templatesByProject = new HashMap<>();
+        Map<Integer, List<GCItem>> itemsByProject = new HashMap<>();
 
         String[] selectors = request.getRequestPathInfo().getSelectors();
         boolean isExport = false;
@@ -94,43 +94,45 @@ public final class MapperListModel {
             String type = mapperModel.getType();
             if (isExport && Constants.MAPPING_TYPE_EXPORT.equals(type)
                     || !isExport && !Constants.MAPPING_TYPE_EXPORT.equals(type)) {
-                String projectId = mapperModel.getProjectId();
-                String templateId = mapperModel.getTemplateId();
-                if (StringUtils.isNotEmpty(templateId)) {
+                Integer projectId = mapperModel.getProjectId();
+                Integer templateId = mapperModel.getTemplateId();
+                if (templateId != 0) {
                     switch (mapperModel.getMappingType()) {
-                        case ENTRY_PARENT:
-                        case CUSTOM_ITEM:
-                            List<GCItem> gcItems;
-                            try {
-                                if (itemsByProject.containsKey(projectId)) {
-                                    gcItems = itemsByProject.get(projectId);
-                                } else {
-                                    gcItems = gcContentApi.itemsByProjectId(gcContext, projectId);
-                                    itemsByProject.put(projectId, gcItems);
-                                }
-                                for (GCItem gcItem : gcItems) {
-                                    if (templateId.equals(gcItem.getId())) {
-                                        mapperModel.setCustomItem(gcItem);
-                                        break;
-                                    }
-                                }
-                            } catch (GCException e) {
-                                LOGGER.error(e.getMessage(), e);
-                            }
-                            break;
+                        //TODO
+//                        case ENTRY_PARENT:
+//                        case CUSTOM_ITEM:
+//                            List<GCItem> gcItems;
+//                            try {
+//                                if (itemsByProject.containsKey(projectId)) {
+//                                    gcItems = itemsByProject.get(projectId);
+//                                } else {
+//                                    gcItems = gcContentNewApi.itemsByProjectId(gcContext, projectId);
+//                                    itemsByProject.put(projectId, gcItems);
+//                                }
+//                                for (GCItem gcItem : gcItems) {
+//                                    if (templateId.equals(gcItem.getId())) {
+//                                        mapperModel.setCustomItem(gcItem);
+//                                        break;
+//                                    }
+//                                }
+//                            } catch (GCException e) {
+//                                LOGGER.error(e.getMessage(), e);
+//                            }
+//                            break;
                         case TEMPLATE:
                         default:
-                            List<GCTemplate> gcTemplates;
+                            List<GCTemplateData> gcTemplates;
                             try {
                                 if (templatesByProject.containsKey(projectId)) {
                                     gcTemplates = templatesByProject.get(projectId);
                                 } else {
-                                    gcTemplates = gcContentApi.templates(gcContext, projectId);
+                                    gcTemplates = gcContentNewApi.templates(gcContext, projectId);
                                     templatesByProject.put(projectId, gcTemplates);
                                 }
-                                for (GCTemplate gcTemplate : gcTemplates) {
+                                for (GCTemplateData gcTemplate : gcTemplates) {
                                     if (templateId.equals(gcTemplate.getId())) {
-                                        mapperModel.setGctemplate(gcTemplate);
+                                        final GCTemplate gcTemplateFull = gcContentNewApi.template(gcContext, templateId);
+                                        mapperModel.setGcTemplate(gcTemplateFull);
                                         break;
                                     }
                                 }

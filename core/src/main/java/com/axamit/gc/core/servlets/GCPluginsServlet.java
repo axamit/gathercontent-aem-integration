@@ -4,7 +4,8 @@
 
 package com.axamit.gc.core.servlets;
 
-import com.axamit.gc.core.services.GCPluginManager;
+import com.axamit.gc.core.services.plugins.GCPluginManager;
+import com.axamit.gc.core.util.JSONUtil;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -45,15 +46,11 @@ public final class GCPluginsServlet extends GCAbstractServlet {
         if (registeredPluginsPIDs != null) {
             try {
                 for (String pluginPID : registeredPluginsPIDs) {
-                    JSONObject jsonObjectTemplate = new JSONObject();
-                    jsonObjectTemplate.put(JSON_PN_TEXT, pluginPID);
-                    jsonObjectTemplate.put(JSON_PN_VALUE, pluginPID);
-                    jsonObjectTemplate.put(JSON_PN_QTIP, pluginPID);
-                    jsonArray.put(jsonObjectTemplate);
+                    JSONUtil.addMappingEntry(jsonArray, pluginPID, pluginPID, pluginPID);
                 }
                 jsonObject.put(JSON_PN_PLUGINS, jsonArray);
             } catch (Exception e) {
-                getLOGGER().error("Failed create JSON Object", e.getMessage());
+                LOGGER.error("Failed create JSON Object: {}", e.getMessage());
             }
         }
         response.getWriter().write(jsonObject.toString());

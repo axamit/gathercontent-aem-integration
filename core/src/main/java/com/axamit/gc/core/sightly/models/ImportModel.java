@@ -26,7 +26,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,8 +53,6 @@ public final class ImportModel {
     public static final String PROPERTY_STATUS = "status";
     public static final String PROPERTY_PROJECT_ID = "projectId";
 
-
-    public static final String STATUS_ABORTED = "Aborted";
     public static final String STATUS_FAILED = "Failed";
     public static final String STATUS_COMPLETED = "Completed";
 
@@ -115,19 +112,9 @@ public final class ImportModel {
 
     private Resource resource;
 
-    private Comparator<ImportResultItem> gcOrderComparator = new Comparator<ImportResultItem>() {
-        @Override
-        public int compare(ImportResultItem o1, ImportResultItem o2) {
-            return ObjectUtils.compare(o1.getPosition(), o2.getPosition());
-        }
-    };
+    private final Comparator<ImportResultItem> gcOrderComparator = (o1, o2) -> ObjectUtils.compare(o1.getPosition(), o2.getPosition());
 
-    private Comparator<ImportResultItem> initialImportOrderComparator = new Comparator<ImportResultItem>() {
-        @Override
-        public int compare(ImportResultItem o1, ImportResultItem o2) {
-            return ObjectUtils.compare(o1.getImportIndex(), o2.getImportIndex());
-        }
-    };
+    private final Comparator<ImportResultItem> initialImportOrderComparator = (o1, o2) -> ObjectUtils.compare(o1.getImportIndex(), o2.getImportIndex());
 
     /**
      * Empty constructor.
@@ -323,14 +310,14 @@ public final class ImportModel {
             switch (jobType) {
                 case Constants.JOB_TYPE_IMPORT:
                 case Constants.JOB_TYPE_IMPORT + Constants.JOB_TYPE_POSTFIX_UPDATE:
-                    Collections.sort(importedPages, gcOrderComparator);
-                    importStatResult.setImportedPages(GCUtil.reorderGcChildren(importedPages));
+                    importedPages.sort(gcOrderComparator);
+                    importStatResult.setImportedPages(importedPages);
                     setHierarchyNamesForGCItemNames(importedPages);
                     this.importedPagesData = JSONUtil.fromObjectToJsonString(importStatResult);
                     break;
                 case Constants.JOB_TYPE_EXPORT:
                 case Constants.JOB_TYPE_EXPORT + Constants.JOB_TYPE_POSTFIX_UPDATE:
-                    Collections.sort(importedPages, initialImportOrderComparator);
+                    importedPages.sort(initialImportOrderComparator);
                     setHierarchyNamesForGCItemNames(importedPages);
                     this.importedPagesData = JSONUtil.fromObjectToJsonString(importStatResult);
                     break;
@@ -342,7 +329,7 @@ public final class ImportModel {
 
     private void setHierarchyNamesForGCItemNames(List<ImportResultItem> importedPages) {
         for (ImportResultItem importResultItem : importedPages) {
-            importResultItem.setName(GCUtil.getHierarchyName(importedPages, importResultItem.getParentId(),
+            importResultItem.setName(GCUtil.getHierarchyName(importedPages, importResultItem.getFolderUuid(),
                     importResultItem.getName()));
         }
     }
