@@ -33,7 +33,7 @@ public final class GCValidServlet extends SlingAllMethodsServlet {
     protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
             throws ServletException, IOException {
 
-        Resource resource = request.getResource();
+        final Resource resource = request.getResource();
 
         if (!RESOURCE_TYPE_NON_EXISTING.equals(resource.getResourceType())) {
             response.getWriter().write("valid");

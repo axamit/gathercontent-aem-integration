@@ -7,27 +7,31 @@
         <thead>
         <tr>
             <th><input id="all-items-checkbox" type="checkbox"></th>
-            <th>Status</th>
             <th>Item Name</th>
+            <th>Folder</th>
             <th>Template Name</th>
+            <th>Status</th>
         </tr>
         </thead>
         <tbody data-sly-list.item="${itemList.itemList}">
-        <tr parentId="${item.parentId}" itemId="${item.id}" title="${item.title}" validName="${item.validName}">
+        <tr folderUuid="${item.folderUuid}" itemId="${item.id}" title="${item.title}" validName="${item.validName}">
             <td></td>
             <td>
-                <span class="coloredspan" style="background-color:${item.color @ context='styleToken'}"></span>
-                <span class="item-status">${item.status}</span>
+                <span class="item-title">${item.title}</span>
             </td>
             <td>
                 <span class="item-title">${item.hierarchyTitle}</span>
             </td>
-            <script>
+            <script data-sly-test="${item.jsonInformation}">
                 importItemsJson["${item.id @ context='scriptString'}"] =
                         JSON.parse("${item.jsonInformation @ context='scriptString'}");
             </script>
             <td>
                 <span class="item-template">${item.gcTemplate}</span>
+            </td>
+            <td>
+                <span class="coloredspan" style="background-color:${item.color @ context='styleToken'}"></span>
+                <span class="item-status">${item.status}</span>
             </td>
         </tr>
         </tbody>

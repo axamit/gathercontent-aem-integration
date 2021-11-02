@@ -13,7 +13,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCAccount {
-    private String id;
+
+    private Integer id;
     private String name;
     private String slug;
     private String timezone;
@@ -21,11 +22,11 @@ public final class GCAccount {
     /**
      * @return ID of GatherContent account.
      */
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(final String id) {
+    public void setId(final Integer id) {
         this.id = id;
     }
 

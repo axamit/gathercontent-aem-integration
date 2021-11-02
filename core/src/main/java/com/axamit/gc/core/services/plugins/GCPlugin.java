@@ -4,7 +4,8 @@
 
 package com.axamit.gc.core.services.plugins;
 
-import com.axamit.gc.api.dto.GCElement;
+import com.axamit.gc.api.dto.GCContent;
+import com.axamit.gc.api.dto.GCTemplateField;
 import com.day.cq.dam.api.Asset;
 import com.day.cq.wcm.api.Page;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -12,7 +13,6 @@ import org.apache.sling.api.resource.ResourceResolver;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,13 +38,13 @@ public interface GCPlugin {
      * @param resourceResolver  JCR resourceResolver.
      * @param page              WCM Page.
      * @param propertyPath      JCR path to target AEM property.
-     * @param gcElement         Source GatherContent element.
+     * @param gcTemplateField
      * @param updatedProperties Collection of already updated properties on this page.
      * @param gcAssets          <code>Map</code> of AEM Assets created for page.
      * @throws RepositoryException If any error occurs during access JCR Repository
      */
-    void transformFromGCtoAEM(ResourceResolver resourceResolver, Page page, String propertyPath, GCElement gcElement,
-                              Collection<String> updatedProperties, Map<String, List<Asset>> gcAssets)
+    void transformFromGCtoAEM(ResourceResolver resourceResolver, Page page, String propertyPath, GCContent gcContent,
+                              GCTemplateField gcTemplateField, Collection<String> updatedProperties, Map<String, Asset> gcAssets)
             throws RepositoryException;
 
     /**
@@ -52,11 +52,11 @@ public interface GCPlugin {
      *
      * @param resourceResolver JCR ResourceResolver.
      * @param page             WCM Page.
-     * @param gcElement        Target GatherContent element.
+     * @param gcContent        Target GatherContent element.
      * @param propertyPath     JCR path to AEM property.
      * @param propertyValue    Value of AEM property.
      * @throws RepositoryException If any error occurs during access JCR Repository
      */
-    void transformFromAEMtoGC(ResourceResolver resourceResolver, Page page, GCElement gcElement, String propertyPath,
+    void transformFromAEMtoGC(ResourceResolver resourceResolver, Page page, GCContent gcContent, String propertyPath,
                               String propertyValue) throws RepositoryException;
 }

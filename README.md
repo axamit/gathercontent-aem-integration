@@ -1,17 +1,16 @@
 # GatherContent AEM integration v2.0
 [![Image of Integration](https://github.com/AntoniBertel/GatherContentAssets/blob/master/GC-AEM.png)](https://gathercontent.com/)
 
-GatherContent’s AEM integration allows content editors to import and update content from GatherContent to AEM; export and update content from AEM to GatherContent. Editors are able to specify import or export mappings, defining which templates and fields should be mapped and then imported, exported or updated. The integration also allows content editors to update the GatherContent workflow status for all items that are successfully imported, exported or updated.
+GatherContent’s AEM integration allows content editors to import and update content from GatherContent to AEM. Editors are able to specify import mappings, defining which templates and fields should be mapped and then imported or updated. The integration also allows content editors to update the GatherContent workflow status for all items that are successfully imported or updated.
 
 - [x] Migrate (import) content from GatherContent into AEM
 - [x] Update migrated (imported) content in AEM
-- [x] Migrate (export) content from AEM into GatherContent
-- [x] Update migrated (exported) content in GatherContent
 
 
 |  **`AEM 6.0`**   |  **`AEM 6.1`** | **`AEM 6.2`** | **`AEM 6.3`** | **`AEM 6.4`** | **`AEM 6.5`** |
 |-------------------|----------------------|------------------|------------------|------------------|------------------|
 |:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |:ok_hand: Supported |
+Note: Latest versions of tool are tested on AEM 6.5. Previous versions may require some adaptation work.
 
 ## Modules
 
@@ -52,6 +51,8 @@ The project comes with the auto-public repository configured. To setup the repos
 [![Axamit](https://github.com/AntoniBertel/GatherContentAssets/blob/master/Axamit.png)](https://axamit.com/)
 
 ## Changelog
+23/09/2021 [2.0.9-beta API migration](https://github.com/axamit/gathercontent-aem-integration/releases/tag/2.0.9-beta "Package attached")
+
 06/09/2019 [2.0.8-beta Tech Changes + Bug Fix](https://github.com/axamit/gathercontent-aem-integration/releases/tag/2.0.8-beta "Package attached")
 
 07/12/2018 [2.0.7-beta Tech Changes](https://github.com/axamit/gathercontent-aem-integration/releases/tag/2.0.7-beta "Package attached")

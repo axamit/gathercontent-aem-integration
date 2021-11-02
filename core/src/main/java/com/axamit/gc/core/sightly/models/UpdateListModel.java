@@ -5,13 +5,10 @@
 package com.axamit.gc.core.sightly.models;
 
 import com.axamit.gc.api.GCContext;
-import com.axamit.gc.api.dto.GCAccount;
-import com.axamit.gc.api.dto.GCItem;
-import com.axamit.gc.api.dto.GCItemType;
-import com.axamit.gc.api.dto.GCProject;
-import com.axamit.gc.api.dto.GCTime;
+import com.axamit.gc.api.dto.*;
 import com.axamit.gc.api.services.GCConfiguration;
 import com.axamit.gc.api.services.GCContentApi;
+import com.axamit.gc.api.services.GCContentNewApi;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.pojo.ImportUpdateTableItem;
 import com.axamit.gc.core.pojo.LinkedGCPage;
@@ -36,7 +33,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -63,8 +59,9 @@ public final class UpdateListModel {
             "SELECT * FROM [cq:PageContent] AS pageContent WHERE ISDESCENDANTNODE(pageContent , '/content')"
                     + " AND [isGCExportedPage] = true";
 
+    private List<GCStatus> projectStatusList = new ArrayList<>();
     private final List<GCProject> projects = new ArrayList<>();
-    private List<ImportUpdateTableItem> itemList = new ArrayList<>();
+    private final List<ImportUpdateTableItem> itemList = new ArrayList<>();
 
     /**
      * Constructor with resource initializing.
@@ -74,11 +71,13 @@ public final class UpdateListModel {
      * @param gcConfiguration Configuration
      */
     @Inject
-    public UpdateListModel(final SlingHttpServletRequest request, GCContentApi gcContentApi,
-                           GCConfiguration gcConfiguration) {
+    public UpdateListModel(final SlingHttpServletRequest request,
+                           final GCContentApi gcContentApi,
+                           final GCContentNewApi gcContentNewApi,
+                           final GCConfiguration gcConfiguration) {
         final Resource resource = request.getResource();
         final GCContext gcContext = gcConfiguration.getGCContext(resource);
-        final String accountId = gcConfiguration.getAccountId(resource);
+        final Integer accountId = gcConfiguration.getAccountId(resource);
 
         try {
             final String[] selectors = request.getRequestPathInfo().getSelectors();
@@ -86,36 +85,41 @@ public final class UpdateListModel {
                     ? Constants.MAPPING_TYPE_EXPORT
                     : Constants.MAPPING_TYPE_IMPORT;
 
-            final String projectId =
+            final Integer projectId =
                     GCUtil.getMappedProjectIdFromSelector(gcContext, gcContentApi, accountId, request, projects, null);
-            if (projectId != null) {
-                List<GCItem> allGcItems = gcContentApi.itemsByProjectId(gcContext, projectId);
-                Table<MappingType, String, Set<Map<String, String>>> mappedTemplatesAndItems =
+            if (projectId != null && projectId != 0) {
+                projectStatusList = gcContentApi.statusesByProjectId(gcContext, projectId);
+                final List<GCFolder> gcFolders = gcContentNewApi.foldersByProjectId(gcContext, projectId);
+                final List<GCItem> allGcItems = gcContentNewApi.itemsByProjectId(gcContext, projectId);
+                final Table<MappingType, Integer, Set<Map<String, String>>> mappedTemplatesAndItems =
                         GCUtil.getMappedTemplates(resource, null);
-                Map<String, Set<Map<String, String>>> mappedTemplatesIds =
+                final Map<Integer, Set<Map<String, String>>> mappedTemplatesIds =
                         mappedTemplatesAndItems.row(MappingType.TEMPLATE);
-                Map<String, Set<Map<String, String>>> mappedEntriesIds =
-                        mappedTemplatesAndItems.row(MappingType.ENTRY_PARENT);
+                //TODO
+//                Map<String, Set<Map<String, String>>> mappedEntriesIds =
+//                        mappedTemplatesAndItems.row(MappingType.ENTRY_PARENT);
+
                 //Map<String, Set<Map<String, String>>> mappedCustomItemsIds = mappedTemplatesAndItems.row
                 // (MappingType.CUSTOM_ITEM);
-                Map<String, Set<UpdateResourceUnit>> importedPages = getImportedExportedPages(resource, projectId,
+                final Map<Integer, Set<UpdateResourceUnit>> importedPages = getImportedExportedPages(resource, projectId,
                         String.format(IMPORTED_PAGES_QUERY, projectId), StringUtils.EMPTY,
                         Constants.GC_IMPORTED_PAGE_PROJECT_ID, Constants.GC_IMPORTED_PAGE_ITEM_ID,
                         Constants.GC_IMPORTED_PAGE_MAPPING_PATH);
-                Map<String, Set<UpdateResourceUnit>> exportedPages = getImportedExportedPages(resource, projectId,
+                final Map<Integer, Set<UpdateResourceUnit>> exportedPages = getImportedExportedPages(resource, projectId,
                         EXPORTED_PAGES_QUERY, Constants.GC_EXPORTED_PAGES_MAP,
                         Constants.GC_EXPORTED_PAGE_PROJECT_ID, Constants.GC_EXPORTED_PAGE_ITEM_ID,
                         Constants.GC_EXPORTED_PAGE_MAPPING_PATH);
-                String slug = getSlug(gcContentApi, gcContext, accountId);
+                final String slug = getSlug(gcContentApi, gcContext, accountId);
 
                 for (GCItem gcItem : allGcItems) {
-                    Set<UpdateResourceUnit> importedPagesForItem = importedPages.get(gcItem.getId());
-                    Set<UpdateResourceUnit> exportedPagesForItem = exportedPages.get(gcItem.getId());
+                    final Set<UpdateResourceUnit> importedPagesForItem = importedPages.get(gcItem.getId());
+                    final Set<UpdateResourceUnit> exportedPagesForItem = exportedPages.get(gcItem.getId());
                     if ((importedPagesForItem != null || exportedPagesForItem != null)
                             && (mappedTemplatesIds.containsKey(gcItem.getTemplateId())
-                            || GCItemType.ENTRY_PARENT.equals(gcItem.getItemType()) && mappedEntriesIds.containsKey(gcItem.getId()) && Constants.MAPPING_TYPE_IMPORT.equals(side)
+                            //TODO
+                            /*|| GCItemType.ENTRY_PARENT.equals(gcItem.getItemType()) && mappedEntriesIds.containsKey(gcItem.getId()) && Constants.MAPPING_TYPE_IMPORT.equals(side)
                             || GCItemType.ENTRY_CHILD.equals(gcItem.getItemType()) && mappedEntriesIds.containsKey(gcItem.getParentId()) && Constants.MAPPING_TYPE_IMPORT.equals(side)
-                            || GCItemType.ITEM.equals(gcItem.getItemType()) && gcItem.getTemplateId() == null)) {
+                            || GCItemType.ITEM.equals(gcItem.getItemType()) && gcItem.getTemplateId() == null*/)) {
                         switch (side) {
                             case Constants.MAPPING_TYPE_EXPORT:
                                 addItemsFromPages(exportedPagesForItem, gcItem, slug);
@@ -126,8 +130,8 @@ public final class UpdateListModel {
                         }
                     }
                 }
-                itemList = GCUtil.reorderGcChildren(itemList);
-                setHierarchyTitles(itemList);
+//                itemList = GCUtil.reorderGcChildren(itemList);
+                GCUtil.setHierarchyTitles(gcFolders, itemList);
             }
         } catch (GCException e) {
             LOGGER.error(e.getMessage(), e);
@@ -145,7 +149,7 @@ public final class UpdateListModel {
         }
     }
 
-    private static ImportUpdateTableItem createImportUpdateTableItem(GCItem gcItem, UpdateResourceUnit updateResourceUnit,
+    private ImportUpdateTableItem createImportUpdateTableItem(GCItem gcItem, UpdateResourceUnit updateResourceUnit,
                                                                      String slug) {
         Resource importedPageResource = updateResourceUnit.getPageResource();
         ResourceResolver resourceResolver = importedPageResource.getResourceResolver();
@@ -166,29 +170,32 @@ public final class UpdateListModel {
             //! Log
             return null;
         }
-        GCTime updatedAt = gcItem.getUpdatedAt();
         SimpleDateFormat outputSimpleDateFormatWithTimeZone =
-                GCUtil.getOutputSimpleDateFormatWithTimeZone(updatedAt, Constants.OUTPUT_DATE_FORMAT);
-        Date date = GCUtil.getDateFromGCItem(updatedAt);
+                GCUtil.getOutputSimpleDateFormatWithTimeZone(calendar, Constants.OUTPUT_DATE_FORMAT);
         ImportUpdateTableItem listItem = new ImportUpdateTableItem();
         listItem.setGcTemplate(mapperModel.getTemplateName());
         listItem.setId(gcItem.getId());
-        listItem.setParentId(gcItem.getParentId());
+        listItem.setFolderUuid(gcItem.getFolderUuid());
         listItem.setTitle(gcItem.getName());
-        listItem.setStatus(gcItem.getStatus().getData().getName());
         listItem.setMappingName(mapperModel.getMappingName());
         listItem.setMappingPath(mappingPath);
         listItem.setImportPath(importPath);
         listItem.setGcPath(gcPath);
         listItem.setAemUpdateDate(outputSimpleDateFormatWithTimeZone.format(calendar.getTime()));
-        listItem.setGcUpdateDate(date != null ? outputSimpleDateFormatWithTimeZone.format(date) : null);
-        listItem.setColor(gcItem.getStatus().getData().getColor());
-        return listItem;
+        listItem.setGcUpdateDate(gcItem.getUpdatedAt());
 
+        projectStatusList.stream()
+                .filter(status -> status.getId().equals(gcItem.getStatusId()))
+                .findAny()
+                .ifPresent(gcStatus -> {
+                    listItem.setStatus(gcStatus.getName());
+                    listItem.setColor(gcStatus.getColor());
+                });
+        return listItem;
     }
 
-    private static Map<String, Set<UpdateResourceUnit>> getImportedExportedPages(final Resource resource,
-                                                                                 final String projectId,
+    private static Map<Integer, Set<UpdateResourceUnit>> getImportedExportedPages(final Resource resource,
+                                                                                 final Integer projectId,
                                                                                  final String query,
                                                                                  final String linkedPagesMapPN,
                                                                                  final String projectIdPN,
@@ -197,20 +204,16 @@ public final class UpdateListModel {
         ResourceResolver resourceResolver = resource.getResourceResolver();
         Iterator<Resource> linkedPagesResources =
                 resourceResolver.findResources(query, Query.JCR_SQL2);
-        Map<String, Set<UpdateResourceUnit>> linkedResources = new HashMap<>();
+        Map<Integer, Set<UpdateResourceUnit>> linkedResources = new HashMap<>();
         while (linkedPagesResources.hasNext()) {
             Resource linkedPageResource = linkedPagesResources.next();
-            Map<String, LinkedGCPage> linkedGCPages =
+            Map<Integer, LinkedGCPage> linkedGCPages =
                     GCUtil.getLinkedGCPages(linkedPageResource.getValueMap(),
                             linkedPagesMapPN, projectIdPN, itemIdPN, mappingPathPN);
             for (LinkedGCPage linkedGCPage : linkedGCPages.values()) {
                 if (projectId.equals(linkedGCPage.getGcProjectId())) {
                     UpdateResourceUnit updateResourceUnit = new UpdateResourceUnit(linkedPageResource, linkedGCPage);
-                    Set<UpdateResourceUnit> updateResourceUnits = linkedResources.get(linkedGCPage.getGcItemId());
-                    if (updateResourceUnits == null) {
-                        updateResourceUnits = new HashSet<>();
-                        linkedResources.put(linkedGCPage.getGcItemId(), updateResourceUnits);
-                    }
+                    Set<UpdateResourceUnit> updateResourceUnits = linkedResources.computeIfAbsent(linkedGCPage.getGcItemId(), k -> new HashSet<>());
                     updateResourceUnits.add(updateResourceUnit);
                 }
             }
@@ -219,7 +222,7 @@ public final class UpdateListModel {
     }
 
     private static String getSlug(GCContentApi gcContentApi, final GCContext gcContext,
-                                  final String accountId) throws GCException {
+                                  final Integer accountId) throws GCException {
         List<GCAccount> gcAccounts = gcContentApi.accounts(gcContext);
         for (GCAccount gcAccount : gcAccounts) {
             if (gcAccount.getId().equals(accountId)) {
@@ -236,13 +239,6 @@ public final class UpdateListModel {
 
     public List<ImportUpdateTableItem> getItemList() {
         return itemList;
-    }
-
-    private void setHierarchyTitles(List<ImportUpdateTableItem> items) {
-        for (ImportUpdateTableItem importUpdateTableItem : items) {
-            importUpdateTableItem.setHierarchyTitle(GCUtil.getHierarchyName(items, importUpdateTableItem.getParentId(),
-                    importUpdateTableItem.getTitle()));
-        }
     }
 
     /**

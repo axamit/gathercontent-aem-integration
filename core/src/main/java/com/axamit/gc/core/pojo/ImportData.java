@@ -17,11 +17,11 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ImportData {
     private List<ImportItem> items = new ArrayList<>();
-    private String newStatusId;
+    private Integer newStatusId;
     private String newStatusColor;
     private String newStatusName;
     private String projectName;
-    private String projectId;
+    private Integer projectId;
 
     /**
      * @return List of items need to be imported.
@@ -37,11 +37,11 @@ public final class ImportData {
     /**
      * @return New live status ID to be applied on an GatherContent items.
      */
-    public String getNewStatusId() {
+    public Integer getNewStatusId() {
         return newStatusId;
     }
 
-    public void setNewStatusId(final String newStatusId) {
+    public void setNewStatusId(final Integer newStatusId) {
         this.newStatusId = newStatusId;
     }
 
@@ -81,11 +81,11 @@ public final class ImportData {
     /**
      * @return Project id.
      */
-    public String getProjectId() {
+    public Integer getProjectId() {
         return projectId;
     }
 
-    public void setProjectId(final String projectId) {
+    public void setProjectId(final Integer projectId) {
         this.projectId = projectId;
     }
 

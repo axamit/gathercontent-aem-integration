@@ -4,7 +4,7 @@
     <groupId>com.axamit.gc</groupId>
     <artifactId>gathercontent</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.8-beta</version>
+    <version>3.0.0-beta</version>
     <description>GatherContent</description>
     <developers>
         <developer>
@@ -82,8 +82,8 @@
                                     <version>[2.2.1,)</version>
                                 </requireMavenVersion>
                                 <requireJavaVersion>
-                                    <message>Project must be compiled with Java 6 or higher</message>
-                                    <version>1.6.0</version>
+                                    <message>Project must be compiled with Java 8 or higher</message>
+                                    <version>1.8.0</version>
                                 </requireJavaVersion>
                             </rules>
                         </configuration>
@@ -96,7 +96,7 @@
                 <artifactId>maven-idea-plugin</artifactId>
                 <version>2.2.1</version>
                 <configuration>
-                    <jdkLevel>1.6</jdkLevel>
+                    <jdkLevel>1.8</jdkLevel>
                     <linkModules>true</linkModules>
                     <downloadSources>true</downloadSources>
                 </configuration>

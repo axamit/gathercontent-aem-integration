@@ -6,6 +6,7 @@ package com.axamit.gc.core.servlets;
 
 import com.axamit.gc.api.GCContext;
 import com.axamit.gc.api.dto.GCAccount;
+import com.axamit.gc.core.util.JSONUtil;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -34,26 +35,22 @@ public final class GCAccountsServlet extends GCAbstractServlet {
     protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
             throws ServletException, IOException {
 
-        GCContext gcContext = getGCContext(request);
-        JSONObject jsonObject = new JSONObject();
+        final GCContext gcContext = getGCContext(request);
+        final JSONObject jsonObject = new JSONObject();
 
         if (gcContext != null) {
             try {
-
-                List<GCAccount> gcAccounts = getGcContentApi().accounts(gcContext);
-                JSONArray jsonArray = new JSONArray();
+                final List<GCAccount> gcAccounts = gcContentApi.accounts(gcContext);
+                final JSONArray jsonArray = new JSONArray();
                 for (GCAccount gcAccount : gcAccounts) {
-                    JSONObject jsonObjectTemplate = new JSONObject();
-                    jsonObjectTemplate.put("text", gcAccount.getName());
-                    jsonObjectTemplate.put("value", gcAccount.getId());
-                    jsonObjectTemplate.put("qtip", gcAccount.getSlug());
-                    jsonArray.put(jsonObjectTemplate);
+                    JSONUtil.addMappingEntry(jsonArray, gcAccount.getName(), String.valueOf(gcAccount.getId()), gcAccount.getSlug());
                 }
                 jsonObject.put("gcaccounts", jsonArray);
             } catch (Exception e) {
-                getLOGGER().error("Failed create JSON Object {}", e.getMessage());
+                LOGGER.error("Failed create JSON Object {}", e.getMessage());
             }
         }
         response.getWriter().write(jsonObject.toString());
     }
+
 }

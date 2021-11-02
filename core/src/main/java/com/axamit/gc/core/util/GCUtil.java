@@ -7,15 +7,14 @@ package com.axamit.gc.core.util;
 import com.adobe.granite.license.ProductInfo;
 import com.adobe.granite.license.ProductInfoService;
 import com.axamit.gc.api.GCContext;
-import com.axamit.gc.api.dto.GCProject;
-import com.axamit.gc.api.dto.GCTime;
+import com.axamit.gc.api.dto.*;
 import com.axamit.gc.api.services.GCContentApi;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.pojo.ImportItem;
+import com.axamit.gc.core.pojo.ImportUpdateTableItem;
 import com.axamit.gc.core.pojo.LinkedGCPage;
 import com.axamit.gc.core.pojo.MappingType;
 import com.axamit.gc.core.pojo.helpers.GCHierarchySortable;
-import com.axamit.gc.core.pojo.helpers.TreeNode;
 import com.day.cq.commons.jcr.JcrUtil;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
@@ -25,30 +24,32 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.http.*;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHeader;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.ModifiableValueMap;
-import org.apache.sling.api.resource.PersistenceException;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.resource.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.query.Query;
-import java.text.ParseException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The <code>GCUtil</code> is an utility class presenting functionality using across whole application
@@ -82,39 +83,6 @@ public enum GCUtil {
     private static final String AEM_PRODUCT_INFO_NAME = "Adobe Experience Manager";
 
     /**
-     * Build a list with hierarchical tree representations of items, when all 'parent' items have links to 'children'.
-     *
-     * @param importItemList <code>List</code> to order.
-     * @return Ordered <code>List</code> of <code>ImportItem</code> in hierarchical tree manner.
-     */
-    public static List<ImportItem> reorderToTree(final Iterable<ImportItem> importItemList) {
-        List<ImportItem> tree = new ArrayList<>();
-        Collection<String> itemIdsWithParents = new HashSet<>();
-
-        for (ImportItem importItem : importItemList) {
-            //if item have no parentId
-            if ("0".equals(importItem.getParentId())) {
-                tree.add(importItem);
-                itemIdsWithParents.add(importItem.getItemId());
-            } else { //if item have parentId
-                for (ImportItem parentImportItem : importItemList) {
-                    if (importItem.getParentId().equals(parentImportItem.getItemId())
-                            && importItem.getImportPath().startsWith(parentImportItem.getImportPath())) {
-                        parentImportItem.getChildren().add(importItem);
-                        itemIdsWithParents.add(importItem.getItemId());
-                    }
-                }
-            }
-        }
-        for (ImportItem importItem : importItemList) {
-            if (!itemIdsWithParents.contains(importItem.getItemId())) {
-                tree.add(importItem);
-            }
-        }
-        return tree;
-    }
-
-    /**
      * Rewrite/recalculate import paths for children of choose <code>ImportItem</code>.
      *
      * @param importItem <code>ImportItem</code> whose children import paths need to be recalculated.
@@ -134,9 +102,9 @@ public enum GCUtil {
      * @param side     <code>Constants.MAPPING_TYPE_IMPORT</code>, <code>Constants.MAPPING_TYPE_EXPORT</code> or null.
      * @return Collection of mapped templates
      */
-    public static Table<MappingType, String, Set<Map<String, String>>> getMappedTemplates(final Resource resource,
+    public static Table<MappingType, Integer, Set<Map<String, String>>> getMappedTemplates(final Resource resource,
                                                                                           final String side) {
-        Table<MappingType, String, Set<Map<String, String>>> mappedTemplatesAndItems = HashBasedTable.create();
+        Table<MappingType, Integer, Set<Map<String, String>>> mappedTemplatesAndItems = HashBasedTable.create();
         ResourceResolver resourceResolver = resource.getResourceResolver();
         PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
         Page containingPage = pageManager.getContainingPage(resource);
@@ -147,13 +115,13 @@ public enum GCUtil {
             Resource mappingResource = mappingResources.next();
             String mappingPath = mappingResource.getPath();
             ValueMap valueMap = mappingResource.getValueMap();
-            String templateId = valueMap.get(Constants.GC_TEMPLATE_ID_PN, String.class);
+            Integer templateId = NumberUtils.toInt(valueMap.get(Constants.GC_TEMPLATE_ID_PN, String.class), 0);
             String templateName = valueMap.get(Constants.GC_TEMPLATE_NAME_PN, String.class);
             String mappingName = valueMap.get(Constants.MAPPING_NAME_PN, String.class);
             String importPath = valueMap.get(Constants.AEM_IMPORT_PATH_PN, String.class);
             MappingType mappingType = MappingType.of(valueMap.get(Constants.MAPPING_TYPE_PN, String.class));
             mappingType = mappingType != null ? mappingType : MappingType.TEMPLATE;
-            if (templateId != null && templateName != null) {
+            if (templateId != 0 && templateName != null) {
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Constants.GC_TEMPLATE_NAME_PN, templateName);
                 properties.put(Constants.MAPPING_NAME_PN, mappingName);
@@ -186,6 +154,10 @@ public enum GCUtil {
         ResourceResolver resourceResolver = resource.getResourceResolver();
         PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
         Page containingPage = pageManager.getContainingPage(resource);
+        //TODO empty??
+        if (containingPage == null) {
+            return mappings;
+        }
         String query = String.format(MAPPINGS_BY_PROJECTID_QUERY, containingPage.getPath(), projectId,
                 isExport ? EXPORT_MAPPING_QUERY_PREDICATE : IMPORT_MAPPING_QUERY_PREDICATE);
         Iterator<Resource> mappingResources = resourceResolver.findResources(query, Query.JCR_SQL2);
@@ -211,8 +183,8 @@ public enum GCUtil {
      * @param side     <code>Constants.MAPPING_TYPE_IMPORT</code>, <code>Constants.MAPPING_TYPE_EXPORT</code> or null.
      * @return Set of mapped project IDs
      */
-    public static Set<String> getMappedProjectsIds(final Resource resource, final String side) {
-        ImmutableSet.Builder<String> mappedProjectsIds = ImmutableSet.builder();
+    public static Set<Integer> getMappedProjectsIds(final Resource resource, final String side) {
+        ImmutableSet.Builder<Integer> mappedProjectsIds = ImmutableSet.builder();
         ResourceResolver resourceResolver = resource.getResourceResolver();
         PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
         Page containingPage = pageManager.getContainingPage(resource);
@@ -222,8 +194,8 @@ public enum GCUtil {
         while (mappingResources.hasNext()) {
             Resource mappingResource = mappingResources.next();
             ValueMap valueMap = mappingResource.getValueMap();
-            String templateId = valueMap.get(Constants.GC_PROJECT_ID_PN, String.class);
-            if (StringUtils.isNotEmpty(templateId)) {
+            final int templateId = NumberUtils.toInt(valueMap.get(Constants.GC_PROJECT_ID_PN, String.class), 0);
+            if (templateId != 0) {
                 mappedProjectsIds.add(templateId);
             }
         }
@@ -261,8 +233,8 @@ public enum GCUtil {
      * @return mapped project ID.
      * @throws GCException If error occurred during receiving of list of projects from GatherContent
      */
-    public static String getMappedProjectIdFromSelector(final GCContext gcContext, final GCContentApi gcContentApi,
-                                                        final String accountId, final SlingHttpServletRequest request,
+    public static Integer getMappedProjectIdFromSelector(final GCContext gcContext, final GCContentApi gcContentApi,
+                                                        final Integer accountId, final SlingHttpServletRequest request,
                                                         final Collection<GCProject> listProjects, final String side)
             throws GCException {
         if (accountId == null) {
@@ -275,7 +247,7 @@ public enum GCUtil {
         //if projectId from selectors == one of available projects for this accountId
         //then we use projectId from selectors
         List<GCProject> projects = gcContentApi.projects(gcContext, accountId);
-        Set<String> mappedProjectsIds = getMappedProjectsIds(request.getResource(), side);
+        Set<Integer> mappedProjectsIds = getMappedProjectsIds(request.getResource(), side);
         for (GCProject gcProject : projects) {
             if (mappedProjectsIds.contains(gcProject.getId())) {
                 listProjects.add(gcProject);
@@ -283,8 +255,9 @@ public enum GCUtil {
         }
         if (projectIdFromSelector != null) {
             for (GCProject project : listProjects) {
-                if (projectIdFromSelector.equals(project.getId())) {
-                    return projectIdFromSelector;
+                final int projectId = NumberUtils.toInt(projectIdFromSelector, 0);
+                if (projectId == project.getId()) {
+                    return projectId;
                 }
             }
         }
@@ -311,8 +284,8 @@ public enum GCUtil {
      * @throws PersistenceException If any error occurs during saving changes to JCR Repository
      */
     public static void addGCProperties(final ResourceResolver resourceResolver,
-                                       final ModifiableValueMap modifiableValueMap, final String projectId,
-                                       final String itemId, final String mappingPath) throws PersistenceException {
+                                       final ModifiableValueMap modifiableValueMap, final Integer projectId,
+                                       final Integer itemId, final String mappingPath) throws PersistenceException {
         modifiableValueMap.put(Constants.GC_IMPORTED_PAGE_MARKER, true);
         modifiableValueMap.put(Constants.GC_IMPORTED_PAGE_PROJECT_ID, projectId);
         modifiableValueMap.put(Constants.GC_IMPORTED_PAGE_ITEM_ID, itemId);
@@ -332,11 +305,11 @@ public enum GCUtil {
      * @throws PersistenceException If any error occurs during saving changes to JCR Repository
      */
     public static void addGCExportProperties(final ResourceResolver resourceResolver,
-                                             final ModifiableValueMap modifiableValueMap, final String projectId,
-                                             final String itemId, final String mappingPath)
+                                             final ModifiableValueMap modifiableValueMap, final Integer projectId,
+                                             final Integer itemId, final String mappingPath)
             throws PersistenceException, GCException {
 
-        final Map<String, LinkedGCPage> linkedGCPages = getLinkedGCPages(modifiableValueMap,
+        final Map<Integer, LinkedGCPage> linkedGCPages = getLinkedGCPages(modifiableValueMap,
                 Constants.GC_EXPORTED_PAGES_MAP, Constants.GC_EXPORTED_PAGE_PROJECT_ID,
                 Constants.GC_EXPORTED_PAGE_ITEM_ID, Constants.GC_EXPORTED_PAGE_MAPPING_PATH);
 
@@ -358,24 +331,23 @@ public enum GCUtil {
      * @param mappingPathPN    Path to mapping property name.
      * @return Map of linked GC items
      */
-    public static Map<String, LinkedGCPage> getLinkedGCPages(final ValueMap valueMap,
+    public static Map<Integer, LinkedGCPage> getLinkedGCPages(final ValueMap valueMap,
                                                              final String linkedPagesMapPN, final String projectIdPN,
                                                              final String itemIdPN, final String mappingPathPN) {
         final String linkedPagesJson = valueMap.get(linkedPagesMapPN, String.class);
 
         if (StringUtils.isNotEmpty(linkedPagesJson)) {
             try {
-                return JSONUtil.fromJsonToMapObject(linkedPagesJson, String.class, LinkedGCPage.class);
+                return JSONUtil.fromJsonToMapObject(linkedPagesJson, Integer.class, LinkedGCPage.class);
             } catch (GCException e) {
                 LOGGER.error(e.getMessage(), e);
             }
         } else {
-            final Map<String, LinkedGCPage> linkedGCPageMap = new HashMap<>();
-            final String projectId = valueMap.get(projectIdPN, String.class);
-            final String itemId = valueMap.get(itemIdPN, String.class);
+            final Map<Integer, LinkedGCPage> linkedGCPageMap = new HashMap<>();
+            final int projectId = NumberUtils.toInt(valueMap.get(projectIdPN, String.class), 0);
+            final int itemId = NumberUtils.toInt(valueMap.get(itemIdPN, String.class), 0);
             final String mappingPath = valueMap.get(mappingPathPN, String.class);
-            if (StringUtils.isNotEmpty(projectId) && StringUtils.isNotEmpty(itemId)
-                    && StringUtils.isNotEmpty(mappingPath)) {
+            if (projectId != 0 && itemId != 0 && StringUtils.isNotEmpty(mappingPath)) {
                 linkedGCPageMap.put(itemId, new LinkedGCPage(projectId, itemId, mappingPath));
             }
             return linkedGCPageMap;
@@ -410,7 +382,7 @@ public enum GCUtil {
         String result = name;
         for (GCHierarchySortable item : itemList) {
             if (parentId.equals(item.getId())) {
-                result = getHierarchyName(itemList, item.getParentId(), Constants.NEXT_LEVEL_HIERARCHY_INDENT + result);
+                result = getHierarchyName(itemList, item.getFolderUuid(), Constants.NEXT_LEVEL_HIERARCHY_INDENT + result);
                 break;
             }
         }
@@ -421,94 +393,72 @@ public enum GCUtil {
      * Get string representation of job type based on flags.
      *
      * @param isUpdate     True if this is 'Update' job, false otherwise.
-     * @param isImportInGC True if this is 'Export' job, false if this is 'Import' job.
+     * @param isExportToGC True if this is 'Export' job, false if this is 'Import' job.
      * @return Job type.
      */
-    public static String getJobType(final Boolean isUpdate, final Boolean isImportInGC) {
+    public static String getJobType(final Boolean isUpdate, final Boolean isExportToGC) {
         StringBuilder jobType = new StringBuilder();
-        jobType.append(isImportInGC ? Constants.JOB_TYPE_EXPORT : Constants.JOB_TYPE_IMPORT);
+        jobType.append(isExportToGC ? Constants.JOB_TYPE_EXPORT : Constants.JOB_TYPE_IMPORT);
         if (isUpdate) {
             jobType.append(Constants.JOB_TYPE_POSTFIX_UPDATE);
         }
         return jobType.toString();
     }
 
-    /**
-     * Reorder List and put children items after parent items.
-     *
-     * @param gcItems List with items which have GatherContent ID and parent ID.
-     * @param <T>     The type of object in the list.
-     * @return Reordered list of items.
-     */
-    public static <T extends GCHierarchySortable> List<T> reorderGcChildren(Collection<T> gcItems) {
-        Map<String, TreeNode<T>> trees = new TreeMap<>();
-
-        for (T item : gcItems) {
-            TreeNode<T> itemTreeNode = new TreeNode<>(item, item.getId(), item.getParentId());
-            if (trees.containsKey(itemTreeNode.getId())) {
-                trees.get(itemTreeNode.getId()).addData(item);
-            } else {
-                trees.put(itemTreeNode.getId(), itemTreeNode);
-            }
-        }
-
-        for (TreeNode<T> treeNode : trees.values()) {
-            if (trees.containsKey(treeNode.getParentId())) {
-                TreeNode<T> parent = trees.get(treeNode.getParentId());
-                parent.addChild(treeNode);
-                treeNode.setParent(parent);
-            }
-        }
-
-        for (Iterator<Map.Entry<String, TreeNode<T>>> it = trees.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<String, TreeNode<T>> entry = it.next();
-            if (!entry.getValue().isRoot()) {
-                it.remove();
-            }
-        }
-
-        List<T> reordered = new ArrayList<>(gcItems.size());
-
-        for (TreeNode<T> root : trees.values()) {
-            TreeNode.treeToList(reordered, root);
-        }
-
-        return reordered;
-    }
+//    /**
+//     * Reorder List and put children items after parent items.
+//     *
+//     * @param gcItems List with items which have GatherContent ID and parent ID.
+//     * @param <T>     The type of object in the list.
+//     * @return Reordered list of items.
+//     */
+//    public static <T extends GCHierarchySortable> List<T> reorderGcChildren(Collection<T> gcItems) {
+//        Map<Integer, TreeNode<T>> trees = new TreeMap<>();
+//
+//        for (T item : gcItems) {
+//            TreeNode<T> itemTreeNode = new TreeNode<>(item, item.getId(), item.getFolderUuid());
+//            if (trees.containsKey(itemTreeNode.getId())) {
+//                trees.get(itemTreeNode.getId()).addData(item);
+//            } else {
+//                trees.put(itemTreeNode.getId(), itemTreeNode);
+//            }
+//        }
+//
+//        for (TreeNode<T> treeNode : trees.values()) {
+//            if (trees.containsKey(treeNode.getParentId())) {
+//                TreeNode<T> parent = trees.get(treeNode.getParentId());
+//                parent.addChild(treeNode);
+//                treeNode.setParent(parent);
+//            }
+//        }
+//
+//        for (Iterator<Map.Entry<String, TreeNode<T>>> it = trees.entrySet().iterator(); it.hasNext(); ) {
+//            Map.Entry<String, TreeNode<T>> entry = it.next();
+//            if (!entry.getValue().isRoot()) {
+//                it.remove();
+//            }
+//        }
+//
+//        List<T> reordered = new ArrayList<>(gcItems.size());
+//
+//        for (TreeNode<T> root : trees.values()) {
+//            TreeNode.treeToList(reordered, root);
+//        }
+//
+//        return reordered;
+//    }
 
     /**
      * Create SimpleDateFormat instance with timezone.
      *
-     * @param gcTime           Date instance of <code>GCTime</code> type.
+     * @param calendar         Calendar instance of time.
      * @param outputDateFormat Desired format of SimpleDateFormat.
      * @return SimpleDateFormat instance.
      */
-    public static SimpleDateFormat getOutputSimpleDateFormatWithTimeZone(GCTime gcTime, String outputDateFormat) {
-        SimpleDateFormat outputSimpleDateFormat = new SimpleDateFormat(outputDateFormat);
-        if (gcTime != null && gcTime.getTimezone() != null) {
-            outputSimpleDateFormat.setTimeZone(TimeZone.getTimeZone(gcTime.getTimezone()));
-        }
-        return outputSimpleDateFormat;
-    }
-
-    /**
-     * Convert Date from GC to <code>Constants.ITEM_DATE_FORMAT</code> format.
-     *
-     * @param gcTime Date instance of <code>GCTime</code> type.
-     * @return Date instance of java.util.Date type.
-     */
-    public static Date getDateFromGCItem(GCTime gcTime) {
-        if (gcTime == null || gcTime.getDate() == null) {
-            //! Log
-            return null;
-        }
-        SimpleDateFormat itemDateFormat = new SimpleDateFormat(Constants.ITEM_DATE_FORMAT);
-        try {
-            return itemDateFormat.parse(gcTime.getDate());
-        } catch (ParseException e) {
-            LOGGER.error("Item date parse failed", e);
-            return null;
-        }
+    public static SimpleDateFormat getOutputSimpleDateFormatWithTimeZone(Calendar calendar, String outputDateFormat) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(outputDateFormat);
+        dateFormat.setTimeZone(calendar.getTimeZone());
+        return dateFormat;
     }
 
     public static String getUserAgentInfo(ProductInfoService productInfoService) {
@@ -528,5 +478,129 @@ public enum GCUtil {
             productInfoString = "-" + aemProductInfo.getVersion().toString();
         }
         return productInfoString;
+    }
+
+    public static String apiCall(final String url, final GCContext gcContext, final String userAgentInfo) throws GCException {
+        return apiCall(url, gcContext, null, userAgentInfo, false);
+    }
+
+    public static String apiCall(final String url, final GCContext gcContext, final Iterable<NameValuePair> params, final String userAgentInfo) throws GCException {
+        return apiCall(url, gcContext, params, userAgentInfo, false);
+    }
+
+    public static String apiCall(final String url, final GCContext gcContext, final String userAgentInfo, final boolean newApiCall) throws GCException {
+        return apiCall(url, gcContext, null, userAgentInfo, newApiCall);
+    }
+
+    public static String apiCall(final String url, final GCContext gcContext, final Iterable<NameValuePair> params, final String userAgentInfo, final boolean newApiCall)
+            throws GCException {
+        StringBuilder requestUrl = new StringBuilder(gcContext.getApiURL()).append(url);
+        if (params != null) {
+            requestUrl.append("?").append(URLEncodedUtils.format(params, StandardCharsets.UTF_8));
+        }
+        HttpUriRequest httpUriRequest = new HttpGet(requestUrl.toString());
+
+        HttpClient httpClient = GCUtil.setHeadersAndAuth(httpUriRequest, gcContext, userAgentInfo, newApiCall);
+
+        try {
+            String paramsString = params != null ? URLEncodedUtils.format(params, StandardCharsets.UTF_8) : "no params";
+            LOGGER.debug("Requested GatherContent URL " + httpUriRequest.getURI()
+                    + System.lineSeparator() + "Request method: " + httpUriRequest.getMethod()
+                    + System.lineSeparator() + "Request params: " + paramsString);
+            HttpResponse httpResponse = httpClient.execute(httpUriRequest);
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            StringBuilder stringBuilder = new StringBuilder();
+            Scanner scanner = new Scanner(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8.name());
+            while (scanner.hasNextLine()) {
+                stringBuilder.append(scanner.nextLine());
+            }
+            if (statusCode == HttpStatus.SC_OK) {
+                LOGGER.debug("Requested GatherContent URL: " + httpUriRequest.getURI()
+                        + System.lineSeparator() + "Response: " + httpResponse
+                        + System.lineSeparator() + "ResponseEntity: " + stringBuilder);
+                return stringBuilder.toString();
+            } else {
+                throw new GCException("Requested GatherContent URL: " + httpUriRequest.getURI()
+                        + System.lineSeparator() + "Response: " + httpResponse
+                        + System.lineSeparator() + "ResponseEntity: " + stringBuilder);
+            }
+        } catch (IOException e) {
+            LOGGER.error("Request to GatherContent URL: {} failed. {}", httpUriRequest.getURI(), e.getMessage());
+            throw new GCException(e);
+        }
+    }
+
+
+    public static HttpClient setHeadersAndAuth(final HttpRequest httpUriRequest, final GCContext gcContext, final String userAgentInfo, final boolean newApiCall) {
+        final Map<String, String> headers = newApiCall ? gcContext.getNewApiHeaders() : gcContext.getHeaders();
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            Header header = new BasicHeader(entry.getKey(), entry.getValue());
+            httpUriRequest.setHeader(header);
+        }
+        httpUriRequest.addHeader(new BasicHeader(HttpHeaders.USER_AGENT, userAgentInfo));
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+        String username = gcContext.getUsername();
+        String apiKey = gcContext.getApikey();
+        if (username != null && apiKey != null) {
+            //this is hack for httpclient 4.3.4
+            try {
+                Credentials credentials = new UsernamePasswordCredentials(username, apiKey);
+                httpUriRequest.addHeader(new BasicScheme().authenticate(credentials, httpUriRequest, null));
+            } catch (AuthenticationException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+
+            CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, apiKey));
+            httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+        }
+
+        return httpClientBuilder.build();
+    }
+
+    public static List<GCTemplateField> getFieldsByTemplate(GCTemplate gcTemplate) {
+        final List<List<GCTemplateField>> listOfFields = gcTemplate.getRelated().getStructure().getGroups()
+                .stream()
+                .map(GCTemplateGroup::getFieldsWithChildren)
+                .collect(Collectors.toList());
+        return listOfFields.stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+    }
+
+    public static GCFolder buildFolderTree(List<GCFolder> gcFolders) {
+        GCFolder rootFolder = gcFolders.stream()
+                .filter(folder -> "project-root".equals(folder.getType()))
+                .findAny()
+                .orElse(null);
+        if (rootFolder == null) {
+            return null;
+        }
+
+        searchChildrenFoldersAndPut(gcFolders, rootFolder);
+
+        return rootFolder;
+    }
+
+    private static void searchChildrenFoldersAndPut(final List<GCFolder> gcFolders, final GCFolder rootFolder) {
+        gcFolders.forEach(gcFolder -> {
+            if (rootFolder.getUuid().equals(gcFolder.getParentUuid())) {
+                if (rootFolder.getFolders() != null) {
+                    rootFolder.getFolders().add(gcFolder);
+                } else {
+                    rootFolder.setFolders(new ArrayList<>(Arrays.asList(gcFolder)));
+                }
+                searchChildrenFoldersAndPut(gcFolders, gcFolder);
+            }
+        });
+    }
+
+    public static void setHierarchyTitles(final List<GCFolder> gcFolders, final List<ImportUpdateTableItem> items) {
+        items.forEach(item ->
+                gcFolders.stream()
+                        .filter(gcFolder -> gcFolder.getUuid().equals(item.getFolderUuid()))
+                        .findAny()
+                        .ifPresent(hierarchyFolder -> item.setHierarchyTitle(hierarchyFolder.getName()))
+        );
     }
 }

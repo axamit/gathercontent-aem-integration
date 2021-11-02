@@ -20,11 +20,11 @@ import org.apache.sling.models.annotations.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
 import javax.inject.Inject;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
+import java.util.Map;
 
 /**
  * Sling model class which represents GC Plugins configuration.
@@ -34,10 +34,12 @@ import javax.jcr.RepositoryException;
 @Model(adaptables = Resource.class)
 public final class PluginsConfigurationModel {
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginsConfigurationModel.class);
+
     private static final String NAME_PN = "name";
     private static final String PLUGIN_PN = "plugin";
     private final Resource resource;
     private final Map<String, Map<String, String>> pluginsMap;
+
     @Inject
     @Optional
     private String configurationName;
@@ -56,15 +58,15 @@ public final class PluginsConfigurationModel {
 
     private static Map<String, Map<String, String>> scanConfig(Node configNode) {
         if (configNode == null) {
-            //! Log
+            LOGGER.error("Configuration node is null");
             return ImmutableMap.of();
         }
         final ImmutableMap.Builder<String, Map<String, String>> plugins = ImmutableMap.builder();
         for (GCElementType gcElementType : GCElementType.values()) {
             try {
-                final String type = gcElementType.getType();
+                final String type = gcElementType.getValue();
                 if (!configNode.hasProperty(type)) {
-                    //! Log
+                    LOGGER.debug("Configuration node doesn't have property\"{}\", skipping", type);
                     continue;
                 }
                 plugins.put(type, scanProperties(configNode, type));

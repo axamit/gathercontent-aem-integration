@@ -55,26 +55,26 @@ public final class ImportHistoryServlet extends GCAbstractServlet {
     @Override
     protected void doPost(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
             throws ServletException, IOException {
-        String data = request.getRequestParameter("data").getString();
+        final String data = request.getRequestParameter("data").getString();
         try {
-            JSONObject jsonObject = JSONUtil.fromJsonToJSonObject(data);
-            String draw = jsonObject.getString("draw");
-            String length = jsonObject.getString("length");
-            String start = jsonObject.getString("start");
+            final JSONObject jsonObject = JSONUtil.fromJsonToJSonObject(data);
+            final String draw = jsonObject.getString("draw");
+            final String length = jsonObject.getString("length");
+            final String start = jsonObject.getString("start");
             String orderBy = DEFAULT_ORDER_BY_FIELD;
             String orderDirection = DEFAULT_ORDER_DIRECTION;
-            JSONArray orderArray = jsonObject.getJSONArray("order");
-            JSONArray columnsArray = jsonObject.getJSONArray("columns");
+            final JSONArray orderArray = jsonObject.getJSONArray("order");
+            final JSONArray columnsArray = jsonObject.getJSONArray("columns");
             if (orderArray != null && orderArray.length() > 0 && columnsArray != null && columnsArray.length() > 0) {
                 JSONObject order = orderArray.getJSONObject(0);
                 orderBy = columnsArray.getJSONObject(order.getInt("column")).getString("data");
                 orderDirection = order.getString("dir");
             }
-            List<ImportModel> importList = new ArrayList<>();
-            ResourceResolver resourceResolver = request.getResourceResolver();
-            PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
-            Page containingPage = pageManager.getContainingPage(request.getResource());
-            Map<String, String> queryParams = new HashMap<>();
+            final List<ImportModel> importList = new ArrayList<>();
+            final ResourceResolver resourceResolver = request.getResourceResolver();
+            final PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
+            final Page containingPage = pageManager.getContainingPage(request.getResource());
+            final Map<String, String> queryParams = new HashMap<>();
             queryParams.put("path", containingPage.getPath());
             queryParams.put("type", "nt:unstructured");
             queryParams.put("1_property", "sling:resourceType");
@@ -83,29 +83,29 @@ public final class ImportHistoryServlet extends GCAbstractServlet {
             queryParams.put("2_property.operation", "exists");
             queryParams.put("orderby", "@" + orderBy);
             queryParams.put("orderby.sort", orderDirection);
-            PredicateGroup predicateGroup = PredicateGroup.create(queryParams);
+            final PredicateGroup predicateGroup = PredicateGroup.create(queryParams);
 
-            Query query = queryBuilder.createQuery(predicateGroup,
+            final Query query = queryBuilder.createQuery(predicateGroup,
                     request.getResourceResolver().adaptTo(Session.class));
             query.setStart(Long.parseLong(start));
             query.setHitsPerPage(Long.parseLong(length));
-            SearchResult result = query.getResult();
-            Iterator<Resource> resources = result.getResources();
+            final SearchResult result = query.getResult();
+            final Iterator<Resource> resources = result.getResources();
             while (resources.hasNext()) {
-                Resource next = resources.next();
-                ImportModel importModel = next.adaptTo(ImportModel.class);
+                final Resource next = resources.next();
+                final ImportModel importModel = next.adaptTo(ImportModel.class);
                 if (importModel != null) {
                     importList.add(importModel);
                 }
             }
 
-            JSONObject responseJSON = new JSONObject();
+            final JSONObject responseJSON = new JSONObject();
             responseJSON.put("draw", draw);
             responseJSON.put("recordsTotal", result.getTotalMatches());
             responseJSON.put("recordsFiltered", result.getTotalMatches());
-            JSONArray importListJSON = new JSONArray();
+            final JSONArray importListJSON = new JSONArray();
             for (ImportModel importModel : importList) {
-                JSONObject importModelJSON = new JSONObject();
+                final JSONObject importModelJSON = new JSONObject();
                 importModelJSON.put(ImportModel.PROPERTY_IMPORT_ID,
                         importModel.getImportId() != null ? importModel.getImportId() : "");
                 importModelJSON.put(ImportModel.PROPERTY_JOB_TYPE,
@@ -123,7 +123,7 @@ public final class ImportHistoryServlet extends GCAbstractServlet {
             responseJSON.put("data", importListJSON);
             response.getWriter().write(responseJSON.toString());
         } catch (GCException | JSONException e) {
-            getLOGGER().error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         }
     }
 }

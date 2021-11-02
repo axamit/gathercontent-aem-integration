@@ -4,11 +4,13 @@
 
 package com.axamit.gc.core.pojo;
 
-import com.axamit.gc.api.dto.GCData;
+import com.axamit.gc.api.dto.GCStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The <code>ImportItem</code> represents information about item need to be imported or exported.
@@ -17,18 +19,18 @@ import java.util.List;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ImportItem {
-    private String itemId;
+    private Integer itemId;
     private String mappingPath;
-    private String parentId;
+    private String folderUuid;
     private String importPath;
     private String title;
     private String template;
-    private String gcTemplateId;
+    private Integer gcTemplateId;
     private List<ImportItem> children = new ArrayList<>();
     private String slug; //! May items have different slugs?
-    private GCData newStatusData;
+    private GCStatus newStatusData;
     private String gcTargetItemName = "";
-    private String gcTargetItemId = "0";
+    private Integer gcTargetItemId = 0;
     private Boolean isProceed = false;
     private String aemTitle;
     private Integer importIndex;
@@ -48,11 +50,11 @@ public final class ImportItem {
     /**
      * @return ID of GatherContent item.
      */
-    public String getItemId() {
+    public Integer getItemId() {
         return itemId;
     }
 
-    public void setItemId(final String itemId) {
+    public void setItemId(final Integer itemId) {
         this.itemId = itemId;
     }
 
@@ -71,12 +73,14 @@ public final class ImportItem {
     /**
      * @return ID of GatherContent parent item.
      */
-    public String getParentId() {
-        return parentId;
+    @JsonProperty("folder_uuid")
+    public String getFolderUuid() {
+        return folderUuid;
     }
 
-    public void setParentId(final String parentId) {
-        this.parentId = parentId;
+    @JsonProperty("folder_uuid")
+    public void setFolderUuid(final String folderUuid) {
+        this.folderUuid = folderUuid;
     }
 
     /**
@@ -137,11 +141,11 @@ public final class ImportItem {
     /**
      * @return New live status data to be applied on an GatherContent item.
      */
-    public GCData getNewStatusData() {
+    public GCStatus getNewStatusData() {
         return newStatusData;
     }
 
-    public void setNewStatusData(final GCData newStatusData) {
+    public void setNewStatusData(final GCStatus newStatusData) {
         this.newStatusData = newStatusData;
     }
 
@@ -159,22 +163,22 @@ public final class ImportItem {
     /**
      * @return ID of item in GatherContent which will act as parent item for export.
      */
-    public String getGcTargetItemId() {
+    public Integer getGcTargetItemId() {
         return gcTargetItemId;
     }
 
-    public void setGcTargetItemId(final String gcTargetItemId) {
+    public void setGcTargetItemId(final Integer gcTargetItemId) {
         this.gcTargetItemId = gcTargetItemId;
     }
 
     /**
      * @return ID of GatherContent template.
      */
-    public String getGcTemplateId() {
+    public Integer getGcTemplateId() {
         return gcTemplateId;
     }
 
-    public void setGcTemplateId(final String gcTemplateId) {
+    public void setGcTemplateId(final Integer gcTemplateId) {
         this.gcTemplateId = gcTemplateId;
     }
 
@@ -222,7 +226,7 @@ public final class ImportItem {
 
         ImportItem that = (ImportItem) o;
 
-        return importPath != null ? importPath.equals(that.importPath) : that.importPath == null;
+        return Objects.equals(importPath, that.importPath);
 
     }
 

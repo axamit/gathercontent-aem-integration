@@ -12,8 +12,8 @@ import com.axamit.gc.core.pojo.helpers.GCHierarchySortable;
  * @author Axamit, gc.support@axamit.com
  */
 public final class ImportUpdateTableItem implements GCHierarchySortable {
-    private String id;
-    private String parentId;
+    private Integer id;
+    private String folderUuid;
     private String title;
     private String hierarchyTitle;
     private String status;
@@ -31,23 +31,23 @@ public final class ImportUpdateTableItem implements GCHierarchySortable {
     /**
      * @return ID of GatherContent item.
      */
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(final String id) {
+    public void setId(final Integer id) {
         this.id = id;
     }
 
     /**
      * @return ID of GatherContent parent item.
      */
-    public String getParentId() {
-        return parentId;
+    public String getFolderUuid() {
+        return folderUuid;
     }
 
-    public void setParentId(final String parentId) {
-        this.parentId = parentId;
+    public void setFolderUuid(final String folderUuid) {
+        this.folderUuid = folderUuid;
     }
 
     /**
@@ -189,7 +189,7 @@ public final class ImportUpdateTableItem implements GCHierarchySortable {
     public String toString() {
         return "ImportUpdateTableItem{"
             + "id='" + id + '\''
-            + ", parentId='" + parentId + '\''
+            + ", parentId='" + folderUuid + '\''
             + ", title='" + title + '\''
             + ", hierarchyTitle='" + hierarchyTitle + '\''
             + ", status='" + status + '\''

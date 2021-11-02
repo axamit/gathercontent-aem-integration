@@ -301,10 +301,10 @@ $(function () {
             selectedRows.nodes().each(function (item) {
                 var selected = {};
                 selected.itemId = $(item).attr("itemId");
-                selected.parentId = $(item).attr("parentId");
+                selected.folderUuid = $(item).attr("folderUuid");
                 selected.validName = $(item).attr("validName");
                 selected.title = $(item).attr("title");
-                var hierarchyValues = getHierarchyItemValues(selectedRows, selected.itemId, selected.parentId, selected.title);
+                var hierarchyValues = getHierarchyItemValues(selectedRows, selected.itemId, selected.folderUuid, selected.title);
                 var rootId = hierarchyValues.topParentId;
                 selected.isRoot = rootId === selected.itemId;
                 var mappings = [];

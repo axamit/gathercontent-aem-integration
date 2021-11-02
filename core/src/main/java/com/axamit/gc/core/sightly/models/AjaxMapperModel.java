@@ -5,19 +5,21 @@
 package com.axamit.gc.core.sightly.models;
 
 import com.axamit.gc.api.GCContext;
-import com.axamit.gc.api.dto.GCConfig;
-import com.axamit.gc.api.dto.GCItem;
 import com.axamit.gc.api.dto.GCTemplate;
+import com.axamit.gc.api.dto.GCTemplateField;
+import com.axamit.gc.api.dto.GCTemplateGroup;
 import com.axamit.gc.api.services.GCConfiguration;
-import com.axamit.gc.api.services.GCContentApi;
+import com.axamit.gc.api.services.GCContentNewApi;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.pojo.MappingType;
-import com.axamit.gc.core.services.GCPluginManager;
-import com.axamit.gc.core.services.PageCreator;
+import com.axamit.gc.core.services.plugins.GCPluginManager;
+import com.axamit.gc.core.services.AEMPageModifier;
 import com.axamit.gc.core.util.Constants;
+import com.axamit.gc.core.util.GCUtil;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.Resource;
@@ -42,10 +44,10 @@ public final class AjaxMapperModel {
     private static final Logger LOGGER = LoggerFactory.getLogger(AjaxMapperModel.class);
 
     @Inject
-    private PageCreator pageCreator;
+    private AEMPageModifier aemPageModifier;
 
     @Inject
-    private GCContentApi gcContentApi;
+    private GCContentNewApi gcContentNewApi;
 
     @Inject
     private GCConfiguration gcConfiguration;
@@ -62,7 +64,7 @@ public final class AjaxMapperModel {
 
     private String templatePath;
 
-    private List<GCConfig> gcConfigs;
+    private GCTemplate gcTemplate;
 
     private String abstractTemplateLimitPath;
 
@@ -76,8 +78,8 @@ public final class AjaxMapperModel {
         GCContext gcContext = gcConfiguration.getGCContext(request.getResource());
         templatePath = request.getParameter(Constants.AEM_TEMPLATE_PATH_PN);
         abstractTemplateLimitPath = request.getParameter(Constants.AEM_ABSTRACT_TEMPLATE_LIMIT_PATH);
-        String projectId = request.getParameter(Constants.GC_PROJECT_ID_PN);
-        String templateId = request.getParameter(Constants.GC_TEMPLATE_ID_PN);
+        int projectId = NumberUtils.toInt(request.getParameter(Constants.GC_PROJECT_ID_PN), 0);
+        int templateId = NumberUtils.toInt(request.getParameter(Constants.GC_TEMPLATE_ID_PN), 0);
         String mappingTypeParam = request.getParameter(Constants.MAPPING_TYPE_PARAM_NAME);
         pluginConfigPath = request.getParameter(Constants.GC_PLUGIN_CONFIG_PATH_PARAM_NAME);
         if (StringUtils.isEmpty(pluginConfigPath)) {
@@ -85,24 +87,24 @@ public final class AjaxMapperModel {
         }
         MappingType mappingType = MappingType.of(mappingTypeParam);
         mappingType = mappingType != null ? mappingType : MappingType.TEMPLATE;
-        if (StringUtils.isNotEmpty(projectId) && StringUtils.isNotEmpty(templateId)) {
+        if (projectId != 0 && templateId != 0) {
             switch (mappingType) {
-                case CUSTOM_ITEM:
-                case ENTRY_PARENT:
-                    try {
-                        GCItem gcItem = gcContentApi.itemById(gcContext, templateId);
-                        gcConfigs = gcItem.getConfig();
-                        templateName = gcItem.getName();
-                    } catch (GCException e) {
-                        LOGGER.error(e.getMessage(), e);
-                    }
-                    break;
+                //TODO
+//                case CUSTOM_ITEM:
+//                case ENTRY_PARENT:
+//                    try {
+//                        GCItem gcItem = gcContentNewApi.itemById(gcContext, templateId);
+//                        gcTemplateFields = gcItem.getConfig();
+//                        templateName = gcItem.getName();
+//                    } catch (GCException e) {
+//                        LOGGER.error(e.getMessage(), e);
+//                    }
+//                    break;
                 case TEMPLATE:
                 default:
                     try {
-                        GCTemplate gctemplate = gcContentApi.template(gcContext, projectId, templateId);
-                        gcConfigs = gctemplate.getConfig();
-                        templateName = gctemplate.getName();
+                        gcTemplate = gcContentNewApi.template(gcContext, templateId);
+                        templateName = gcTemplate.getData().getName();
                         return;
                     } catch (GCException e) {
                         LOGGER.error(e.getMessage(), e);
@@ -118,10 +120,10 @@ public final class AjaxMapperModel {
      */
     public Map<String, Map<String, String>> getFieldsMappings() {
         if (fieldsMappings == null) {
-            gcConfigs = getGcConfigs();
-            if (gcConfigs != null && StringUtils.isNotEmpty(templatePath)) {
+            final List<GCTemplateField> gcTemplateFields = getGcTemplateFields();
+            if (gcTemplateFields != null && StringUtils.isNotEmpty(templatePath)) {
                 try {
-                    fieldsMappings = pageCreator.getFieldsMappings(gcConfigs, false, true, templatePath, pluginConfigPath, StringUtils.EMPTY);
+                    fieldsMappings = aemPageModifier.getFieldsMappings(gcTemplateFields, false, true, templatePath, pluginConfigPath, StringUtils.EMPTY);
                 } catch (LoginException | RepositoryException e) {
                     LOGGER.error(e.getMessage(), e);
                 }
@@ -136,10 +138,10 @@ public final class AjaxMapperModel {
      */
     public Map<String, Map<String, String>> getAbsFieldsMappings() {
         if (fieldsMappings == null) {
-            gcConfigs = getGcConfigs();
-            if (gcConfigs != null && StringUtils.isNotEmpty(templatePath)) {
+            final List<GCTemplateField> gcTemplateFields = getGcTemplateFields();
+            if (gcTemplateFields != null && StringUtils.isNotEmpty(templatePath)) {
                 try {
-                    fieldsMappings = pageCreator.getFieldsMappings(gcConfigs, true, false, templatePath, pluginConfigPath, abstractTemplateLimitPath);
+                    fieldsMappings = aemPageModifier.getFieldsMappings(gcTemplateFields, true, false, templatePath, pluginConfigPath, abstractTemplateLimitPath);
                 } catch (LoginException | RepositoryException e) {
                     LOGGER.error(e.getMessage(), e);
                 }
@@ -179,12 +181,11 @@ public final class AjaxMapperModel {
         this.abstractTemplateLimitPath = abstractTemplateLimitPath;
     }
 
-    public List<GCConfig> getGcConfigs() {
-        return gcConfigs;
+    public List<GCTemplateField> getGcTemplateFields() {
+        return GCUtil.getFieldsByTemplate(gcTemplate);
     }
 
-    public void setGcConfigs(List<GCConfig> gcConfigs) {
-        this.gcConfigs = gcConfigs;
+    public List<GCTemplateGroup> getGcTemplateGroups() {
+        return gcTemplate.getRelated().getStructure().getGroups();
     }
-
 }

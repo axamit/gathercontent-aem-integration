@@ -36,8 +36,6 @@ $(function () {
                 selectedValue = "";
             }
             properties.path = selectedValue;
-            properties.plugin = $(this).find('.carousel-checkbox:checked').length > 0 ?
-                'com.axamit.gc.core.services.plugins.CarouselPlugin' : '';
             mapping[id] = properties;
         });
         var metaMapperValue = $('#meta-name-select').val();

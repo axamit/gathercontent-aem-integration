@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * The <code>MappingType</code> class represents mapping type.
  *
  * @author Axamit, gc.support@axamit.com
- * @see <a href="https://gathercontent.com/developers/the-config-field/">Element types</a>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public enum MappingType {

@@ -35,8 +35,6 @@ $(function () {
             var selectValue = $(this).find('.mapper-select').val();
             selectValue = selectValue !== null ? selectValue : [];
             properties.path = selectValue;
-            properties.plugin = $(this).find('.carousel-checkbox:checked').length > 0 ?
-                'com.axamit.gc.core.services.plugins.CarouselPlugin' : '';
             mapping[id] = properties;
         });
 

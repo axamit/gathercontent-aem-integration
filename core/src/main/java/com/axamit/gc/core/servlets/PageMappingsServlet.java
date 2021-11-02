@@ -11,6 +11,7 @@ import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.GCStringUtil;
 import com.axamit.gc.core.util.GCUtil;
 import com.axamit.gc.core.util.JSONUtil;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -23,12 +24,7 @@ import org.apache.sling.commons.json.JSONObject;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Servlet return list of mappings in JSON format for project ID passed and applicable for AEM Page
@@ -61,7 +57,7 @@ public class PageMappingsServlet extends GCAbstractServlet {
         //get GCUtil all mappings by project
         Map<String, Map<String, String>> mappings =
                 GCUtil.getProjectMappings(request.getResource(),
-                        Integer.parseInt(request.getParameter(Constants.GC_PROJECT_ID_PN)), true);
+                        NumberUtils.toInt(request.getParameter(Constants.GC_PROJECT_ID_PN), 0), true);
 
         //iterate over mappings and compare them with chosen page
         for (Map.Entry<String, Map<String, String>> mapping : mappings.entrySet()) {
@@ -95,29 +91,25 @@ public class PageMappingsServlet extends GCAbstractServlet {
                             .put(Constants.GC_MAPPING_PATH, mapping.getValue().get(Constants.GC_MAPPING_PATH)));
                 }
             } catch (JSONException | GCException e) {
-                getLOGGER().error(e.getMessage(), e);
+                LOGGER.error(e.getMessage(), e);
             }
         }
-        Collections.sort(sortedJSONArray, new Comparator<JSONObject>() {
-            @Override
-            public int compare(final JSONObject o1, final JSONObject o2) {
-                int mp1 = 0;
-                int mp2 = 0;
-                try {
-                    mp1 = o1.getInt(KEY_NAME);
-                    mp2 = o2.getInt(KEY_NAME);
-                } catch (JSONException e) {
-                    getLOGGER().error(e.getMessage(), e);
-                }
-                return mp2 - mp1;
+        sortedJSONArray.sort((o1, o2) -> {
+            int mp1 = 0;
+            int mp2 = 0;
+            try {
+                mp1 = o1.getInt(KEY_NAME);
+                mp2 = o2.getInt(KEY_NAME);
+            } catch (JSONException e) {
+                LOGGER.error(e.getMessage(), e);
             }
-
+            return mp2 - mp1;
         });
         try {
             responseJSON = new JSONArray(sortedJSONArray.toString());
             response.getWriter().print(responseJSON);
         } catch (JSONException e) {
-            getLOGGER().error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         }
     }
 }

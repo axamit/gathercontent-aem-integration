@@ -11,14 +11,11 @@
             var accountId = dialog.findById('account-id').getValue();
             if(accountId!=''){
                 dialog.findById('verify-credentials').hide();
-                dialog.findById('is-new-editor-id').show();
                 dialog.findById('reset-credentials').show();
                 dialog.findById('gc-username').setReadOnly(true);
                 dialog.findById('gc-apikey').setReadOnly(true);
             }else{
                 dialog.findById('reset-credentials').hide();
-                dialog.findById('is-new-editor-id').setValue('false');
-                dialog.findById('is-new-editor-id').hide();
                 dialog.findById('verify-credentials').show();
             }
             dialog.findByType('tabpanel')[0].show();
@@ -64,7 +61,6 @@
                                         accountIdField.setOptions(accountIds);
                                         accountIdField.setValue(accountIds[0].value);
                                         verifyButton.hide();
-                                        dialog.findById('is-new-editor-id').show();
                                         dialog.findById('reset-credentials').show();
                                         dialog.findById('gc-username').setReadOnly(true);
                                         dialog.findById('gc-apikey').setReadOnly(true);
@@ -93,7 +89,6 @@
                                 click="function(resetButton, event){
                                     var dialog = resetButton.findParentByType('dialog');
                                     var gcUsernameField = dialog.findById('gc-username');
-                                    var isNewEditorField = dialog.findById('is-new-editor-id');
                                     gcUsernameField.setValue('');
                                     gcUsernameField.setReadOnly(false);
                                     var gcApikeyField = dialog.findById('gc-apikey');
@@ -102,32 +97,10 @@
                                     var accountIdField = dialog.findById('account-id');
                                     accountIdField.setValue('');
                                     accountIdField.setOptions([]);
-                                    isNewEditorField.setValue(false);
                                     resetButton.hide();
                                     dialog.findById('verify-credentials').show();
-                                    isNewEditorField.hide();
                                 }"/>
                     </resetCredentials>
-                    <isNewEditor
-                            jcr:primaryType="cq:Widget"
-                            fieldDescription="Please choose  editor type. "
-                            fieldLabel="Editor Type"
-                            allowBlank="{Boolean} false"
-                            id="is-new-editor-id"
-                            name="./isNewEditor"
-                            type="radiogroup"
-                            xtype="selection">
-                        <options jcr:primaryType="cq:WidgetCollection">
-                            <legacy
-                                    jcr:primaryType="cq:Widget"
-                                    text="Legacy"
-                                    value="false"/>
-                            <newEditor
-                                    jcr:primaryType="cq:Widget"
-                                    text="New Editor"
-                                    value="true"/>
-                        </options>
-                    </isNewEditor>
                 </items>
             </tab>
         </items>

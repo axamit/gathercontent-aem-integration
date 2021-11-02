@@ -11,22 +11,6 @@
         <div id="mapper-abstract-template-limit-path" data-value="${mapper.abstractTemplateLimitPath}"></div>
     </div>
     <div>
-        <!--/*
-        <form>
-            <div id="plugin-conf-wrapper">
-                <label for="config-select" class="conf-label">Plugins Config</label>
-                <div class="select-wrapper">
-                    <select class="required reload-mapping" id="config-select"
-                            data-sly-list.pluginsConfiguration="${mapper.pluginsConfigurationListModel.pluginsConfigurationList}">
-                        <option value="${pluginsConfiguration.resource.path}"
-                                selected="${mapper.pluginConfigPath == pluginsConfiguration.resource.path?'selected':''}">
-                            ${pluginsConfiguration.configurationName}
-                        </option>
-                    </select>
-                </div>
-            </div>
-        </form>
-        */-->
         <form autocomplete="off">
             <div class="conf-wrapper">
                 <label for="project-select" class="conf-label">GatherContent Project (*)</label>
@@ -52,7 +36,7 @@
                     <select class="required" id="gc-mapping-type-select">
                         <option value="" selected="${!mapper.projectId ? 'selected' : ''}">Select Type</option>
                         <option value="1" selected="${mapper.projectId && mapper.mappingType.toString == 'TEMPLATE' ? 'selected' : ''}">Template</option>
-                        <option value="3" selected="${mapper.projectId && mapper.mappingType.toString == 'CUSTOM_ITEM' ? 'selected' : ''}">Custom Structure</option>
+<!--/*                        <option value="3" selected="${mapper.projectId && mapper.mappingType.toString == 'CUSTOM_ITEM' ? 'selected' : ''}">Custom Structure</option>*/-->
                     </select>
                 </div>
                 <div class="x-form-item-description">Select the source mapping type you'd like to map.</div>

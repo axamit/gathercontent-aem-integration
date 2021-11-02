@@ -5,6 +5,7 @@
 package com.axamit.gc.core.servlets;
 
 import com.axamit.gc.core.util.Constants;
+import com.axamit.gc.core.util.JSONUtil;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
@@ -50,7 +51,7 @@ public final class GCMappingsServlet extends SlingAllMethodsServlet {
     @Override
     protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
             throws ServletException, IOException {
-        String[] selectors = request.getRequestPathInfo().getSelectors();
+        final String[] selectors = request.getRequestPathInfo().getSelectors();
         String projectId = null;
         for (String selector : selectors) {
             if (selector.startsWith(Constants.PROJECT_ID_SELECTOR)) {
@@ -59,31 +60,25 @@ public final class GCMappingsServlet extends SlingAllMethodsServlet {
             }
         }
 
-        JSONObject jsonObject = new JSONObject();
-        JSONArray jsonArray = new JSONArray();
+        final JSONObject jsonObject = new JSONObject();
+        final JSONArray jsonArray = new JSONArray();
 
         if (projectId != null) {
-            ResourceResolver resourceResolver = request.getResourceResolver();
-            PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
-            Page containingPage = pageManager.getContainingPage(request.getResource());
-            Iterator<Resource> mappingResources = resourceResolver.findResources(
+            final ResourceResolver resourceResolver = request.getResourceResolver();
+            final PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
+            final Page containingPage = pageManager.getContainingPage(request.getResource());
+            final Iterator<Resource> mappingResources = resourceResolver.findResources(
                     String.format(MAPPING_BY_PROJECT_ID_QUERY, containingPage.getPath(), projectId), Query.JCR_SQL2);
-            Map<String, String> mappingsMap = new HashMap<>();
+            final Map<String, String> mappingsMap = new HashMap<>();
             try {
                 while (mappingResources.hasNext()) {
-                    Resource mappingResource = mappingResources.next();
-                    String mappingPath = mappingResource.getPath();
-                    String mappingName = mappingResource.getValueMap().get(Constants.MAPPING_NAME_PN, String.class);
+                    final Resource mappingResource = mappingResources.next();
+                    final String mappingPath = mappingResource.getPath();
+                    final String mappingName = mappingResource.getValueMap().get(Constants.MAPPING_NAME_PN, String.class);
                     mappingsMap.put(mappingPath, mappingName);
                 }
                 for (Map.Entry mappingEntry : mappingsMap.entrySet()) {
-                    JSONObject jsonObjectMapping = new JSONObject();
-
-                    jsonObjectMapping.put("text", mappingEntry.getKey());
-                    jsonObjectMapping.put("value", mappingEntry.getValue());
-                    jsonObjectMapping.put("qtip", mappingEntry.getKey());
-
-                    jsonArray.put(jsonObjectMapping);
+                    JSONUtil.addMappingEntry(jsonArray, (String)mappingEntry.getKey(), (String)mappingEntry.getValue(), (String)mappingEntry.getKey());
                 }
                 jsonObject.put("gcmappings", jsonArray);
             } catch (JSONException e) {

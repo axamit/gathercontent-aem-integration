@@ -15,11 +15,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class GCProject {
-    private String id;
+    private Integer id;
     private String name;
     private String type;
     private Boolean example;
-    private String accountId;
+    private Integer accountId;
     private Boolean active;
     private String textDirection;
     private String allowedTags;
@@ -30,11 +30,11 @@ public final class GCProject {
     /**
      * @return Project ID.
      */
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(final String id) {
+    public void setId(final Integer id) {
         this.id = id;
     }
 
@@ -69,12 +69,12 @@ public final class GCProject {
      * @return Account ID of project owner.
      */
     @JsonProperty("account_id")
-    public String getAccountId() {
+    public Integer getAccountId() {
         return accountId;
     }
 
     @JsonProperty("account_id")
-    public void setAccountId(final String accountId) {
+    public void setAccountId(final Integer accountId) {
         this.accountId = accountId;
     }
 

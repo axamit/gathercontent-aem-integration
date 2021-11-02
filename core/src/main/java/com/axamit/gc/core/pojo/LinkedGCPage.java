@@ -11,8 +11,8 @@ import java.util.Objects;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LinkedGCPage {
-    private String gcProjectId;
-    private String gcItemId;
+    private Integer gcProjectId;
+    private Integer gcItemId;
     private String gcMappingPath;
 
     /**
@@ -26,25 +26,25 @@ public class LinkedGCPage {
      * @param gcItemId      GatherContent Item ID that will be associated with AEM page.
      * @param gcMappingPath Path to mapping that will be associated with AEM page.
      */
-    public LinkedGCPage(String gcProjectId, String gcItemId, String gcMappingPath) {
+    public LinkedGCPage(Integer gcProjectId, Integer gcItemId, String gcMappingPath) {
         this.gcProjectId = gcProjectId;
         this.gcItemId = gcItemId;
         this.gcMappingPath = gcMappingPath;
     }
 
-    public String getGcProjectId() {
+    public Integer getGcProjectId() {
         return gcProjectId;
     }
 
-    public void setGcProjectId(String gcProjectId) {
+    public void setGcProjectId(Integer gcProjectId) {
         this.gcProjectId = gcProjectId;
     }
 
-    public String getGcItemId() {
+    public Integer getGcItemId() {
         return gcItemId;
     }
 
-    public void setGcItemId(String gcItemId) {
+    public void setGcItemId(Integer gcItemId) {
         this.gcItemId = gcItemId;
     }
 

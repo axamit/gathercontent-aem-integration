@@ -30,19 +30,19 @@ public final class GCMeServlet extends GCAbstractServlet {
     protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
         throws IOException {
 
-        GCContext gcContext = getGCContext(request);
+        final GCContext gcContext = getGCContext(request);
         JSONObject responseObject = new JSONObject();
 
         if (gcContext != null) {
             try {
                 responseObject.put("success", false);
-                JSONObject jsonObject = getGcContentApi().me(gcContext);
+                final JSONObject jsonObject = gcContentApi.me(gcContext);
                 if (jsonObject != null) {
                     responseObject = jsonObject;
                     responseObject.put("success", true);
                 }
             } catch (Exception e) {
-                getLOGGER().error("Failed create JSON Object {}", e.getMessage());
+                LOGGER.error("Failed create JSON Object {}", e.getMessage());
             }
         }
         response.getWriter().write(responseObject.toString());
