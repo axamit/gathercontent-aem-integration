@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,7 +31,7 @@ public final class ImportItem {
     private String slug; //! May items have different slugs?
     private GCStatus newStatusData;
     private String gcTargetItemName = "";
-    private Integer gcTargetItemId = 0;
+    private String gcTargetItemId = "";
     private Boolean isProceed = false;
     private String aemTitle;
     private Integer importIndex;
@@ -120,7 +121,7 @@ public final class ImportItem {
      * @return List of children items.
      */
     public List<ImportItem> getChildren() {
-        return children;
+        return Collections.unmodifiableList(children);
     }
 
     public void setChildren(final List<ImportItem> children) {
@@ -163,11 +164,11 @@ public final class ImportItem {
     /**
      * @return ID of item in GatherContent which will act as parent item for export.
      */
-    public Integer getGcTargetItemId() {
+    public String getGcTargetItemId() {
         return gcTargetItemId;
     }
 
-    public void setGcTargetItemId(final Integer gcTargetItemId) {
+    public void setGcTargetItemId(final String gcTargetItemId) {
         this.gcTargetItemId = gcTargetItemId;
     }
 

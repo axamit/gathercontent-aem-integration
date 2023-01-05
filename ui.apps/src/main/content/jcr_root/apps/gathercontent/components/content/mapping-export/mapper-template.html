@@ -1,37 +1,58 @@
 <template data-sly-template.mapperTemplate="${@ mapper}"
           data-sly-test="${mapper.templateName}">
     <h1>${mapper.templateName}</h1>
+    <div hidden id="meta-name-wrapper">
+        <div id="meta-name-selection" class="clearfix">
+            <label for="meta-name-select"></label><select id="meta-name-select" data-sly-list.entry="${mapper.fieldsMappings['META_NAME'].entrySet}">
+                <option value="${entry.key}"
+                        selected="${mapper.metaMapper['META_NAME'] == entry.key ? 'selected' : ''}">
+                </option>
+            </select>
+        </div>
+        <div id="meta-name-information"></div>
+    </div>
     <div id="accordion" data-sly-list.group="${mapper.gcTemplateGroups}">
         <h3 class="clearfix" data-label="${group.name}">
             Group: ${group.name}
-            <select data-sly-test="${mapper.gcTemplateGroups.size > 1}" class="moveTo" data-from="${group.name}"
-                    data-sly-list.tab="${mapper.gcTemplateGroups}">
-                <option data-sly-test="${tabList.first}" value="" disabled selected hidden>Move to</option>
-                <option data-sly-test="${group.name != tab.name}" value="${tab.name}">group : ${tab.name}</option>
-            </select>
+            <label>
+                <select data-sly-test="${mapper.gcTemplateGroups.size > 1}" class="moveTo" data-from="${group.name}"
+                        data-sly-list.tab="${mapper.gcTemplateGroups}">
+                    <option data-sly-test="${tabList.first}" value="" disabled selected hidden>Move to</option>
+                    <option data-sly-test="${group.name != tab.name}" value="${tab.name}">group : ${tab.name}</option>
+                </select>
+            </label>
         </h3>
         <div data-label="${group.name}" data-sly-list.element="${group.fields}">
-            <sly data-sly-test.isFiles="${element.type.toString == 'FILES'}"/>
-            <div data-id="${element.name}" data-sly-attribute.class="${isFiles ? 'disabled-gray mapper-element' : 'mapper-element'}">
-                <h4>[${element.type}] ${element.label}</h4>
-                <div class="warn" data-sly-test="${isFiles}">
-                    'FILES' type is not available for export due to GC API restrictions. //TODO
+            <sly data-sly-test.comp="${element.type == 'COMPONENT'}">
+                <h4>[COMPONENT] ${element.label}</h4>
+                <div data-sly-list.componentElement="${element.component.fields}"
+                     class="component-box">
+                    <sly data-sly-call="${fieldTemplate @ mapper=mapper, element=componentElement}"></sly>
                 </div>
-                <select class="mapper-select" data-sly-attribute.disabled="${isFiles}" multiple="multiple">
-                    <sly data-sly-list.entry="${mapper.absFieldsMappings[element.uuid].entrySet}">
-                        <sly data-sly-test.selected=""/>
-                        <sly data-sly-list.property="${mapper.mapper[element.uuid].path}">
-                            <sly data-sly-test.selected="${property == entry.key ? 'selected' : selected}">
-                                <sly data-sly-test.activeTab="${!activeTab && entry.value != 'Don\'t map' ? groupList.count : activeTab}"/>
-                            </sly>
-                        </sly>
-                        <option value="${entry.key}" selected="${selected}">
-                            ${entry.value}
-                        </option>
-                    </sly>
-                </select>
-            </div>
+            </sly>
+            <sly data-sly-test="${!comp}">
+                <sly data-sly-call="${fieldTemplate @ mapper=mapper, element=element}"></sly>
+            </sly>
         </div>
     </div>
-    <div id="active-tab" data-tabcount="${activeTab ? activeTab : 1}"></div>
+    <div id="active-tab" data-tabcount="1"></div>
+</template>
+
+<template data-sly-template.fieldTemplate="${@ mapper, element}">
+    <div class="mapper-element"
+         data-id="${element.uuid}">
+        <h4>[${element.type}] ${element.label}</h4>
+        <label>
+            <select class="mapper-select" data-sly-list.entry="${mapper.fieldsMappings[element.uuid].entrySet}">
+                <sly data-sly-test.selected=""/>
+                <sly data-sly-list.property="${mapper.mapper[element.uuid].path}">
+                    <sly data-sly-test.selected="${property == entry.key ? 'selected' : selected}">
+                    </sly>
+                </sly>
+                <option value="${entry.key}" selected="${selected}">
+                    ${entry.value}
+                </option>
+            </select>
+        </label>
+    </div>
 </template>

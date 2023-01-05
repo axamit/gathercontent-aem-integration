@@ -48,7 +48,9 @@ import javax.jcr.query.Query;
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.bind.DatatypeConverter;
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -294,8 +296,9 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
                 mimeTypeForAsset = mimeType;
             }
 
-            InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-            result = assetManager.createAsset(parentPath, in, mimeTypeForAsset, doSave);
+            try (InputStream in = new BufferedInputStream(urlConnection.getInputStream())) {
+                result = assetManager.createAsset(parentPath, in, mimeTypeForAsset, doSave);
+            }
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
         } finally {
@@ -318,7 +321,7 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
                 final Page resultingPage = pageManager.getPage(importItem.getImportPath());
                 pageManager.createRevision(resultingPage);
                 final Map<String, Asset> gcAssets = uploadFilesToAssets(gcContext, gcItem, mapping, importDAMPath);
-                final ModifiableValueMap modifiableValueMap = resultingPage.getContentResource().adaptTo(ModifiableValueMap.class);
+                final ModifiableValueMap modifiableValueMap = resultingPage != null ? resultingPage.getContentResource().adaptTo(ModifiableValueMap.class) : null;
                 GCUtil.addGCProperties(resourceResolver,
                         modifiableValueMap,
                         gcItem.getProjectId(),
@@ -343,7 +346,7 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
             }
 
             GCStatus statusData;
-            if (updateItemStatus) {
+            if (Boolean.TRUE.equals(updateItemStatus)) {
                 statusData = importItem.getNewStatusData();
             } else {
                 final List<GCStatus> statusesByProjectId = gcContentApi.statusesByProjectId(gcContext, gcItem.getProjectId());
@@ -396,29 +399,29 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
                                   String configurationPath, Page targetPage, Map<String, Asset> gcAssets,
                                   Collection<String> updatedProperties) {
         if (mapping != null && configurationPath != null) {
-            for (Map.Entry<String, FieldMappingProperties> mapEntry : mapping.entrySet()) {
-                if (!mapEntry.getValue().getPath().isEmpty()) {
-                    GCContent gcContent = findContentByKey(gcItem, mapEntry.getKey());
-                    final GCTemplateField gcTemplateField = findTemplateFieldByKey(gcTemplate, mapEntry.getKey());
-                    for (String propertyPath : mapEntry.getValue().getPath()) {
+            mapping.forEach((key, value) -> {
+                if (!value.getPath().isEmpty()) {
+                    GCContent gcContent = findContentByKey(gcItem, key);
+                    final GCTemplateField gcTemplateField = findTemplateFieldByKey(gcTemplate, key);
+                    for (String propertyPath : value.getPath()) {
                         if (!ResourceUtil.isNonExistingResource(resourceResolver.resolve(GCStringUtil.appendNewLevelToPath(targetPage.getPath(), propertyPath)))) {
                             updateProperty(gcContent, gcTemplateField, targetPage, propertyPath, gcAssets, updatedProperties,
-                                    resourceResolver, configurationPath, mapEntry.getValue().getPlugin());
+                                    resourceResolver, configurationPath, value.getPlugin());
                             break;
                         }
                     }
                 }
-            }
+            });
         }
     }
 
     private void updateMetaProperties(GCItem gcItem, Map<String, String> metaMapping, Page targetPage, Collection<String> updatedProperties) {
         if (metaMapping != null) {
-            for (Map.Entry<String, String> mapEntry : metaMapping.entrySet()) {
-                if (!mapEntry.getValue().isEmpty()) {
-                    updateMetaProperty(gcItem, targetPage, mapEntry.getKey(), mapEntry.getValue(), updatedProperties);
+            metaMapping.forEach((key, value) -> {
+                if (!value.isEmpty()) {
+                    updateMetaProperty(gcItem, targetPage, key, value, updatedProperties);
                 }
-            }
+            });
         }
     }
 
@@ -532,29 +535,26 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
 
     private Map<String, Asset> uploadFilesToAssets(final GCContext gcContext, final GCItem gcItem, final Map<String, FieldMappingProperties> mapping, final String importDAMPath) {
         List<GCContent> filesContentList = new ArrayList<>();
-        for (Map.Entry<String, GCContent> gcContentEntry : gcItem.getContent().entrySet()) {
-            GCContent entryValue = gcContentEntry.getValue();
+        gcItem.getContent().forEach((key, entryValue) -> {
             if (GCElementType.COMPONENT.equals(entryValue.getType())) {
-                for (Map.Entry<String, GCContent> componentEntry : entryValue.getComponent().entrySet()) {
-                    if (GCElementType.FILES.equals(componentEntry.getValue().getType()) && isFileInMapping(mapping, componentEntry.getKey())) {
-                        filesContentList.add(componentEntry.getValue());
+                entryValue.getComponent().forEach((key1, value) -> {
+                    if (GCElementType.FILES.equals(value.getType()) && isFileInMapping(mapping, key1)) {
+                        filesContentList.add(value);
                     }
-                }
-            } else if (GCElementType.FILES.equals(entryValue.getType()) && isFileInMapping(mapping, gcContentEntry.getKey())) {
+                });
+            } else if (GCElementType.FILES.equals(entryValue.getType()) && isFileInMapping(mapping, key)) {
                 filesContentList.add(entryValue);
             }
-        }
+        });
         Map<String, Asset> assetMap = new HashMap<>();
 
-        for (GCContent filesContent : filesContentList) {
-            filesContent.getFiles().forEach(gcFile -> {
-                String parentPath = createAssetFolderStructure(gcItem, gcFile, importDAMPath);
-                if (StringUtils.isNotEmpty(parentPath)) {
-                    Asset asset = createAsset(gcContext, parentPath, gcFile, null, true);
-                    assetMap.put(gcFile.getFileId(), asset);
-                }
-            });
-        }
+        filesContentList.forEach(filesContent -> filesContent.getFiles().forEach(gcFile -> {
+            String parentPath = createAssetFolderStructure(gcItem, gcFile, importDAMPath);
+            if (StringUtils.isNotEmpty(parentPath)) {
+                Asset asset = createAsset(gcContext, parentPath, gcFile, null, true);
+                assetMap.put(gcFile.getFileId(), asset);
+            }
+        }));
         return assetMap;
     }
 
@@ -728,8 +728,6 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
         final String userpass = gcContext.getUsername() + ":" + gcContext.getApikey();
         final String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes(StandardCharsets.UTF_8));
         urlConnection.setRequestProperty("Authorization", basicAuth);
-        for (Map.Entry<String, String> entry : gcContext.getHeaders().entrySet()) {
-            urlConnection.setRequestProperty(entry.getKey(), entry.getValue());
-        }
+        gcContext.getHeaders().forEach(urlConnection::setRequestProperty);
     }
 }

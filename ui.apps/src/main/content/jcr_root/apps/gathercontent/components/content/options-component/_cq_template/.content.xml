@@ -4,7 +4,6 @@
           jcr:primaryType="nt:unstructured"
           source="local">
     <items
-            jcr:primaryType="nt:unstructured"
-            items="[]">
+            jcr:primaryType="nt:unstructured">
     </items>
 </jcr:root>

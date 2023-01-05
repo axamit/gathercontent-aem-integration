@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.felix.scr.annotations.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -127,8 +128,7 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
     }
 
     /**
-     * @inheritDoc
-     * @return
+     * @inheritDoc API v2.0
      */
     @Override
     public Integer createItem(final GCItem gcItem, final GCContext gcContext) throws GCException {
@@ -196,7 +196,10 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         return apiPostCall(url, gcContext, httpEntity);
     }
 
-
+    /**
+     * @return
+     * @inheritDoc API v2.0
+     */
     private static <T extends StringEntity> Map<String, String> apiPostCall(final String url, final GCContext gcContext,
                                                                             final T httpEntity) {
         HttpPost httpPost = new HttpPost(gcContext.getApiURL() + url);

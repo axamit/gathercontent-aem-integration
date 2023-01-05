@@ -294,7 +294,7 @@ public class MapperModel {
                     return gcTemplateFields;
             }
         }
-        return gcTemplateFields;
+        return Collections.unmodifiableList(gcTemplateFields);
     }
 
     public void setGcTemplateFields(List<GCTemplateField> gcTemplateFields) {
@@ -316,7 +316,7 @@ public class MapperModel {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return mapper;
+        return Collections.unmodifiableMap(mapper);
     }
 
     public void setMapper(final Map<String, FieldMappingProperties> mapper) {
@@ -337,7 +337,7 @@ public class MapperModel {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return metaMapper;
+        return Collections.unmodifiableMap(metaMapper);
     }
 
     public void setMetaMapper(final Map<String, String> metaMapper) {
@@ -361,7 +361,7 @@ public class MapperModel {
                 }
             }
         }
-        return fieldsMappings;
+        return Collections.unmodifiableMap(fieldsMappings);
     }
 
     /**
@@ -381,7 +381,7 @@ public class MapperModel {
                 }
             }
         }
-        return fieldsMappings;
+        return Collections.unmodifiableMap(fieldsMappings);
     }
 
     public String getProjectName() {
@@ -474,7 +474,7 @@ public class MapperModel {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return projects;
+        return Collections.unmodifiableMap(projects);
     }
 
     /**
@@ -516,7 +516,7 @@ public class MapperModel {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return templates;
+        return Collections.unmodifiableMap(templates);
     }
 
     public String getImportDAMPath() {
@@ -538,7 +538,7 @@ public class MapperModel {
         if (Constants.MAPPING_TYPE_EXPORT.equals(type)) {
             mappingSelector = Constants.MAPPING_EXPORT_SELECTOR;
         }
-        return page.getPath() + "." + mappingSelector + ".mapping-" + resource.getName() + ".html";
+        return (page != null ? page.getPath() : "") + "." + mappingSelector + ".mapping-" + resource.getName() + ".html";
     }
 
     public Resource getResource() {

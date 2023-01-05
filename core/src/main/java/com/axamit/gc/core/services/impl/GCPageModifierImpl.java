@@ -5,7 +5,10 @@
 package com.axamit.gc.core.services.impl;
 
 import com.axamit.gc.api.GCContext;
-import com.axamit.gc.api.dto.*;
+import com.axamit.gc.api.dto.GCContent;
+import com.axamit.gc.api.dto.GCElementType;
+import com.axamit.gc.api.dto.GCItem;
+import com.axamit.gc.api.dto.GCStatus;
 import com.axamit.gc.api.services.GCContentApi;
 import com.axamit.gc.api.services.GCContentNewApi;
 import com.axamit.gc.core.exception.GCException;
@@ -15,8 +18,8 @@ import com.axamit.gc.core.pojo.ImportResultItem;
 import com.axamit.gc.core.pojo.MappingType;
 import com.axamit.gc.core.services.AbstractPageModifier;
 import com.axamit.gc.core.services.GCPageModifier;
-import com.axamit.gc.core.services.plugins.GCPluginManager;
 import com.axamit.gc.core.services.plugins.GCPlugin;
+import com.axamit.gc.core.services.plugins.GCPluginManager;
 import com.axamit.gc.core.sightly.models.MapperModel;
 import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.GCStringUtil;
@@ -29,16 +32,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.api.resource.LoginException;
-import org.apache.sling.api.resource.ModifiableValueMap;
-import org.apache.sling.api.resource.PersistenceException;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ResourceResolverFactory;
-import org.apache.sling.api.resource.ResourceUtil;
+import org.apache.sling.api.resource.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -65,20 +64,40 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
     @Reference
     private GCPluginManager gcPluginManager;
 
-    private static GCItem createGCItem(final Integer projectId, final MapperModel mapperModel, final String folderUuid,
-                                       final String name) {
+    /**
+     * @return GCItem
+     * @inheritDoc API v2.0
+     */
+    private static GCItem createGCItem(final Integer projectId, final MapperModel mapperModel, final ImportItem item) {
         GCItem gcItem = new GCItem();
         if (mapperModel != null && MappingType.TEMPLATE == mapperModel.getMappingType()) {
             gcItem.setTemplateId(mapperModel.getTemplateId());
+            gcItem.setProjectId(projectId);
+            gcItem.setName(item.getTitle());
+            gcItem.setContent(fillContent(mapperModel));
         }
-//        if (mapperModel != null) {
-//            gcItem.setConfig(mapperModel.getGcGroups());
-//        }
-        gcItem.setProjectId(projectId);
-        gcItem.setFolderUuid(folderUuid);
-        gcItem.setName(name);
-
         return gcItem;
+    }
+
+    private static Map<String, GCContent> fillContent(final MapperModel mapperModel) {
+        Map<String, FieldMappingProperties> rawContent = mapperModel.getMapper();
+        HashMap<String, GCContent> content = new HashMap<>();
+        rawContent.forEach((key, value) -> content.put(key, createGContent(value)));
+        return content;
+    }
+
+    private static GCContent createGContent(FieldMappingProperties properties) {
+        GCContent gcContent = new GCContent(GCElementType.NOT_SUPPORTED_TYPE);
+        if (properties.getPath().get(0).endsWith("text") || properties.getPath().get(0).endsWith("title")) {
+            gcContent = new GCContent(GCElementType.TEXT);
+            gcContent.setText(properties.getPath().get(0));
+        } else if (properties.getPath().get(0).contains("options_component")) {
+            gcContent = new GCContent(GCElementType.OPTIONS);
+        } else if (properties.getPath().get(0).contains("files_component")) {
+            gcContent = new GCContent(GCElementType.FILES);
+        }
+        return gcContent;
+
     }
 
     private static String findOutFolderOrPage(PageManager pageManager, ImportItem importItem) {
@@ -130,10 +149,10 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
                         try {
                             GCPlugin gcPlugin = gcPluginManager.getPlugin(resourceResolver, configurationPath,
                                     gcContent.getType().getValue(), StringUtils.EMPTY, fieldMappingProperties.getPlugin());
-                            if (isNewEditorMultifieldElement(gcContext, gcContent)) {
-                                //TODO
-//                                gcContent.setType(GCElementType.MULTIVALUE_NEW_EDITOR);
-                            }
+//                            if (isNewEditorMultifieldElement(gcContext, gcContent)) {
+//                                //TODO
+////                                gcContent.setType(GCElementType.MULTIVALUE_NEW_EDITOR);
+//                            }
                             if (gcPlugin != null) {
                                 gcPlugin.transformFromAEMtoGC(resourceResolver, page, gcContent, propertyPath, propertyValue);
                             }
@@ -144,23 +163,26 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
                     }
                 }
             } else if (gcItem.getTemplateId() == null) {
-                if (GCElementType.TEXT.equals(gcContent.getType())) {
-                    gcContent.setText(StringUtils.EMPTY);
-                } /*else if (GCElementType.SECTION.equals(gcContent.getType())) {*/
-                    //TODO
+                switch (gcContent.getType()) {
+                    case TEXT:
+                        gcContent.setText(StringUtils.EMPTY);
+                        break;
+                }
+                //TODO
 //                    gcContent.setSubtitle(StringUtils.EMPTY);
 //                }
             }
         }
     }
 
-    private boolean isNewEditorMultifieldElement(GCContext gcContext, GCContent gcContent) {
-        GCElementType elementType = gcContent.getType();
-        return (GCElementType.CHOICE_CHECKBOX.equals(elementType) || GCElementType.CHOICE_RADIO.equals(elementType));
-    }
+//    private boolean isNewEditorMultifieldElement(GCContext gcContext, GCContent gcContent) {
+//        GCElementType elementType = gcContent.getType();
+//        return (GCElementType.CHOICE_CHECKBOX.equals(elementType) || GCElementType.CHOICE_RADIO.equals(elementType));
+//    }
 
     /**
-     * @inheritDoc
+     * @return List<ImportResultItem>
+     * @inheritDoc API v2.0
      */
     @Override
     public List<ImportResultItem> createPage(final List<ImportItem> importItemsToMerge, final GCContext gcContext,
@@ -172,24 +194,18 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
             GCItem gcItem = createMergedGCItem(importItemsToMerge, projectId, resourceResolver, pageManager, gcContext);
             if (gcItem != null) { //! Else? I would log and early break/return
                 Integer createdItemId = gcContentNewApi.createItem(gcItem, gcContext);
-                if (createdItemId != null) { //! Else? I would log and early break/return
-                    GCStatus statusData = new GCStatus();
+                if (createdItemId != 0) { //! Else? I would log and early break/return
+                    GCStatus statusData;
                     if (!importItemsToMerge.isEmpty() && importItemsToMerge.get(0).getNewStatusData().getId() != null
-                            && gContentApi.updateItemStatus(gcContext, createdItemId,
-                            importItemsToMerge.get(0).getNewStatusData().getId())) {
+                            && Boolean.TRUE.equals(gContentApi.updateItemStatus(gcContext, createdItemId,
+                            importItemsToMerge.get(0).getNewStatusData().getId()))) {
                         statusData = importItemsToMerge.get(0).getNewStatusData();
                     } else {
                         List<GCStatus> gcStatusList = gContentApi.statusesByProjectId(gcContext, projectId);
-                        for (GCStatus gcStatus : gcStatusList) {
-                            if (gcStatus.getIsDefault()) {
-                                statusData = gcStatus;
-                                break;
-                            }
-                        }
+                        statusData = gcStatusList.stream().filter(gcStatus -> Boolean.TRUE.equals(gcStatus.getIsDefault()))
+                                .findFirst().orElse(new GCStatus());
                     }
-                    for (ImportItem childItem : childrenItems) {
-                        childItem.setGcTargetItemId(createdItemId);
-                    }
+                    childrenItems.forEach(childItem -> childItem.setGcTargetItemId(String.valueOf(createdItemId)));
                     ImmutableList.Builder<ImportResultItem> importResultItemList = ImmutableList.builder();
                     for (ImportItem importItem : importItemsToMerge) {
                         updateGCSpecialPropertiesInAEMPage(resourceResolver, pageManager, gcItem.getProjectId(),
@@ -227,15 +243,19 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
         }
 
         ImmutableList.Builder<ImportResultItem> importResultItemList = ImmutableList.builder();
-        for (ImportItem importItem : importItemsToMerge) {
+        importItemsToMerge.forEach(importItem -> {
             LOGGER.error("Couldn't export AEM page {}", importItem.getImportPath());
             importResultItemList.add(new ImportResultItem().setImportStatus(ImportResultItem.NOT_IMPORTED)
                     .setGcTemplateName(importItem.getTemplate()).setAemLink(importItem.getImportPath())
                     .setAemTitle(importItem.getAemTitle()).setImportIndex(importItem.getImportIndex()));
-        }
+        });
         return importResultItemList.build();
     }
 
+    /**
+     * @return List<ImportResultItem>
+     * @inheritDoc API v2.0
+     */
     private GCItem createMergedGCItem(final Iterable<ImportItem> importItemsToMerge, final Integer projectId,
                                       final ResourceResolver resourceResolver, final PageManager pageManager, final GCContext gcContext) {
         GCItem gcItem = null;
@@ -249,9 +269,7 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
                     String pluginConfigPath = mapperModel.getPluginConfigPath();
                     //! First-time create in loop?
                     if (gcItem == null) {
-                        //TODO
-//                        gcItem =
-//                                createGCItem(projectId, mapperModel, importItem.getFolderUuid(), importItem.getTitle());
+                        gcItem = createGCItem(projectId, mapperModel, importItem);
                     }
                     if (mapping != null && page != null) {
                         for (Map.Entry<String, FieldMappingProperties> mapEntry : mapping.entrySet()) {
@@ -259,13 +277,13 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
                                     pluginConfigPath, gcContext);
                         }
                     } else {
-                        LOGGER.error("No mapped properties in the mapping \"{}\"", importItem.getMappingPath());
+                        LOGGER.error("No mapped properties in the mapping \"{}\"", importItem.getMappingName());
                         //! Break/return?
                     }
                 }
             } else {
                 //! Overwrite in loop?
-
+                LOGGER.error("No mapping path in the mapping \"{}\"", importItem.getMappingName());
                 //TODO
 //                gcItem = createGCItem(projectId, null, importItem.getFolderUuid(), importItem.getTitle());
             }
@@ -303,8 +321,7 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
                                     resourceResolver, pluginConfigPath, gcContext);
                         }
                     }
-//TODO
-//                    Boolean isUpdatedSuccessfully = gcContentNewApi.updateItem(gcItem.getConfig(), gcItem.getId(), gcContext);
+//TODO Boolean isUpdatedSuccessfully = gcContentNewApi.updateItem(gcItem.getConfig(), gcItem.getId(), gcContext);
                     boolean isUpdatedSuccessfully = false;
 
                     if (isUpdatedSuccessfully) {

@@ -18,6 +18,7 @@ import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.GCUtil;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -105,7 +106,6 @@ public final class AjaxMapperModel {
                     try {
                         gcTemplate = gcContentNewApi.template(gcContext, templateId);
                         templateName = gcTemplate.getData().getName();
-                        return;
                     } catch (GCException e) {
                         LOGGER.error(e.getMessage(), e);
                     }
@@ -129,7 +129,7 @@ public final class AjaxMapperModel {
                 }
             }
         }
-        return fieldsMappings;
+        return ImmutableMap.copyOf(fieldsMappings);
     }
 
     /**
@@ -147,7 +147,7 @@ public final class AjaxMapperModel {
                 }
             }
         }
-        return fieldsMappings;
+        return ImmutableMap.copyOf(fieldsMappings);
     }
 
     private String getDefaultPluginConfigPath() {

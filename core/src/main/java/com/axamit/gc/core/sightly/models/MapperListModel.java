@@ -20,10 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Sling model class which represents table with mapping list on mappings page.
@@ -92,8 +89,8 @@ public final class MapperListModel {
                 continue;
             }
             String type = mapperModel.getType();
-            if (isExport && Constants.MAPPING_TYPE_EXPORT.equals(type)
-                    || !isExport && !Constants.MAPPING_TYPE_EXPORT.equals(type)) {
+            if ((isExport && Constants.MAPPING_TYPE_EXPORT.equals(type))
+                    || (!isExport && !Constants.MAPPING_TYPE_EXPORT.equals(type))) {
                 Integer projectId = mapperModel.getProjectId();
                 Integer templateId = mapperModel.getTemplateId();
                 if (templateId != 0) {
@@ -148,7 +145,7 @@ public final class MapperListModel {
     }
 
     public List<MapperModel> getMappingList() {
-        return mappingList;
+        return Collections.unmodifiableList(mappingList);
     }
 
     public String getTypeLabel() {

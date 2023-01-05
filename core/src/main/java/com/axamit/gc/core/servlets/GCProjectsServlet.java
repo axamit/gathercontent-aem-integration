@@ -63,7 +63,7 @@ public final class GCProjectsServlet extends GCAbstractServlet {
                 final List<GCProject> gcProjects = gcContentApi.projects(gcContext, accountId);
                 final JSONArray jsonArray = new JSONArray();
                 for (GCProject gcProject : gcProjects) {
-                    if (!mapped || mappedProjectsIds != null && mappedProjectsIds.contains(gcProject.getId())) {
+                    if (!mapped || ((mappedProjectsIds != null) && mappedProjectsIds.contains(gcProject.getId()))) {
                         JSONUtil.addMappingEntry(jsonArray, gcProject.getName(), String.valueOf(gcProject.getId()), null);
                     }
                 }

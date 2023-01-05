@@ -167,15 +167,15 @@ public final class ItemListModel {
     }
 
     public List<GCProject> getProjects() {
-        return projects;
+        return Collections.unmodifiableList(projects);
     }
 
     public List<ImportUpdateTableItem> getItemList() {
-        return itemList;
+        return Collections.unmodifiableList(itemList);
     }
 
     public List<GCStatus> getProjectStatusList() {
-        return projectStatusList;
+        return Collections.unmodifiableList(projectStatusList);
     }
 
 }

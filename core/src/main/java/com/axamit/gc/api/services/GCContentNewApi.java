@@ -72,7 +72,7 @@ public interface GCContentNewApi {
      * @throws GCException If any error occurs during sending information to GatherContent.
      * @see <a href="https://gathercontent.com/developers/items/post-items/">Create an Item</a>
      */
-    Integer createItem(GCItem gcItem, GCContext gcContext) throws GCException;
+    int createItem(GCItem gcItem, GCContext gcContext) throws GCException;
 
     /**
      * Saves an Item with the newly updated data.

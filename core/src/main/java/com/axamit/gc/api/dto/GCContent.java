@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +55,7 @@ public final class GCContent {
     }
 
     public List<GCFile> getFiles() {
-        return files;
+        return Collections.unmodifiableList(files);
     }
 
     public GCContent setFiles(List<GCFile> files) {
@@ -63,7 +64,7 @@ public final class GCContent {
     }
 
     public List<GCOption> getOptions() {
-        return options;
+        return Collections.unmodifiableList(options);
     }
 
     public GCContent setOptions(List<GCOption> options) {
@@ -72,7 +73,7 @@ public final class GCContent {
     }
 
     public Map<String, GCContent> getComponent() {
-        return component;
+        return Collections.unmodifiableMap(component);
     }
 
     public GCContent setComponent(Map<String, GCContent> component) {

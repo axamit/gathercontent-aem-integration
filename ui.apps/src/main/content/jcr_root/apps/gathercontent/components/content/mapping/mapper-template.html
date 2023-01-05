@@ -39,11 +39,8 @@
 </template>
 
 <template data-sly-template.fieldTemplate="${@ mapper, element}">
-    <sly data-sly-test.isGuidelines="${element.type.toString == 'GUIDELINES'}"/>
-
-    <div data-sly-test="${!isGuidelines}"
-         class="mapper-element"
-         data-id="${element.uuid}" >
+    <div class="mapper-element"
+         data-id="${element.uuid}">
         <h4>[${element.type}] ${element.label}</h4>
         <select class="mapper-select" data-sly-list.entry="${mapper.fieldsMappings[element.uuid].entrySet}">
             <sly data-sly-test.selected=""/>

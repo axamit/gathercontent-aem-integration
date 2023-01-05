@@ -15,19 +15,20 @@ import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.GCStringUtil;
 import com.day.cq.dam.api.Asset;
 import com.day.cq.wcm.api.Page;
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Plugin for transformation 'choice_checkbox' and 'choice_radio' GatherContent types.
@@ -87,83 +88,51 @@ public final class OptionsPlugin implements GCPlugin {
 
     @Override
     public void transformFromAEMtoGC(final ResourceResolver resourceResolver, final Page page,
-                                     final GCContent gcContent, final String propertyPath, final String propertyValue)
-            throws RepositoryException {
-        //TODO
-//        if (resourceResolver != null && gcContent != null && propertyPath != null && propertyValue != null) {
-//            Resource valuesResource = resourceResolver.getResource(
-//                    GCStringUtil.appendNewLevelToPath(propertyPath, propertyValue));
-//            List<String> values = resolvePropertyValues(valuesResource);
-//
-//            Resource defaultValuesResource =
-//                    resourceResolver.getResource(GCStringUtil.appendNewLevelToPath(propertyPath,
-//                            Constants.DEFAULT_SELECTION_PN));
-//            List<String> defaultValues = resolvePropertyValues(defaultValuesResource);
-//
-//            List<GCOption> optionList = new ArrayList<>();
-
-//            if (gcContent.getType().equals(GCElementType.MULTIVALUE_NEW_EDITOR)) {
-//                optionList = gcElement.getOptions();
-//                Iterator<GCOption> optionIterator = optionList.iterator();
-//                Iterator<String> valueIterator = values.iterator();
-//                while (optionIterator.hasNext() && valueIterator.hasNext()) {
-//                    final String checkboxValue = valueIterator.next().split(VALUE_TEXT_SPLITTER)[VALUE_INDEX];
-//                    final boolean selected = defaultValues.contains(checkboxValue);
-//                    optionIterator.next().setSelected(selected);
-//                }
-//            } else {
-//                for (String value : values) {
-//                    GCOption gcOption = new GCOption();
-//                    gcOption.setName("op" + UUID.randomUUID());
-//                    gcOption.setLabel(value);
-//                    if (defaultValues.contains(value)) {
-//                        gcOption.setSelected(true);
-//                    } else {
-//                        gcOption.setSelected(false);
-//                    }
-//                    gcOption.setValue(null);
-//                    optionList.add(gcOption);
-//                }
-//            }
-//            if (!optionList.isEmpty()) {
-//                if (gcElement.getOtherOption() != null && gcElement.getOtherOption()) {
-//                    optionList.get(optionList.size() - 1)
-//                            .setEscapedValue(resolveOtherOptionPropertyValue(resourceResolver.getResource(propertyPath)));
-//                }
-//                gcElement.setOptions(optionList);
-//            }
-//        }
+                                     final GCContent gcContent, final String propertyPath, final String propertyValue) {
+       if (resourceResolver != null && gcContent != null && propertyPath != null && propertyValue != null) {
+           Resource resources = resourceResolver.getResource(propertyPath);
+           if (resources != null && resources.hasChildren()) {
+               List<GCOption> optionList = new ArrayList<>();
+               for (Resource resource : resources.getChildren()) {
+                   GCOption gcOption = new GCOption();
+                   gcOption.setId(UUID.randomUUID().toString());
+                   gcOption.setLabel(resource.getValueMap().get("value", String.class));
+                   optionList.add(gcOption);
+               }
+               gcContent.setOptions(optionList);
+           }
+        }
     }
 
-//    private static String resolveOtherOptionPropertyValue(Resource resource) {
-//        if (resource != null) {
-//            String otherOptionValue = (String) resource.getValueMap().get(Constants.OTHER_OPTION_PROPERTY_NAME);
-//            if (otherOptionValue != null) {
-//                return otherOptionValue;
-//            }
-//        }
-//        return "";
-//    }
-//
-//    private static List<String> resolvePropertyValues(Resource valuesResource) throws RepositoryException {
-//        if (valuesResource != null) {
-//            Property valuesProperty = valuesResource.adaptTo(Property.class);
-//            if (valuesProperty != null) {
-//                List<String> values = valuesProperty.isMultiple()
-//                        ? Arrays.asList(PropertiesUtil.toStringArray(valuesProperty.getValues(), new String[0]))
-//                        : ImmutableList.of(valuesProperty.getString());
-//                for (ListIterator<String> it = values.listIterator(); it.hasNext(); ) {
-//                    String value = it.next();
-//                    if (StringUtils.EMPTY.equals(value)) {
-//                        it.set(WHITESPACE_REPLACEMENT_FOR_EMPTY_LABEL);
-//                    }
-//                }
-//                return values;
-//
-//            }
-//        }
-//        return ImmutableList.of();
-//    }
+    private static String resolveOtherOptionPropertyValue(Resource resource) {
+        if (resource != null) {
+            String otherOptionValue = (String) resource.getValueMap().get(Constants.OTHER_OPTION_PROPERTY_NAME);
+            if (otherOptionValue != null) {
+                return otherOptionValue;
+            }
+        }
+        return "";
+    }
+
+    private static List<String> resolvePropertyValues(Resource valuesResource) throws RepositoryException {
+        if (valuesResource != null) {
+            Property valuesProperty = valuesResource.adaptTo(Property.class);
+            if (valuesProperty != null) {
+                List<String> values = valuesProperty.isMultiple()
+                        ? Arrays.asList(PropertiesUtil.toStringArray(valuesProperty.getValues(), new String[0]))
+                        : ImmutableList.of(valuesProperty.getString());
+                for (ListIterator<String> it = values.listIterator(); it.hasNext(); ) {
+                    String value = it.next();
+                    if (StringUtils.EMPTY.equals(value)) {
+                        it.set(WHITESPACE_REPLACEMENT_FOR_EMPTY_LABEL);
+                    }
+                }
+                return values;
+
+            }
+        }
+        return ImmutableList.of();
+    }
 
     private static void setMultipleStringProperty(final Node destinationNode, final List<String> stringValues) throws RepositoryException {
         if (!stringValues.isEmpty() && !destinationNode.hasNodes()) {

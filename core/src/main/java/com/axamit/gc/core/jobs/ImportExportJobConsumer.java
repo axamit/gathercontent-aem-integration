@@ -41,6 +41,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * OSGI service consumes Sling job with topic "com/axamit/gc/core/jobs/import" which performs parallel importing of
@@ -137,7 +139,7 @@ public final class ImportExportJobConsumer implements JobConsumer {
         newStatusData.setColor(importData.getNewStatusColor());
         newStatusData.setName(importData.getNewStatusName());
 
-        for (int index = 0; index < importItemList.size(); index++) {
+        IntStream.range(0, importItemList.size()).forEach(index -> {
             ImportItem importItem = importItemList.get(index);
             importItem.setImportIndex(index);
             importItem.setSlug(slug);
@@ -145,7 +147,7 @@ public final class ImportExportJobConsumer implements JobConsumer {
             if (importItem.getImportPath() == null || importItem.getImportPath().isEmpty()) {
                 importItem.setImportPath(Constants.DEFAULT_IMPORT_PATH);
             }
-        }
+        });
 
         final ImportModel importModel = new ImportModel();
         importModel.setJobId(job.getId());
@@ -155,32 +157,28 @@ public final class ImportExportJobConsumer implements JobConsumer {
         importModel.setImportId(Long.toString(Calendar.getInstance().getTimeInMillis()));
         importModel.setJobType(GCUtil.getJobType(isUpdate, isExportToGC));
 
-        if (!isUpdate && !isExportToGC) {
+        if (Boolean.TRUE.equals(!isUpdate) && Boolean.TRUE.equals(!isExportToGC)) {
             final Map<String, Integer> mapPageCount = new HashMap<>();
-            for (final ImportItem importItem : importItemList) {
-                createPagesAndSetImportPaths(importItem, mapPageCount);
-            }
+            importItemList.forEach(importItem -> createPagesAndSetImportPaths(importItem, mapPageCount));
         }
 
         final ImportStatResult importStatResult = new ImportStatResult(Collections.synchronizedList(new ArrayList<>()));
-        if (!isUpdate && isExportToGC) {
+        if (Boolean.TRUE.equals(!isUpdate) && Boolean.TRUE.equals(isExportToGC)) {
             exportHierarchically(importItemList, gcContext, importModel, importStatResult, statusStore, projectId);
         }
 
         ImmutableList.Builder<Callable<Void>> callableList = ImmutableList.builder();
         if (!(isExportToGC && !isUpdate)) {
-            for (final ImportItem importItem : importItemList) {
-                callableList.add(() -> {
-                    ImportResultItem gcPage = isExportToGC
-                            ? gcPageModifier.updatePage(gcContext, importItem)
-                            : aemPageModifier.updatePage(gcContext, importItem);
-                    importModel.increment();
-                    importStatResult.getImportedPages().add(gcPage);
-                    setImportModelStatus(importModel, importStatResult);
-                    updateStatus(importStatResult, statusStore, importModel);
-                    return null;
-                });
-            }
+            importItemList.stream().<Callable<Void>>map(importItem -> () -> {
+                ImportResultItem gcPage = Boolean.TRUE.equals(isExportToGC)
+                        ? gcPageModifier.updatePage(gcContext, importItem)
+                        : aemPageModifier.updatePage(gcContext, importItem);
+                importModel.increment();
+                importStatResult.getImportedPages().add(gcPage);
+                setImportModelStatus(importModel, importStatResult);
+                updateStatus(importStatResult, statusStore, importModel);
+                return null;
+            }).forEach(callableList::add);
         }
         try {
             poolProvider.invokeAll(callableList.build());
@@ -249,25 +247,18 @@ public final class ImportExportJobConsumer implements JobConsumer {
 
         while (!importItemList.isEmpty()) {
             //get one level items
-            Collection<ImportItem> oneLevelItems = new ArrayList<>();
+            Collection<ImportItem> oneLevelItems;
             ImportItem importItem = importItemList.get(0);
-            for (ImportItem forItem : importItemList) {
-                if (forItem.getGcTargetItemName() != null && importItem.getGcTargetItemName() != null
-                        && forItem.getImportPath() != null && importItem.getImportPath() != null
-                        && forItem.getGcTargetItemName().equals(importItem.getGcTargetItemName())
-                        && StringUtils.countMatches(forItem.getImportPath(), "/") == StringUtils.
-                        countMatches(importItem.getImportPath(), "/")) {
-                    oneLevelItems.add(forItem);
-                }
-            }
+            oneLevelItems = importItemList.stream().filter(forItem -> forItem.getGcTargetItemName() != null && importItem.getGcTargetItemName() != null
+                    && forItem.getImportPath() != null && importItem.getImportPath() != null
+                    && forItem.getGcTargetItemName().equals(importItem.getGcTargetItemName())
+                    && StringUtils.countMatches(forItem.getImportPath(), "/") == StringUtils.
+                    countMatches(importItem.getImportPath(), "/")).collect(Collectors.toList());
 
             //get merge items groups
-            Collection<List<ImportItem>> duplicatedAfterMergeItems = new HashSet<>();
-
-            for (ImportItem item : oneLevelItems) {
-                final List<ImportItem> itemsToMerge = findExportItemsToMerge(item, importItemList);
-                duplicatedAfterMergeItems.add(itemsToMerge);
-            }
+            Collection<List<ImportItem>> duplicatedAfterMergeItems = oneLevelItems.stream()
+                    .map(item -> findExportItemsToMerge(item, importItemList))
+                    .collect(Collectors.toSet());
 
             //get rest items, without current one level items
             importItemList.removeAll(oneLevelItems);
@@ -275,11 +266,9 @@ public final class ImportExportJobConsumer implements JobConsumer {
             //export one level items
 
             Collection<Callable<Void>> callableList = new ArrayList<>();
-            for (final List<ImportItem> itemsToMerge : duplicatedAfterMergeItems) {
-                final List<ImportItem> childrenItems = new ArrayList<>();
-                for (ImportItem itemToMerge : itemsToMerge) {
-                    childrenItems.addAll(findChildrenExportItems(itemToMerge, importItemList));
-                }
+            duplicatedAfterMergeItems.forEach(itemsToMerge -> {
+                final List<ImportItem> childrenItems = itemsToMerge.stream().flatMap(itemToMerge -> findChildrenExportItems(itemToMerge, importItemList)
+                        .stream()).collect(Collectors.toList());
                 callableList.add(() -> {
                     List<ImportResultItem> gcPages = gcPageModifier.createPage(itemsToMerge, gcContext, childrenItems, projectId);
                     importModel.incrementOnValue(gcPages.size());
@@ -287,7 +276,7 @@ public final class ImportExportJobConsumer implements JobConsumer {
                     updateStatus(importStatResult, statusStore, importModel);
                     return null;
                 });
-            }
+            });
             try {
                 waitForCallableList(callableList);
             } catch (InterruptedException e) {
@@ -339,10 +328,8 @@ public final class ImportExportJobConsumer implements JobConsumer {
     }
 
     private void encodeImportItemTitle(final List<ImportItem> items) {
-        for (ImportItem item : items) {
-            for (Map.Entry<String, String> entry : SYMBOL_MAP.entrySet()) {
-                item.setTitle(item.getTitle().replaceAll(entry.getKey(), entry.getValue()));
-            }
-        }
+        items.forEach(item -> {
+            SYMBOL_MAP.forEach((key, value) -> item.setTitle(item.getTitle().replaceAll(key, value)));
+        });
     }
 }

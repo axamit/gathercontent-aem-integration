@@ -6,6 +6,8 @@ package com.axamit.gc.core.sightly.helpers;
 
 import com.axamit.gc.core.util.Constants;
 
+import java.util.Arrays;
+
 /**
  * Enum represents page renderer names.
  *
@@ -40,12 +42,9 @@ public enum Renderer {
      * @return enum element.
      */
     public static Renderer of(final String code) {
-        for (Renderer argument : Renderer.values()) {
-            if (argument.getType().equalsIgnoreCase(code)) {
-                return argument;
-            }
-        }
-        return null;
+        return Arrays.stream(Renderer.values())
+                .filter(argument -> argument.getType().equalsIgnoreCase(code))
+                .findFirst().orElse(null);
     }
 
     public String getType() {

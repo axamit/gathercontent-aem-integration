@@ -24,6 +24,7 @@ import javax.inject.Inject;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -62,18 +63,18 @@ public final class PluginsConfigurationModel {
             return ImmutableMap.of();
         }
         final ImmutableMap.Builder<String, Map<String, String>> plugins = ImmutableMap.builder();
-        for (GCElementType gcElementType : GCElementType.values()) {
+        Arrays.stream(GCElementType.values()).forEach(gcElementType -> {
             try {
                 final String type = gcElementType.getValue();
                 if (!configNode.hasProperty(type)) {
                     LOGGER.debug("Configuration node doesn't have property\"{}\", skipping", type);
-                    continue;
+                    return;
                 }
                 plugins.put(type, scanProperties(configNode, type));
             } catch (RepositoryException | GCException e) {
                 LOGGER.error(e.getMessage(), e);
             }
-        }
+        });
         return plugins.build();
     }
 
@@ -105,7 +106,7 @@ public final class PluginsConfigurationModel {
      * @return <code>Map</code>&lt;GC element type, <code>Map</code> &lt;GC field name, Plugin PID&gt;&gt;
      */
     public Map<String, Map<String, String>> getPluginsMap() {
-        return pluginsMap;
+        return ImmutableMap.copyOf(pluginsMap);
     }
 
     public Resource getResource() {

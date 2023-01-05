@@ -36,14 +36,14 @@ public class GCItemsJSONTreeServlet extends GCAbstractServlet {
     @Override
     protected final void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            final Integer projectId = NumberUtils.toInt(request.getRequestPathInfo().getSelectors()[1], 0);
-            final List<GCItem> items = gcContentNewApi.itemsByProjectId(getGCContext(request), projectId);
+//        try {
+//            final Integer projectId = NumberUtils.toInt(request.getRequestPathInfo().getSelectors()[1], 0);
+//            final List<GCItem> items = gcContentNewApi.itemsByProjectId(getGCContext(request), projectId);
 //            final GCFolder foldersTreeByProjectId = api.foldersTreeByProjectId(getGCContext(request), projectId);
 
-            Map<Integer, List<TreeNode>> parentChild = new HashMap<>();
+//            Map<Integer, List<TreeNode>> parentChild = new HashMap<>();
 
-            for (GCItem gcItem : items) {
+//            for (GCItem gcItem : items) {
 //                putItemToFolderTree(foldersTreeByProjectId, gcItem);
 
 
@@ -57,7 +57,7 @@ public class GCItemsJSONTreeServlet extends GCAbstractServlet {
 //                    parentChild.put(Integer.valueOf(gcItem.getParentId()), new LinkedList<TreeNode>());
 //                    parentChild.get(parentId).add(new TreeNode(gcItem));
 //                }
-            }
+//            }
 //            TreeNode root = new TreeNode();
 //            root.setId(NumberUtils.INTEGER_ZERO);
 //            root.setText(ROOT_ITEM_TEXT);
@@ -68,16 +68,16 @@ public class GCItemsJSONTreeServlet extends GCAbstractServlet {
 //            String jsonString = JSONUtil.fromObjectToJsonString(foldersTreeByProjectId);
 
 //            response.getWriter().print(jsonString);
-        } catch (GCException e) {
-            LOGGER.error(e.getMessage(), e);
-        }
+//        } catch (GCException e) {
+//            LOGGER.error(e.getMessage(), e);
+//        }
 
     }
 
     private boolean putItemToFolderTree(final GCFolder gcFolder, final GCItem gcItem) {
         if (gcItem.getFolderUuid().equals(gcFolder.getUuid())) {
             if (gcFolder.getItems() == null) {
-                gcFolder.setItems(new ArrayList<>(Arrays.asList(gcItem)));
+                gcFolder.setItems(new ArrayList<>(Collections.singletonList(gcItem)));
             } else {
                 gcFolder.getItems().add(gcItem);
             }
@@ -146,7 +146,7 @@ public class GCItemsJSONTreeServlet extends GCAbstractServlet {
         }
 
         public List<TreeNode> getChildren() {
-            return children;
+            return Collections.unmodifiableList(children);
         }
 
         void setChildren(final List<TreeNode> children) {
