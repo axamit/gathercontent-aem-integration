@@ -28,6 +28,7 @@ import com.axamit.gc.core.util.ResourceResolverUtil;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -83,7 +84,7 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
         Map<String, FieldMappingProperties> rawContent = mapperModel.getMapper();
         HashMap<String, GCContent> content = new HashMap<>();
         rawContent.forEach((key, value) -> content.put(key, createGContent(value)));
-        return content;
+        return ImmutableMap.copyOf(content);
     }
 
     private static GCContent createGContent(FieldMappingProperties properties) {

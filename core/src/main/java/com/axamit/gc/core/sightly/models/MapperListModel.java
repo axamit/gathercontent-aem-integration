@@ -12,6 +12,7 @@ import com.axamit.gc.api.services.GCConfiguration;
 import com.axamit.gc.api.services.GCContentNewApi;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.util.Constants;
+import com.google.common.collect.ImmutableList;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.models.annotations.Model;
@@ -145,7 +146,7 @@ public final class MapperListModel {
     }
 
     public List<MapperModel> getMappingList() {
-        return Collections.unmodifiableList(mappingList);
+        return ImmutableList.copyOf(mappingList);
     }
 
     public String getTypeLabel() {

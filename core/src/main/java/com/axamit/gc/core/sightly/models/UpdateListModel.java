@@ -17,6 +17,7 @@ import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.GCUtil;
 import com.day.cq.wcm.api.NameConstants;
 import com.day.cq.wcm.api.PageManager;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -215,11 +216,11 @@ public final class UpdateListModel {
     }
 
     public List<GCProject> getProjects() {
-        return Collections.unmodifiableList(projects);
+        return ImmutableList.copyOf(projects);
     }
 
     public List<ImportUpdateTableItem> getItemList() {
-        return Collections.unmodifiableList(itemList);
+        return ImmutableList.copyOf(itemList);
     }
 
     /**

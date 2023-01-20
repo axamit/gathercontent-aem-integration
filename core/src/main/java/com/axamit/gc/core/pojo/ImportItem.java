@@ -7,6 +7,7 @@ package com.axamit.gc.core.pojo;
 import com.axamit.gc.api.dto.GCStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -121,7 +122,7 @@ public final class ImportItem {
      * @return List of children items.
      */
     public List<ImportItem> getChildren() {
-        return Collections.unmodifiableList(children);
+        return ImmutableList.copyOf(children);
     }
 
     public void setChildren(final List<ImportItem> children) {

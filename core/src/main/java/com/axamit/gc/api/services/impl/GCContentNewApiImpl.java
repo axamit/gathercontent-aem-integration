@@ -6,17 +6,17 @@ package com.axamit.gc.api.services.impl;
 
 import com.adobe.granite.license.ProductInfoService;
 import com.axamit.gc.api.GCContext;
-import com.axamit.gc.api.dto.GCFolder;
-import com.axamit.gc.api.dto.GCItem;
-import com.axamit.gc.api.dto.GCTemplate;
-import com.axamit.gc.api.dto.GCTemplateData;
+import com.axamit.gc.api.dto.*;
 import com.axamit.gc.api.services.GCContentNewApi;
 import com.axamit.gc.core.exception.GCException;
+import com.axamit.gc.core.util.GCStringUtil;
 import com.axamit.gc.core.util.GCUtil;
 import com.axamit.gc.core.util.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -29,6 +29,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -36,9 +37,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * OSGI service implements <tt>GCContentApi</tt> interface provides methods to get information from remote
@@ -62,6 +66,16 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
     private static final String FOLDERS_BY_PROJECT_ID = "/projects/%s/folders";
     private static final String ITEMS_BY_PROJECT_ID = "/projects/%s/items";
     private static final String UPDATE_ITEM_BY_ID = "/items/%s/content";
+    private static final String PARAM_PROJECT_ID = "project_id";
+    private static final String PARAM_NAME = "name";
+    private static final String PARAM_TEMPLATE_ID = "template_id";
+    public static final String STRUCTURE = "structure";
+    public static final String STATUS_ID = "status_id";
+    public static final String FOLDER_UUID = "folder_uuid";
+    public static final String POSITION = "position";
+    public static final String CONTENT = "content";
+
+    static final Pattern DOUBLE_QUOTES_PATTERN = Pattern.compile("^\"|\"$");
 
     private static String userAgentInfo;
 
@@ -102,7 +116,7 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         String content = GCUtil.apiCall(String.format(TEMPLATES_BY_PROJECT_ID, projectID), gcContext, userAgentInfo, true);
         JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
         String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
-        return JSONUtil.fromJsonToListObject(extractedResult, GCTemplateData.class);
+        return ImmutableList.copyOf(JSONUtil.fromJsonToListObject(extractedResult, GCTemplateData.class));
     }
 
     /**
@@ -124,35 +138,48 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         String content = GCUtil.apiCall(String.format(ITEMS_BY_PROJECT_ID, projectId), gcContext, userAgentInfo, true);
         JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
         String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
-        return JSONUtil.fromJsonToListObject(extractedResult, GCItem.class);
+        return ImmutableList.copyOf(JSONUtil.fromJsonToListObject(extractedResult, GCItem.class));
     }
 
     /**
      * @inheritDoc API v2.0
      */
     @Override
-    public Integer createItem(final GCItem gcItem, final GCContext gcContext) throws GCException {
+    public int createItem(final GCItem gcItem, final GCContext gcContext) throws GCException {
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair(PARAM_NAME, gcItem.getName()));
+        params.add(new BasicNameValuePair(PARAM_TEMPLATE_ID, Integer.toString(gcItem.getTemplateId())));
+        if (gcItem.getTemplateId() == 0) {
+            GCTemplateStructure gcTemplateStructure = template(gcContext, gcItem.getTemplateId()).getRelated().getStructure();
+            if (gcTemplateStructure != null && gcTemplateStructure.getGroups() != null) {
+                params.add(new BasicNameValuePair(STRUCTURE, JSONUtil.fromObjectToJsonString(gcTemplateStructure)));
+            }
+        }
+        if(gcItem.getStatusId() != null){
+            params.add(new BasicNameValuePair(STATUS_ID, Integer.toString(gcItem.getStatusId())));
+        }
+        if(StringUtils.isNotBlank(gcItem.getFolderUuid())){
+            params.add(new BasicNameValuePair(FOLDER_UUID, gcItem.getFolderUuid()));
+        }
+        if(gcItem.getPosition() != null){
+            params.add(new BasicNameValuePair(POSITION, Integer.toString(gcItem.getPosition())));
+        }
+        if(!gcItem.getContent().isEmpty()) {
+            Map<String, GCContent> gcContentMap = gcItem.getContent();
+            Map<String, String> stringMap = new HashMap<>();
+                    gcContentMap.entrySet().stream()
+                    .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty())
+                    .forEach(entry -> stringMap.put(entry.getKey(), entry.getValue().getText()));
+                    String contentJson = DOUBLE_QUOTES_PATTERN.matcher(JSONUtil.fromObjectToJsonString(stringMap)).replaceAll("");
+            params.add(new BasicNameValuePair(CONTENT, contentJson));
+        }
 
-        //TODO
-//        List<NameValuePair> params = new ArrayList<>();
-//        params.add(new BasicNameValuePair(PARAM_PROJECT_ID, gcItem.getProjectId()));
-//        params.add(new BasicNameValuePair(PARAM_NAME, gcItem.getName()));
-//        if (StringUtils.isNotEmpty(gcItem.getParentId()) && !StringUtils.equals(gcItem.getParentId(), PARAM_ROOT)) {
-//            params.add(new BasicNameValuePair(PARAM_PARENT_ID, gcItem.getParentId()));
-//        }
-//        if (StringUtils.isNotEmpty(gcItem.getTemplateId())) {
-//            params.add(new BasicNameValuePair(PARAM_TEMPLATE_ID, gcItem.getTemplateId()));
-//        }
-//        List<GCContent> gcContent = gcItem.getContent();
-//        if (gcContent != null && gcContent.size() != NumberUtils.INTEGER_ZERO) {
-////            addNewEditorRequestParams(params, gcContent);
-//        }
-//        Map<String, String> returnObject = newApiPostCall("/items/create/", gcContext, params);
-//        String id = GCStringUtil.getLastURLPartOrNull(returnObject.get(ID_PARAMETER));
-//        if (Boolean.parseBoolean(returnObject.get(SUCCESS_POST_CALL_FLAG))) {
-//            return id;
-//        }
-        return null;
+        Map<String, String> returnObject = apiPostCall("/projects/" + gcItem.getProjectId() + "/items", gcContext, params);
+        int id = 0;
+        if(GCStringUtil.getLastURLPartOrNull(returnObject.get(ID_PARAMETER)) != null){
+            id = Integer.parseInt(GCStringUtil.getLastURLPartOrNull(returnObject.get(ID_PARAMETER)));
+        }
+        return Boolean.parseBoolean(returnObject.get(SUCCESS_POST_CALL_FLAG)) ? id : 0;
     }
 
     /**
@@ -174,7 +201,7 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         String content = GCUtil.apiCall(String.format(FOLDERS_BY_PROJECT_ID, projectId), gcContext, userAgentInfo, true);
         JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
         String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
-        return JSONUtil.fromJsonToListObject(extractedResult, GCFolder.class);
+        return ImmutableList.copyOf(JSONUtil.fromJsonToListObject(extractedResult, GCFolder.class));
     }
 
     private StringEntity buildHttpUpdateEntity(final GCItem gcItem) {
@@ -247,6 +274,6 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         } catch (GCException e) {
             LOGGER.error("Getting ID from HttpResponse failed. {}", e.getMessage());
         }
-        return returnObject;
+        return ImmutableMap.copyOf(returnObject);
     }
 }

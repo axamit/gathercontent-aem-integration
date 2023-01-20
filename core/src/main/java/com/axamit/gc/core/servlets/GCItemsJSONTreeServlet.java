@@ -8,6 +8,7 @@ package com.axamit.gc.core.servlets;
 import com.axamit.gc.api.dto.GCFolder;
 import com.axamit.gc.api.dto.GCItem;
 import com.axamit.gc.core.exception.GCException;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -146,7 +147,7 @@ public class GCItemsJSONTreeServlet extends GCAbstractServlet {
         }
 
         public List<TreeNode> getChildren() {
-            return Collections.unmodifiableList(children);
+            return ImmutableList.copyOf(children);
         }
 
         void setChildren(final List<TreeNode> children) {

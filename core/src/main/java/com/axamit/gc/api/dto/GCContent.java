@@ -8,6 +8,11 @@ import com.axamit.gc.api.dto.helpers.GCContentDeserializer;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +60,7 @@ public final class GCContent {
     }
 
     public List<GCFile> getFiles() {
-        return Collections.unmodifiableList(files);
+        return ImmutableList.copyOf(files);
     }
 
     public GCContent setFiles(List<GCFile> files) {
@@ -64,7 +69,7 @@ public final class GCContent {
     }
 
     public List<GCOption> getOptions() {
-        return Collections.unmodifiableList(options);
+        return ImmutableList.copyOf(options);
     }
 
     public GCContent setOptions(List<GCOption> options) {
@@ -73,11 +78,31 @@ public final class GCContent {
     }
 
     public Map<String, GCContent> getComponent() {
-        return Collections.unmodifiableMap(component);
+        return ImmutableMap.copyOf(component);
     }
 
     public GCContent setComponent(Map<String, GCContent> component) {
         this.component = component;
         return this;
+    }
+
+    public boolean isEmpty() {
+        return type == null || StringUtils.isBlank(text);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        GCContent gcContent = (GCContent) o;
+
+        return new EqualsBuilder().append(getType(), gcContent.getType()).append(getText(), gcContent.getText()).append(getFiles(), gcContent.getFiles()).append(getOptions(), gcContent.getOptions()).append(getComponent(), gcContent.getComponent()).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(getType()).append(getText()).append(getFiles()).append(getOptions()).append(getComponent()).toHashCode();
     }
 }
