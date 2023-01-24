@@ -1,7 +1,7 @@
 # GatherContent AEM integration v2.0
 [![Image of Integration](https://github.com/AntoniBertel/GatherContentAssets/blob/master/GC-AEM.png)](https://gathercontent.com/)
 
-https://img.shields.io/github/status/contexts/pulls/axamit/gathercontent-aem-integration/1
+[![pull request check](https://img.shields.io/github/status/contexts/pulls/axamit/gathercontent-aem-integration/1)](https://gathercontent.com/)
 
 GatherContent’s AEM integration allows content editors to import and update content from GatherContent to AEM. Editors are able to specify import mappings, defining which templates and fields should be mapped and then imported or updated. The integration also allows content editors to update the GatherContent workflow status for all items that are successfully imported or updated.
 
