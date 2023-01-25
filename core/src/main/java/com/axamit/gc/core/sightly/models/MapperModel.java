@@ -20,6 +20,8 @@ import com.axamit.gc.core.util.JSONUtil;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.Resource;
@@ -140,7 +142,7 @@ public class MapperModel {
         final ResourceResolver resourceResolver = configResource.getResourceResolver();
         PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
         Page containingPage = pageManager.getContainingPage(configResource);
-        Resource configListResource = containingPage.getContentResource().getChild(Constants.PLUGINS_CONFIG_LIST_NN);
+        Resource configListResource = containingPage != null ? containingPage.getContentResource().getChild(Constants.PLUGINS_CONFIG_LIST_NN) : null;
         if (configListResource != null) {
             PluginsConfigurationListModel model = configListResource.adaptTo(PluginsConfigurationListModel.class);
             if (model != null && !model.isEmpty()) {
@@ -148,7 +150,10 @@ public class MapperModel {
             }
         }
         Resource defaultPluginsConfig =
-            gcPluginManager.getOrCreateDefaultPluginsConfig(resourceResolver, containingPage.getContentResource());
+                null;
+        if (containingPage != null) {
+            defaultPluginsConfig = gcPluginManager.getOrCreateDefaultPluginsConfig(resourceResolver, containingPage.getContentResource());
+        }
         if (defaultPluginsConfig == null) {
             //! Log
             return null;
@@ -291,10 +296,10 @@ public class MapperModel {
                     if (gcTemplate != null) {
                         gcTemplateFields = GCUtil.getFieldsByTemplate(gcTemplate);
                     }
-                    return gcTemplateFields;
+                    return ImmutableList.copyOf(gcTemplateFields);
             }
         }
-        return gcTemplateFields;
+        return ImmutableList.copyOf(gcTemplateFields);
     }
 
     public void setGcTemplateFields(List<GCTemplateField> gcTemplateFields) {
@@ -316,7 +321,7 @@ public class MapperModel {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return mapper;
+        return mapper != null ? ImmutableMap.copyOf(mapper) : Collections.emptyMap();
     }
 
     public void setMapper(final Map<String, FieldMappingProperties> mapper) {
@@ -337,7 +342,7 @@ public class MapperModel {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return metaMapper;
+        return ImmutableMap.copyOf(metaMapper);
     }
 
     public void setMetaMapper(final Map<String, String> metaMapper) {
@@ -361,7 +366,7 @@ public class MapperModel {
                 }
             }
         }
-        return fieldsMappings;
+        return ImmutableMap.copyOf(fieldsMappings);
     }
 
     /**
@@ -381,7 +386,7 @@ public class MapperModel {
                 }
             }
         }
-        return fieldsMappings;
+        return ImmutableMap.copyOf(fieldsMappings);
     }
 
     public String getProjectName() {
@@ -474,7 +479,7 @@ public class MapperModel {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return projects;
+        return projects != null ? ImmutableMap.copyOf(projects) : Collections.emptyMap();
     }
 
     /**
@@ -506,9 +511,7 @@ public class MapperModel {
                         case TEMPLATE:
                         default:
                             List<GCTemplateData> gcTemplates = gcContentNewApi.templates(gcContext, projectId);
-                            for (GCTemplateData gcTemplate : gcTemplates) {
-                                templates.put(gcTemplate.getId(), gcTemplate.getName());
-                            }
+                            gcTemplates.forEach(gcTemp -> templates.put(gcTemp.getId(), gcTemp.getName()));
                             break;
                     }
                 }
@@ -516,7 +519,7 @@ public class MapperModel {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return templates;
+        return templates != null && !templates.isEmpty() ? ImmutableMap.copyOf(templates) : Collections.emptyMap();
     }
 
     public String getImportDAMPath() {
@@ -538,7 +541,7 @@ public class MapperModel {
         if (Constants.MAPPING_TYPE_EXPORT.equals(type)) {
             mappingSelector = Constants.MAPPING_EXPORT_SELECTOR;
         }
-        return page.getPath() + "." + mappingSelector + ".mapping-" + resource.getName() + ".html";
+        return (page != null ? page.getPath() : "") + "." + mappingSelector + ".mapping-" + resource.getName() + ".html";
     }
 
     public Resource getResource() {

@@ -109,7 +109,7 @@ public enum GCUtil {
         PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
         Page containingPage = pageManager.getContainingPage(resource);
         String sidePredicate = getSidePredicate(side);
-        String query = String.format(NON_EMPTY_MAPPING_QUERY, containingPage.getPath(), sidePredicate);
+        String query = String.format(NON_EMPTY_MAPPING_QUERY, containingPage != null ? containingPage.getPath() : "", sidePredicate);
         Iterator<Resource> mappingResources = resourceResolver.findResources(query, Query.JCR_SQL2);
         while (mappingResources.hasNext()) {
             Resource mappingResource = mappingResources.next();
@@ -143,24 +143,18 @@ public enum GCUtil {
     /**
      * Receive collection of mappings for project.
      *
-     * @param resource  Resource of current cloudservice configuration or any of its children resources.
+     * @param resourcePage  Page of current cloudservice configuration or any of its children resources.
      * @param projectId ID of project to search in.
      * @param isExport  True for export.
      * @return Map of mapped templates
      */
-    public static Map<String, Map<String, String>> getProjectMappings(final Resource resource, final int projectId,
+    public static Map<String, Map<String, String>> getProjectMappings(final Page resourcePage, final int projectId,
                                                                       final boolean isExport) {
         Map<String, Map<String, String>> mappings = new HashMap<>();
-        ResourceResolver resourceResolver = resource.getResourceResolver();
-        PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
-        Page containingPage = pageManager.getContainingPage(resource);
-        //TODO empty??
-        if (containingPage == null) {
-            return mappings;
-        }
-        String query = String.format(MAPPINGS_BY_PROJECTID_QUERY, containingPage.getPath(), projectId,
+        String query = String.format(MAPPINGS_BY_PROJECTID_QUERY, resourcePage.getPath(), projectId,
                 isExport ? EXPORT_MAPPING_QUERY_PREDICATE : IMPORT_MAPPING_QUERY_PREDICATE);
-        Iterator<Resource> mappingResources = resourceResolver.findResources(query, Query.JCR_SQL2);
+        ResourceResolver rr = Objects.requireNonNull(resourcePage.getContentResource()).getResourceResolver();
+        Iterator<Resource> mappingResources = rr.findResources(query, Query.JCR_SQL2);
         while (mappingResources.hasNext()) {
             Resource mapping = mappingResources.next();
             ValueMap valueMap = mapping.adaptTo(ValueMap.class);
@@ -189,7 +183,7 @@ public enum GCUtil {
         PageManager pageManager = resourceResolver.adaptTo(PageManager.class);
         Page containingPage = pageManager.getContainingPage(resource);
         String sidePredicate = getSidePredicate(side);
-        String query = String.format(NON_EMPTY_MAPPING_QUERY, containingPage.getPath(), sidePredicate);
+        String query = String.format(NON_EMPTY_MAPPING_QUERY, containingPage != null ? containingPage.getPath() : "", sidePredicate);
         Iterator<Resource> mappingResources = resourceResolver.findResources(query, Query.JCR_SQL2);
         while (mappingResources.hasNext()) {
             Resource mappingResource = mappingResources.next();
@@ -248,11 +242,7 @@ public enum GCUtil {
         //then we use projectId from selectors
         List<GCProject> projects = gcContentApi.projects(gcContext, accountId);
         Set<Integer> mappedProjectsIds = getMappedProjectsIds(request.getResource(), side);
-        for (GCProject gcProject : projects) {
-            if (mappedProjectsIds.contains(gcProject.getId())) {
-                listProjects.add(gcProject);
-            }
-        }
+        projects.stream().filter(gcProject -> mappedProjectsIds.contains(gcProject.getId())).forEachOrdered(listProjects::add);
         if (projectIdFromSelector != null) {
             for (GCProject project : listProjects) {
                 final int projectId = NumberUtils.toInt(projectIdFromSelector, 0);
@@ -265,12 +255,10 @@ public enum GCUtil {
     }
 
     private static String findSelector(String[] selectors) {
-        for (String selector : selectors) {
-            if (selector.startsWith(Constants.PROJECT_ID_SELECTOR)) {
-                return selector.substring(Constants.PROJECT_ID_SELECTOR.length());
-            }
-        }
-        return null;
+        return Arrays.stream(selectors)
+                .filter(selector -> selector.startsWith(Constants.PROJECT_ID_SELECTOR))
+                .findFirst().map(selector -> selector.substring(Constants.PROJECT_ID_SELECTOR.length()))
+                .orElse(null);
     }
 
     /**
@@ -379,14 +367,8 @@ public enum GCUtil {
         if (parentId == null || name == null) {
             return name;
         }
-        String result = name;
-        for (GCHierarchySortable item : itemList) {
-            if (parentId.equals(item.getId())) {
-                result = getHierarchyName(itemList, item.getFolderUuid(), Constants.NEXT_LEVEL_HIERARCHY_INDENT + result);
-                break;
-            }
-        }
-        return result;
+        itemList.forEach(GCHierarchySortable::getId);
+        return name;
     }
 
     /**
@@ -588,7 +570,7 @@ public enum GCUtil {
                 if (rootFolder.getFolders() != null) {
                     rootFolder.getFolders().add(gcFolder);
                 } else {
-                    rootFolder.setFolders(new ArrayList<>(Arrays.asList(gcFolder)));
+                    rootFolder.setFolders(new ArrayList<>(Collections.singletonList(gcFolder)));
                 }
                 searchChildrenFoldersAndPut(gcFolders, gcFolder);
             }

@@ -15,6 +15,7 @@ import com.axamit.gc.core.pojo.MappingType;
 import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.GCUtil;
 import com.axamit.gc.core.util.JSONUtil;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -167,15 +168,15 @@ public final class ItemListModel {
     }
 
     public List<GCProject> getProjects() {
-        return projects;
+        return ImmutableList.copyOf(projects);
     }
 
     public List<ImportUpdateTableItem> getItemList() {
-        return itemList;
+        return ImmutableList.copyOf(itemList);
     }
 
     public List<GCStatus> getProjectStatusList() {
-        return projectStatusList;
+        return ImmutableList.copyOf(projectStatusList);
     }
 
 }

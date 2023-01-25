@@ -10,7 +10,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.collect.ImmutableMap;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -207,7 +209,7 @@ public final class GCItem {
     }
 
     public Map<String, GCContent> getContent() {
-        return content;
+        return ImmutableMap.copyOf(content);
     }
 
     public void setContent(Map<String, GCContent> content) {

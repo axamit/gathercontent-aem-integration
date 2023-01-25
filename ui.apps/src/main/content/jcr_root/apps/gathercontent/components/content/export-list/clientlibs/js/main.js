@@ -539,7 +539,7 @@ $(function () {
             var url = $(location).attr('href');
             jTdElement.unbind("mouseenter");
             $.ajax({
-                url: window.location.href.substr(0, window.location.href.lastIndexOf('/')) + ".pagemappings.json",
+                url: window.location.href.substring(0, window.location.href.lastIndexOf('.e')) + ".pagemappings.json",
                 type: "post",
                 dataType: "json",
                 data: {
@@ -549,14 +549,14 @@ $(function () {
                 cache: true,
 
                 success: function (data) {
-                    var optionsStr = "<option selected disabled hidden>Choose here</option>";
-                    for (var i = 0; i < data.length; i++) {
+                    let optionsStr = '<option selected disabled hidden>Choose here</option>';
+                    for (const item of data) {
                         optionsStr +=
-                            "<option data-mappingPath='" + data[i].mappingPath + "'"
-                            + "data-templateId='" + data[i].templateId + "'"
-                            + " data-templateName='" + GCStringUtils.fixedEncodeURIComponent(data[i].templateName) + "'"
-                            + " value='" + GCStringUtils.fixedEncodeURIComponent(data[i].mappingName) + "'>"
-                            + GCStringUtils.escapeHTML(data[i].mappingName) + "(" + data[i].matchedProps + ")"
+                            "<option data-mappingPath='" + item.mappingPath + "'"
+                            + " data-templateId='" + item.templateId + "'"
+                            + " data-templateName='" + GCStringUtils.fixedEncodeURIComponent(item.templateName) + "'"
+                            + " value='" + GCStringUtils.fixedEncodeURIComponent(item.mappingName) + "'>"
+                            + GCStringUtils.escapeHTML(item.mappingName) + "(" + item.matchedProps + ")"
                             + "</option>";
 
                     }

@@ -14,6 +14,8 @@ import org.apache.sling.models.annotations.Model;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Sling model class which represents table with items to process on import page.
@@ -33,6 +35,7 @@ public final class GCCloudServicePageModel {
      * Public Constructor.
      */
     public GCCloudServicePageModel() {
+        // TODO document why this constructor is empty
     }
 
     /**
@@ -103,12 +106,7 @@ public final class GCCloudServicePageModel {
     private Renderer getRendererFromSelectorOrDefault() {
         String[] selectors = request.getRequestPathInfo().getSelectors();
         if (selectors != null && selectors.length > NumberUtils.INTEGER_ZERO) {
-            for (String requestSelector : selectors) {
-                Renderer renderer = Renderer.of(requestSelector);
-                if (renderer != null) {
-                    return renderer;
-                }
-            }
+            return Arrays.stream(selectors).map(Renderer::of).filter(Objects::nonNull).findFirst().orElse(Renderer.DEFAULT);
         }
         return Renderer.DEFAULT;
     }

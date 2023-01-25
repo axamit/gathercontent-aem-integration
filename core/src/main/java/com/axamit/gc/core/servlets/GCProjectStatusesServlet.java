@@ -17,6 +17,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.HttpConstants;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -40,14 +41,11 @@ public final class GCProjectStatusesServlet extends GCAbstractServlet {
         final GCContext gcContext = getGCContext(request);
 
         final String[] selectors = request.getRequestPathInfo().getSelectors();
-        Integer projectId = null;
-
-        for (String selector : selectors) {
-            if (selector.startsWith(Constants.PROJECT_ID_SELECTOR)) {
-                projectId = NumberUtils.toInt(selector.substring(Constants.PROJECT_ID_SELECTOR.length()), 0);
-                break;
-            }
-        }
+        Integer projectId = Arrays.stream(selectors)
+                .filter(selector -> selector.startsWith(Constants.PROJECT_ID_SELECTOR))
+                .findFirst()
+                .map(selector -> NumberUtils.toInt(selector.substring(Constants.PROJECT_ID_SELECTOR.length()), 0))
+                .orElse(null);
 
         if (projectId != null && projectId != 0) {
             try {

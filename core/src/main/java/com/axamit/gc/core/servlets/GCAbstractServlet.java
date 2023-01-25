@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Axamit, gc.support@axamit.com
  */
-@Component(componentAbstract = true)
+@Component()
 public abstract class GCAbstractServlet extends SlingAllMethodsServlet {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
@@ -31,13 +31,13 @@ public abstract class GCAbstractServlet extends SlingAllMethodsServlet {
     private static final String REQUEST_PN_GC_API_KEY = "gcApikey";
 
     @Reference
-    protected GCConfiguration gcConfiguration;
+    protected transient GCConfiguration gcConfiguration;
 
     @Reference
-    protected GCContentApi gcContentApi;
+    protected transient GCContentApi gcContentApi;
 
     @Reference
-    protected GCContentNewApi gcContentNewApi;
+    protected transient GCContentNewApi gcContentNewApi;
 
     /**
      * Get <code>{@link GCContext}</code> for current cloudservice configuration.

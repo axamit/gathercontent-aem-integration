@@ -22,7 +22,6 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.event.jobs.Job;
 import org.apache.sling.event.jobs.JobManager;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,11 +45,10 @@ public final class GCImportExportServlet extends GCAbstractServlet {
     public static final String DATA_REQUEST_PARAMETER = "data";
 
     @Reference
-    private JobManager jobManager;
+    private transient JobManager jobManager;
 
     @Override
-    protected void doPost(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(final SlingHttpServletRequest request, final SlingHttpServletResponse response) throws IOException {
         //So, this is really non-trivial solution, please let me explain
         //In 'data' field expected valid json structure with info about imported pages
         //At client-side: JSON.stringify(someObject) does not guarantee any escaping/encoding;

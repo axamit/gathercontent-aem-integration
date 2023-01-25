@@ -10,13 +10,14 @@ import org.apache.sling.models.annotations.Model;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @Model(adaptables = Resource.class)
 public class FilesComponentContainer {
-    private final static String DC_FORMAT = "dc:format";
-    private final static String IMAGE_PATTERN = "image/";
+    private static final String DC_FORMAT = "dc:format";
+    private static final String IMAGE_PATTERN = "image/";
 
     @Inject
     private String[] paths;
@@ -26,25 +27,25 @@ public class FilesComponentContainer {
 
     public List<FileAsset> getFiles() {
         List<FileAsset> files = new ArrayList<>();
-        for (String path : paths) {
+        Arrays.stream(paths).forEach(path -> {
             Resource resource = resourceResolver.getResource(path);
             if (resource == null) {
-                continue;
+                return;
             }
             Asset asset = resource.adaptTo(Asset.class);
             if (asset == null) {
-                continue;
+                return;
             }
             Map<String, Object> metadata = asset.getMetadata();
             if (metadata.containsKey(DC_FORMAT)) {
                 Object format = metadata.get(DC_FORMAT);
-                if (StringUtils.startsWith((String)format, IMAGE_PATTERN)) {
+                if (StringUtils.startsWith((String) format, IMAGE_PATTERN)) {
                     files.add(new FileAsset(FileAsset.FileType.IMAGE, path, asset.getName()));
-                    continue;
+                    return;
                 }
             }
             files.add(new FileAsset(FileAsset.FileType.OTHER, path, asset.getName()));
-        }
+        });
         return files;
     }
 }

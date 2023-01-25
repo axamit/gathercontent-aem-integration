@@ -46,7 +46,7 @@ public final class GCCopyMappingServlet extends SlingAllMethodsServlet {
 
     @Override
     protected void doPost(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
         final String nodePath = request.getParameter(COPY_RESOURCE_PATH_PN);
         final String newName = request.getParameter(COPY_RESOURCE_NEW_NAME_PN);
 

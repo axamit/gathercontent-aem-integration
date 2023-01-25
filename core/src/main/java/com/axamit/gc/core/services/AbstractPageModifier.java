@@ -2,8 +2,6 @@ package com.axamit.gc.core.services;
 
 import com.axamit.gc.api.dto.*;
 
-import java.util.Map;
-
 public abstract class AbstractPageModifier {
 
     protected static GCContent findContentByKey(final GCItem gcItem, final String id) {
@@ -12,15 +10,11 @@ public abstract class AbstractPageModifier {
             return gcContent;
         }
         //look through children
-        for (Map.Entry<String, GCContent> gcContentEntry : gcItem.getContent().entrySet()) {
-            GCContent entry = gcContentEntry.getValue();
-            if (GCElementType.COMPONENT.equals(entry.getType())) {
-                if (entry.getComponent().containsKey(id)) {
-                    return entry.getComponent().get(id);
-                }
-            }
-        }
-        return null;
+        return gcItem.getContent().values().stream().filter(entry -> GCElementType.COMPONENT.equals(entry.getType()))
+                .filter(entry -> entry.getComponent().containsKey(id))
+                .findFirst()
+                .map(entry -> entry.getComponent()
+                        .get(id)).orElse(null);
     }
 
     protected static GCTemplateField findTemplateFieldByKey(final GCTemplate gcTemplate, final String id) {

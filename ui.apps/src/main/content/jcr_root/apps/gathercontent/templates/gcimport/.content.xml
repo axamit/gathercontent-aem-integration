@@ -24,6 +24,9 @@
         <import-list
                 jcr:primaryType="nt:unstructured"
                 sling:resourceType="gathercontent/components/content/import-list"/>
+        <export-list
+            jcr:primaryType="nt:unstructured"
+            sling:resourceType="gathercontent/components/content/export-list"/>
         <config-list
                 jcr:primaryType="nt:unstructured"
                 sling:resourceType="gathercontent/components/content/plugin-config-list">

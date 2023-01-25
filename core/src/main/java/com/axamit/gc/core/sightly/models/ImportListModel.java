@@ -4,9 +4,11 @@
 
 package com.axamit.gc.core.sightly.models;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.models.annotations.Model;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,7 +32,7 @@ public final class ImportListModel {
     }
 
     public List<ImportModel> getImportList() {
-        return importList;
+        return ImmutableList.copyOf(importList);
     }
 
     public void setImportList(final List<ImportModel> importList) {

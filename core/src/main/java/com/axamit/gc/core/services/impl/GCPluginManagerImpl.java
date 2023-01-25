@@ -61,7 +61,7 @@ public final class GCPluginManagerImpl implements GCPluginManager {
      * @param gcPlugin   <code>{@link GCPlugin}</code> service reference.
      * @param properties <code>{@link GCPlugin}</code> service properties.
      */
-    protected void bindGCPlugin(final GCPlugin gcPlugin, final Map<String, Object> properties) {
+    private void bindGCPlugin(final GCPlugin gcPlugin, final Map<String, Object> properties) {
         synchronized (gcPlugins) {
             String key = (String) properties.get(SERVICE_PID_PN);
             gcPlugins.put(key, gcPlugin);
@@ -74,7 +74,7 @@ public final class GCPluginManagerImpl implements GCPluginManager {
      * @param gcPlugin   <code>{@link GCPlugin}</code> service reference.
      * @param properties <code>{@link GCPlugin}</code> service properties.
      */
-    protected void unbindGCPlugin(final GCPlugin gcPlugin, final Map<String, Object> properties) {
+    private void unbindGCPlugin(final GCPlugin gcPlugin, final Map<String, Object> properties) {
         synchronized (gcPlugins) {
             String key = (String) properties.get(SERVICE_PID_PN);
             if (key != null && !key.isEmpty() && gcPlugins.containsKey(key)) {

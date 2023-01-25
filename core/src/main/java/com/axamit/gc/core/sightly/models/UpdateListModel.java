@@ -17,6 +17,7 @@ import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.GCUtil;
 import com.day.cq.wcm.api.NameConstants;
 import com.day.cq.wcm.api.PageManager;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -30,16 +31,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.jcr.query.Query;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Sling model class which represents table with items to process on update page.
@@ -140,12 +132,9 @@ public final class UpdateListModel {
 
     private void addItemsFromPages(Set<UpdateResourceUnit> updateResourceUnits, GCItem gcItem, String slug) {
         if (updateResourceUnits != null) {
-            for (UpdateResourceUnit updateResourceUnit : updateResourceUnits) {
-                ImportUpdateTableItem listItem = createImportUpdateTableItem(gcItem, updateResourceUnit, slug);
-                if (listItem != null) {
-                    itemList.add(listItem);
-                }
-            }
+            updateResourceUnits.stream().map(updateResourceUnit -> createImportUpdateTableItem(gcItem, updateResourceUnit, slug))
+                    .filter(Objects::nonNull)
+                    .forEach(itemList::add);
         }
     }
 
@@ -210,13 +199,11 @@ public final class UpdateListModel {
             Map<Integer, LinkedGCPage> linkedGCPages =
                     GCUtil.getLinkedGCPages(linkedPageResource.getValueMap(),
                             linkedPagesMapPN, projectIdPN, itemIdPN, mappingPathPN);
-            for (LinkedGCPage linkedGCPage : linkedGCPages.values()) {
-                if (projectId.equals(linkedGCPage.getGcProjectId())) {
-                    UpdateResourceUnit updateResourceUnit = new UpdateResourceUnit(linkedPageResource, linkedGCPage);
-                    Set<UpdateResourceUnit> updateResourceUnits = linkedResources.computeIfAbsent(linkedGCPage.getGcItemId(), k -> new HashSet<>());
-                    updateResourceUnits.add(updateResourceUnit);
-                }
-            }
+            linkedGCPages.values().stream().filter(linkedGCPage -> projectId.equals(linkedGCPage.getGcProjectId())).forEach(linkedGCPage -> {
+                UpdateResourceUnit updateResourceUnit = new UpdateResourceUnit(linkedPageResource, linkedGCPage);
+                Set<UpdateResourceUnit> updateResourceUnits = linkedResources.computeIfAbsent(linkedGCPage.getGcItemId(), k -> new HashSet<>());
+                updateResourceUnits.add(updateResourceUnit);
+            });
         }
         return linkedResources;
     }
@@ -224,21 +211,16 @@ public final class UpdateListModel {
     private static String getSlug(GCContentApi gcContentApi, final GCContext gcContext,
                                   final Integer accountId) throws GCException {
         List<GCAccount> gcAccounts = gcContentApi.accounts(gcContext);
-        for (GCAccount gcAccount : gcAccounts) {
-            if (gcAccount.getId().equals(accountId)) {
-                return gcAccount.getSlug();
-            }
-        }
+        return gcAccounts.stream().filter(gcAccount -> gcAccount.getId().equals(accountId)).findFirst().map(GCAccount::getSlug).orElse(null);
 
-        return null;
     }
 
     public List<GCProject> getProjects() {
-        return projects;
+        return ImmutableList.copyOf(projects);
     }
 
     public List<ImportUpdateTableItem> getItemList() {
-        return itemList;
+        return ImmutableList.copyOf(itemList);
     }
 
     /**

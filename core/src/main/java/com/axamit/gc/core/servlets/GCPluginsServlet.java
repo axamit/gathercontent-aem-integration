@@ -33,7 +33,7 @@ public final class GCPluginsServlet extends GCAbstractServlet {
     private static final String JSON_PN_PLUGINS = "gcplugins";
 
     @Reference
-    private GCPluginManager gcPluginManager;
+    private transient GCPluginManager gcPluginManager;
 
     @Override
     protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)

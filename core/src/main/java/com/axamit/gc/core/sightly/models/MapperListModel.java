@@ -12,6 +12,7 @@ import com.axamit.gc.api.services.GCConfiguration;
 import com.axamit.gc.api.services.GCContentNewApi;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.util.Constants;
+import com.google.common.collect.ImmutableList;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.models.annotations.Model;
@@ -20,10 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Sling model class which represents table with mapping list on mappings page.
@@ -92,8 +90,8 @@ public final class MapperListModel {
                 continue;
             }
             String type = mapperModel.getType();
-            if (isExport && Constants.MAPPING_TYPE_EXPORT.equals(type)
-                    || !isExport && !Constants.MAPPING_TYPE_EXPORT.equals(type)) {
+            if ((isExport && Constants.MAPPING_TYPE_EXPORT.equals(type))
+                    || (!isExport && !Constants.MAPPING_TYPE_EXPORT.equals(type))) {
                 Integer projectId = mapperModel.getProjectId();
                 Integer templateId = mapperModel.getTemplateId();
                 if (templateId != 0) {
@@ -148,7 +146,7 @@ public final class MapperListModel {
     }
 
     public List<MapperModel> getMappingList() {
-        return mappingList;
+        return ImmutableList.copyOf(mappingList);
     }
 
     public String getTypeLabel() {

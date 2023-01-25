@@ -4,7 +4,7 @@
     <div id="meta-name-wrapper">
         <div id="meta-name-selection" class="clearfix">
             <span id="meta-name-label">GatherContent Page Name</span>
-            <select id="meta-name-select" data-sly-list.entry="${mapper.fieldsMappings['META_NAME'].entrySet}">
+            <label for="meta-name-select"></label><select id="meta-name-select" data-sly-list.entry="${mapper.fieldsMappings['META_NAME'].entrySet}">
                 <option value="${entry.key}"
                         selected="${mapper.metaMapper['META_NAME'] == entry.key ? 'selected' : ''}">
                     ${entry.value}
@@ -16,21 +16,23 @@
     <div id="accordion" data-sly-list.group="${mapper.gcTemplateGroups}">
         <h3 class="clearfix" data-label="${group.name}">
             Group: ${group.name}
-            <select data-sly-test="${mapper.gcTemplateGroups.size > 1}" class="moveTo" data-from="${group.name}"
-                    data-sly-list.tab="${mapper.gcTemplateGroups}">
-                <option data-sly-test="${tabList.first}" value="" disabled selected hidden>Move to</option>
-                <option data-sly-test="${group.name != tab.name}" value="${tab.name}">group : ${tab.name}</option>
-            </select>
+            <label>
+                <select data-sly-test="${mapper.gcTemplateGroups.size > 1}" class="moveTo" data-from="${group.name}"
+                        data-sly-list.tab="${mapper.gcTemplateGroups}">
+                    <option data-sly-test="${tabList.first}" value="" disabled selected hidden>Move to</option>
+                    <option data-sly-test="${group.name != tab.name}" value="${tab.name}">group : ${tab.name}</option>
+                </select>
+            </label>
         </h3>
         <div data-label="${group.name}" data-sly-list.element="${group.fields}">
-            <sly data-sly-test.component="${element.type == 'COMPONENT'}">
+            <sly data-sly-test.comp="${element.type == 'COMPONENT'}">
                 <h4>[COMPONENT] ${element.label}</h4>
                 <div data-sly-list.componentElement="${element.component.fields}"
-                class="component-box">
+                     class="component-box">
                     <sly data-sly-call="${fieldTemplate @ mapper=mapper, element=componentElement}"></sly>
                 </div>
             </sly>
-            <sly data-sly-test="${!component}">
+            <sly data-sly-test="${!comp}">
                 <sly data-sly-call="${fieldTemplate @ mapper=mapper, element=element}"></sly>
             </sly>
         </div>
@@ -39,21 +41,20 @@
 </template>
 
 <template data-sly-template.fieldTemplate="${@ mapper, element}">
-    <sly data-sly-test.isGuidelines="${element.type.toString == 'GUIDELINES'}"/>
-
-    <div data-sly-test="${!isGuidelines}"
-         class="mapper-element"
-         data-id="${element.uuid}" >
+    <div class="mapper-element"
+         data-id="${element.uuid}">
         <h4>[${element.type}] ${element.label}</h4>
-        <select class="mapper-select" data-sly-list.entry="${mapper.fieldsMappings[element.uuid].entrySet}">
-            <sly data-sly-test.selected=""/>
-            <sly data-sly-list.property="${mapper.mapper[element.uuid].path}">
-                <sly data-sly-test.selected="${property == entry.key ? 'selected' : selected}">
+        <label>
+            <select class="mapper-select" data-sly-list.entry="${mapper.fieldsMappings[element.uuid].entrySet}">
+                <sly data-sly-test.selected=""/>
+                <sly data-sly-list.property="${mapper.mapper[element.uuid].path}">
+                    <sly data-sly-test.selected="${property == entry.key ? 'selected' : selected}">
+                    </sly>
                 </sly>
-            </sly>
-            <option value="${entry.key}" selected="${selected}">
-                ${entry.value}
-            </option>
-        </select>
+                <option value="${entry.key}" selected="${selected}">
+                    ${entry.value}
+                </option>
+            </select>
+        </label>
     </div>
 </template>

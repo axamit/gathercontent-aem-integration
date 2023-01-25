@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import javax.jcr.query.Query;
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -52,13 +53,11 @@ public final class GCMappingsServlet extends SlingAllMethodsServlet {
     protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
             throws ServletException, IOException {
         final String[] selectors = request.getRequestPathInfo().getSelectors();
-        String projectId = null;
-        for (String selector : selectors) {
-            if (selector.startsWith(Constants.PROJECT_ID_SELECTOR)) {
-                projectId = selector.substring(Constants.PROJECT_ID_SELECTOR.length());
-                break;
-            }
-        }
+        String projectId = Arrays.stream(selectors)
+                .filter(selector -> selector.startsWith(Constants.PROJECT_ID_SELECTOR))
+                .findFirst()
+                .map(selector -> selector.substring(Constants.PROJECT_ID_SELECTOR.length()))
+                .orElse(null);
 
         final JSONObject jsonObject = new JSONObject();
         final JSONArray jsonArray = new JSONArray();

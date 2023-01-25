@@ -46,10 +46,10 @@ public final class ImportExportStatusServlet extends GCAbstractServlet {
     public static final String JOB_ID = "jobId";
 
     @Reference
-    private ImportService importService;
+    private transient ImportService importService;
 
     @Reference
-    private JobManager jobManager;
+    private transient JobManager jobManager;
 
     @Override
     protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
@@ -82,19 +82,17 @@ public final class ImportExportStatusServlet extends GCAbstractServlet {
                 LOGGER.error("Failed get Import Status {}", e.getMessage());
             }
             if (job != null) {
-                switch (job.getJobState()) {
-                    case GIVEN_UP:
-                        jsonObject.put("errorString", Constants.UNEXPECTED_ERROR_STRING
-                                + " Maximum number of retries (" + job.getNumberOfRetries() + ") exceeded.");
-                        break;
-                    default:
-                        final Boolean isUpdate = job.getProperty(ImportExportJobConsumer.JOB_PARAM_UPDATE_FLAG, false);
-                        final Boolean isExportToGC = job.getProperty(ImportExportJobConsumer.EXPORT_TO_GC_FLAG, false);
-                        String status = GCUtil.getJobType(isUpdate, isExportToGC) + " Job is in progress...";
-                        if (job.getRetryCount() > 0) {
-                            status += String.format(" Retry (%s/%s)", job.getRetryCount(), job.getNumberOfRetries());
-                        }
-                        jsonObject.put("statusString", status);
+                if (job.getJobState() == Job.JobState.GIVEN_UP) {
+                    jsonObject.put("errorString", Constants.UNEXPECTED_ERROR_STRING
+                            + " Maximum number of retries (" + job.getNumberOfRetries() + ") exceeded.");
+                } else {
+                    final Boolean isUpdate = job.getProperty(ImportExportJobConsumer.JOB_PARAM_UPDATE_FLAG, false);
+                    final Boolean isExportToGC = job.getProperty(ImportExportJobConsumer.EXPORT_TO_GC_FLAG, false);
+                    String status = GCUtil.getJobType(isUpdate, isExportToGC) + " Job is in progress...";
+                    if (job.getRetryCount() > 0) {
+                        status += String.format(" Retry (%s/%s)", job.getRetryCount(), job.getNumberOfRetries());
+                    }
+                    jsonObject.put("statusString", status);
                 }
             } else {
                 LOGGER.error("No Sling Job with ID '{}' was found", jobId);

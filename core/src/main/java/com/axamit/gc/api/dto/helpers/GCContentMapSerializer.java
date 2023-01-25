@@ -29,7 +29,7 @@ public class GCContentMapSerializer extends StdSerializer<Map<String, GCContent>
     }
 
     @Override
-    public void serialize(Map<String, GCContent> contentMap, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+    public void serialize(Map<String, GCContent> contentMap, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         for (Map.Entry<String, GCContent> gcContentEntry : contentMap.entrySet()) {
             final String key = gcContentEntry.getKey();
