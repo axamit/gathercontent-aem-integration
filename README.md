@@ -5,9 +5,7 @@
 <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/axamit/gathercontent-aem-integration">&nbsp;
 <img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/axamit/gathercontent-aem-integration">&nbsp;
 <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/axamit/gathercontent-aem-integration">&nbsp;
-<img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr-raw/axamit/gathercontent-aem-integration">&nbsp;
 <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/downloads/axamit/gathercontent-aem-integration/latest/total">&nbsp;
-<img alt="GitHub top language" src="https://img.shields.io/github/languages/top/axamit/gathercontent-aem-integration">&nbsp;
 
 ### 🛠 &nbsp;Tech Stack
 
