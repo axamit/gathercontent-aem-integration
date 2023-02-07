@@ -339,10 +339,10 @@ $(function () {
                 $("#change-status-select").prop('disabled', true);
             },
             success: function (json) {
-                var optionsString = "<option value=''>- Don't change status -</option>";
+                let optionsString = "<option value=''>- Don't change status -</option>";
                 if (json.gcstatuses) {
                     json.gcstatuses.forEach(function (item, index) {
-                        optionsString += "<option data-color='" + item.color + "' value='" + item.id + "'>" + item.name + "</option>";
+                        optionsString += "<option data-color='" + item.color + "' value='" + item.id + "'>" + item.display_name + "</option>";
                     });
                 }
                 $("#change-status-select").html(optionsString);

@@ -5,6 +5,9 @@
 package com.axamit.gc.core.pojo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +54,6 @@ public final class ImportData {
     public String getNewStatusColor() {
         return newStatusColor;
     }
-
     public void setNewStatusColor(final String newStatusColor) {
         this.newStatusColor = newStatusColor;
     }
@@ -59,6 +61,7 @@ public final class ImportData {
     /**
      * @return New live status name to be applied on an GatherContent items.
      */
+
     public String getNewStatusName() {
         return newStatusName;
     }
@@ -99,5 +102,21 @@ public final class ImportData {
             + ", projectName='" + projectName + '\''
             + ", projectId='" + projectId + '\''
             + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ImportData that = (ImportData) o;
+
+        return new EqualsBuilder().append(getItems(), that.getItems()).append(getNewStatusId(), that.getNewStatusId()).append(getNewStatusColor(), that.getNewStatusColor()).append(getNewStatusName(), that.getNewStatusName()).append(getProjectName(), that.getProjectName()).append(getProjectId(), that.getProjectId()).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(getItems()).append(getNewStatusId()).append(getNewStatusColor()).append(getNewStatusName()).append(getProjectName()).append(getProjectId()).toHashCode();
     }
 }

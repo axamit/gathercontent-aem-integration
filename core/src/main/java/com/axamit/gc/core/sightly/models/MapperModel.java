@@ -12,8 +12,8 @@ import com.axamit.gc.api.services.GCContentNewApi;
 import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.pojo.FieldMappingProperties;
 import com.axamit.gc.core.pojo.MappingType;
-import com.axamit.gc.core.services.plugins.GCPluginManager;
 import com.axamit.gc.core.services.AEMPageModifier;
+import com.axamit.gc.core.services.plugins.GCPluginManager;
 import com.axamit.gc.core.util.Constants;
 import com.axamit.gc.core.util.GCUtil;
 import com.axamit.gc.core.util.JSONUtil;
@@ -21,7 +21,6 @@ import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.Resource;
@@ -321,7 +320,7 @@ public class MapperModel {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return mapper != null ? ImmutableMap.copyOf(mapper) : Collections.emptyMap();
+        return mapper != null ? mapper : Collections.emptyMap();
     }
 
     public void setMapper(final Map<String, FieldMappingProperties> mapper) {
@@ -342,7 +341,7 @@ public class MapperModel {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return ImmutableMap.copyOf(metaMapper);
+        return metaMapper;
     }
 
     public void setMetaMapper(final Map<String, String> metaMapper) {
@@ -366,7 +365,7 @@ public class MapperModel {
                 }
             }
         }
-        return ImmutableMap.copyOf(fieldsMappings);
+        return fieldsMappings;
     }
 
     /**
@@ -386,7 +385,7 @@ public class MapperModel {
                 }
             }
         }
-        return ImmutableMap.copyOf(fieldsMappings);
+        return fieldsMappings;
     }
 
     public String getProjectName() {
@@ -472,14 +471,12 @@ public class MapperModel {
             try {
                 List<GCProject> gcProjects = gcContentApi.projects(gcContext, accountId);
                 projects = new HashMap<>();
-                for (GCProject gcProject : gcProjects) {
-                    projects.put(gcProject.getId(), gcProject.getName());
-                }
+                gcProjects.forEach(gcProject -> projects.put(gcProject.getId(), gcProject.getName()));
             } catch (GCException e) {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return projects != null ? ImmutableMap.copyOf(projects) : Collections.emptyMap();
+        return projects != null && !projects.isEmpty() ? projects : Collections.emptyMap();
     }
 
     /**
@@ -519,7 +516,7 @@ public class MapperModel {
                 LOGGER.error(e.getMessage(), e);
             }
         }
-        return templates != null && !templates.isEmpty() ? ImmutableMap.copyOf(templates) : Collections.emptyMap();
+        return templates != null && !templates.isEmpty() ? templates : Collections.emptyMap();
     }
 
     public String getImportDAMPath() {
@@ -564,7 +561,7 @@ public class MapperModel {
             Page containingPage = pageManager.getContainingPage(resource);
             Resource defaultPluginsConfig =
                 gcPluginManager.getOrCreateDefaultPluginsConfig(resource.getResourceResolver(),
-                    containingPage.getContentResource());
+                        containingPage != null ? containingPage.getContentResource() : null);
             if (defaultPluginsConfig != null) {
                 pluginConfigPath = defaultPluginsConfig.getPath();
             }

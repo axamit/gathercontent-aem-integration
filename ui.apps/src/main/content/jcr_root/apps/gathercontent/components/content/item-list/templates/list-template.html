@@ -1,4 +1,4 @@
-<template data-sly-template.listTemplate="${@ itemList}">
+<template data-sly-template.listTemplate="${@ itemList}" xmlns="http://www.w3.org/1999/html">
     <div class="margin-top-15">You can only see items with mapped templates in the table.</div>
     <script>
         var importItemsJson = {};
@@ -6,7 +6,7 @@
     <table id="item-list-table" class="display full-width">
         <thead>
         <tr>
-            <th><input id="all-items-checkbox" type="checkbox"></th>
+            <th><label for="all-items-checkbox"></label><input id="all-items-checkbox" type="checkbox"></th>
             <th>Item Name</th>
             <th>Folder</th>
             <th>Template Name</th>
@@ -40,11 +40,12 @@
         <label for="change-status-select">After import change status in GC to </label>
         <select id="change-status-select" data-sly-list.status="${itemList.projectStatusList}">
             <option data-sly-test="${statusList.first}" value="">- Don't change status -</option>
-            <option data-color="${status.color}" value="${status.id}">${status.name}</option>
+            <option data-color="${status.color}" value="${status.id}">${status.displayName}</option>
         </select>
-
-        <select data-sly-test="${!itemList.projectStatusList}">
-            <option>- Don't change status -</option>
-        </select>
+        <label>
+            <select data-sly-test="${!itemList.projectStatusList}">
+                <option>- Don't change status -</option>
+            </select>
+        </label>
     </div>
 </template>

@@ -18,10 +18,7 @@ import com.axamit.gc.core.pojo.helpers.GCHierarchySortable;
 import com.day.cq.commons.jcr.JcrUtil;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Table;
+import com.google.common.collect.*;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -49,7 +46,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The <code>GCUtil</code> is an utility class presenting functionality using across whole application
@@ -88,11 +87,11 @@ public enum GCUtil {
      * @param importItem <code>ImportItem</code> whose children import paths need to be recalculated.
      */
     public static void rewriteChildrenImportPaths(final ImportItem importItem) {
-        for (ImportItem innerImportItem : importItem.getChildren()) {
+        importItem.getChildren().forEach(innerImportItem -> {
             innerImportItem.setImportPath(importItem.getImportPath() + "/"
                     + GCUtil.createValidName(importItem.getTitle()));
             rewriteChildrenImportPaths(innerImportItem);
-        }
+        });
     }
 
     /**
@@ -150,7 +149,7 @@ public enum GCUtil {
      */
     public static Map<String, Map<String, String>> getProjectMappings(final Page resourcePage, final int projectId,
                                                                       final boolean isExport) {
-        Map<String, Map<String, String>> mappings = new HashMap<>();
+        Map<String, Map<String, String>> mappings = new ConcurrentHashMap<>();
         String query = String.format(MAPPINGS_BY_PROJECTID_QUERY, resourcePage.getPath(), projectId,
                 isExport ? EXPORT_MAPPING_QUERY_PREDICATE : IMPORT_MAPPING_QUERY_PREDICATE);
         ResourceResolver rr = Objects.requireNonNull(resourcePage.getContentResource()).getResourceResolver();
@@ -242,7 +241,7 @@ public enum GCUtil {
         //then we use projectId from selectors
         List<GCProject> projects = gcContentApi.projects(gcContext, accountId);
         Set<Integer> mappedProjectsIds = getMappedProjectsIds(request.getResource(), side);
-        projects.stream().filter(gcProject -> mappedProjectsIds.contains(gcProject.getId())).forEachOrdered(listProjects::add);
+        projects.stream().filter(gcProject -> mappedProjectsIds.contains(gcProject.getId())).forEach(listProjects::add);
         if (projectIdFromSelector != null) {
             for (GCProject project : listProjects) {
                 final int projectId = NumberUtils.toInt(projectIdFromSelector, 0);
@@ -255,10 +254,16 @@ public enum GCUtil {
     }
 
     private static String findSelector(String[] selectors) {
-        return Arrays.stream(selectors)
-                .filter(selector -> selector.startsWith(Constants.PROJECT_ID_SELECTOR))
-                .findFirst().map(selector -> selector.substring(Constants.PROJECT_ID_SELECTOR.length()))
-                .orElse(null);
+        String projectId;
+        if (selectors.length == 2) {
+            projectId = selectors[1].substring(Constants.PROJECT_ID_SELECTOR.length());
+        } else {
+            projectId = Stream.of(selectors).distinct()
+                    .filter(selector -> selector.startsWith(Constants.PROJECT_ID_SELECTOR))
+                    .findFirst().map(selector -> selector.substring(Constants.PROJECT_ID_SELECTOR.length()))
+                    .orElse(null);
+        }
+        return projectId;
     }
 
     /**
@@ -515,10 +520,10 @@ public enum GCUtil {
 
     public static HttpClient setHeadersAndAuth(final HttpRequest httpUriRequest, final GCContext gcContext, final String userAgentInfo, final boolean newApiCall) {
         final Map<String, String> headers = newApiCall ? gcContext.getNewApiHeaders() : gcContext.getHeaders();
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            Header header = new BasicHeader(entry.getKey(), entry.getValue());
+        headers.forEach((key, value) -> {
+            Header header = new BasicHeader(key, value);
             httpUriRequest.setHeader(header);
-        }
+        });
         httpUriRequest.addHeader(new BasicHeader(HttpHeaders.USER_AGENT, userAgentInfo));
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
         String username = gcContext.getUsername();
@@ -541,13 +546,12 @@ public enum GCUtil {
     }
 
     public static List<GCTemplateField> getFieldsByTemplate(GCTemplate gcTemplate) {
-        final List<List<GCTemplateField>> listOfFields = gcTemplate.getRelated().getStructure().getGroups()
+        return gcTemplate.getRelated().getStructure().getGroups()
                 .stream()
                 .map(GCTemplateGroup::getFieldsWithChildren)
-                .collect(Collectors.toList());
-        return listOfFields.stream()
                 .flatMap(List::stream)
-                .collect(Collectors.toList());
+                .collect(Collectors.collectingAndThen(Collectors.toList(),
+                        Collections::unmodifiableList));
     }
 
     public static GCFolder buildFolderTree(List<GCFolder> gcFolders) {

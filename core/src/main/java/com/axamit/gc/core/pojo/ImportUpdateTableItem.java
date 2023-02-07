@@ -5,6 +5,8 @@
 package com.axamit.gc.core.pojo;
 
 import com.axamit.gc.core.pojo.helpers.GCHierarchySortable;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * The <code>ImportUpdateTableItem</code> is a POJO class represent item in tables on import and update pages.
@@ -203,5 +205,21 @@ public final class ImportUpdateTableItem implements GCHierarchySortable {
             + ", jsonInformation='" + jsonInformation + '\''
             + ", validName='" + validName + '\''
             + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ImportUpdateTableItem that = (ImportUpdateTableItem) o;
+
+        return new EqualsBuilder().append(getId(), that.getId()).append(getFolderUuid(), that.getFolderUuid()).append(getTitle(), that.getTitle()).append(getHierarchyTitle(), that.getHierarchyTitle()).append(getStatus(), that.getStatus()).append(getGcTemplate(), that.getGcTemplate()).append(getMappingName(), that.getMappingName()).append(getMappingPath(), that.getMappingPath()).append(getImportPath(), that.getImportPath()).append(getGcPath(), that.getGcPath()).append(getAemUpdateDate(), that.getAemUpdateDate()).append(getGcUpdateDate(), that.getGcUpdateDate()).append(getColor(), that.getColor()).append(getJsonInformation(), that.getJsonInformation()).append(getValidName(), that.getValidName()).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(getId()).append(getFolderUuid()).append(getTitle()).append(getHierarchyTitle()).append(getStatus()).append(getGcTemplate()).append(getMappingName()).append(getMappingPath()).append(getImportPath()).append(getGcPath()).append(getAemUpdateDate()).append(getGcUpdateDate()).append(getColor()).append(getJsonInformation()).append(getValidName()).toHashCode();
     }
 }

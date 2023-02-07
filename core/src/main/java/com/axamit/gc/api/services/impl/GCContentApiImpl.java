@@ -14,6 +14,7 @@ import com.axamit.gc.core.exception.GCException;
 import com.axamit.gc.core.util.GCUtil;
 import com.axamit.gc.core.util.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.*;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;

@@ -15,11 +15,8 @@ import com.axamit.gc.core.util.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.felix.scr.annotations.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -42,7 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * OSGI service implements <tt>GCContentApi</tt> interface provides methods to get information from remote
@@ -116,7 +112,7 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         String content = GCUtil.apiCall(String.format(TEMPLATES_BY_PROJECT_ID, projectID), gcContext, userAgentInfo, true);
         JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
         String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
-        return ImmutableList.copyOf(JSONUtil.fromJsonToListObject(extractedResult, GCTemplateData.class));
+        return JSONUtil.fromJsonToListObject(extractedResult, GCTemplateData.class);
     }
 
     /**
@@ -138,7 +134,7 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         String content = GCUtil.apiCall(String.format(ITEMS_BY_PROJECT_ID, projectId), gcContext, userAgentInfo, true);
         JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
         String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
-        return ImmutableList.copyOf(JSONUtil.fromJsonToListObject(extractedResult, GCItem.class));
+        return JSONUtil.fromJsonToListObject(extractedResult, GCItem.class);
     }
 
     /**
@@ -150,7 +146,7 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         params.add(new BasicNameValuePair(PARAM_NAME, gcItem.getName()));
         params.add(new BasicNameValuePair(PARAM_TEMPLATE_ID, Integer.toString(gcItem.getTemplateId())));
         if (gcItem.getTemplateId() == 0) {
-            GCTemplateStructure gcTemplateStructure = template(gcContext, gcItem.getTemplateId()).getRelated().getStructure();
+            GCTemplateStructure gcTemplateStructure = template(gcContext, 0).getRelated().getStructure();
             if (gcTemplateStructure != null && gcTemplateStructure.getGroups() != null) {
                 params.add(new BasicNameValuePair(STRUCTURE, JSONUtil.fromObjectToJsonString(gcTemplateStructure)));
             }
@@ -201,7 +197,7 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         String content = GCUtil.apiCall(String.format(FOLDERS_BY_PROJECT_ID, projectId), gcContext, userAgentInfo, true);
         JsonNode jsonNode = JSONUtil.fromJsonToJSonNode(content);
         String extractedResult = jsonNode.get(JSON_DATA_NODE_NAME).toString();
-        return ImmutableList.copyOf(JSONUtil.fromJsonToListObject(extractedResult, GCFolder.class));
+        return JSONUtil.fromJsonToListObject(extractedResult, GCFolder.class);
     }
 
     private StringEntity buildHttpUpdateEntity(final GCItem gcItem) {
@@ -274,6 +270,6 @@ public final class GCContentNewApiImpl implements GCContentNewApi {
         } catch (GCException e) {
             LOGGER.error("Getting ID from HttpResponse failed. {}", e.getMessage());
         }
-        return ImmutableMap.copyOf(returnObject);
+        return returnObject;
     }
 }

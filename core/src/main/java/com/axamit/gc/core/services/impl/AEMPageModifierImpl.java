@@ -48,12 +48,11 @@ import javax.jcr.query.Query;
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.bind.DatatypeConverter;
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * OSGI service implements <code>{@link AEMPageModifier}</code> interface which provides methods to create pages, assets
@@ -108,10 +107,10 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
             final MapperModel mapperModel = adaptMapperModel(mappingResource);
 
             String importDAMPath = Constants.DEFAULT_IMPORT_DAM_PATH;
-            Map<String, FieldMappingProperties> mapping = null;
-            Map<String, String> metaMapping = null;
-            String pluginConfigPath = null;
-            String mappingName = null;
+            Map<String, FieldMappingProperties> mapping = Collections.emptyMap();
+            Map<String, String> metaMapping = Collections.emptyMap();
+            String pluginConfigPath = StringUtils.EMPTY;
+            String mappingName = StringUtils.EMPTY;
 
             if (mapperModel != null) {
                 importDAMPath = updateImportDAMPath(importDAMPath, mapperModel);
@@ -131,14 +130,14 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
                         .findAny()
                         .orElse(null);
                 return new ImportResultItem(
-                        gcStatus != null ? gcStatus.getName() : null,
+                        gcStatus != null ? gcStatus.getDisplayName() : null,
                         gcItem.getName(),
                         null,
                         ImportResultItem.NOT_IMPORTED,
                         importItem.getTemplate(),
                         null,
                         null,
-                        gcStatus != null ?  gcStatus.getColor()  : null,
+                        gcStatus != null ? gcStatus.getColor() : null,
                         gcItem.getPosition(),
                         gcItem.getId(),
                         gcItem.getFolderUuid(),
@@ -193,11 +192,11 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
                 }
                 //fix destination for siblings
                 String destination = importPath.endsWith("/")
-                        ? importPath + GCUtil.createValidName(importItem.getTitle())
+                        ? (importPath + GCUtil.createValidName(importItem.getTitle()))
                         : GCStringUtil.appendNewLevelToPath(importPath, GCUtil.createValidName(importItem.getTitle()));
                 final String destinationPure = destination;
                 int alreadyImported = mapPageCount.get(destination) == null ? 0 : mapPageCount.get(destination);
-                destination = alreadyImported > 0 ? destination + (alreadyImported - 1) : destination;
+                destination = (alreadyImported > 0) ? (destination + (alreadyImported - 1)) : destination;
                 Page targetPage = pageManager.getPage(destination);
                 if (targetPage == null) {
                     targetPage = pageManager.copy(source, destination, null, true, true, true);
@@ -254,8 +253,8 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
                     GCElementType.TEXT, "", configurationPath);
             Map<String, String> metaNameFieldMapping = new LinkedHashMap<>();
             String jcrTitleValue = fieldMapping.get(JcrConstants.JCR_CONTENT + "/" + JcrConstants.JCR_TITLE);
-            jcrTitleValue = jcrTitleValue != null && !jcrTitleValue.isEmpty()
-                    ? jcrTitleValue : JcrConstants.JCR_CONTENT + "/" + JcrConstants.JCR_TITLE;
+            jcrTitleValue = ((jcrTitleValue != null) && !jcrTitleValue.isEmpty())
+                    ? jcrTitleValue : (JcrConstants.JCR_CONTENT + "/" + JcrConstants.JCR_TITLE);
             metaNameFieldMapping.put(JcrConstants.JCR_CONTENT + "/" + JcrConstants.JCR_TITLE, jcrTitleValue);
             metaNameFieldMapping.putAll(fieldMapping);
             fieldsMappings.put(Constants.META_ITEM_NAME, metaNameFieldMapping);
@@ -359,7 +358,7 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
                 }
             }
             return new ImportResultItem(
-                    statusData.getName(),
+                    statusData.getDisplayName(),
                     gcItem.getName(),
                     targetPage.getTitle(),
                     ImportResultItem.IMPORTED,
@@ -403,13 +402,8 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
                 if (!value.getPath().isEmpty()) {
                     GCContent gcContent = findContentByKey(gcItem, key);
                     final GCTemplateField gcTemplateField = findTemplateFieldByKey(gcTemplate, key);
-                    for (String propertyPath : value.getPath()) {
-                        if (!ResourceUtil.isNonExistingResource(resourceResolver.resolve(GCStringUtil.appendNewLevelToPath(targetPage.getPath(), propertyPath)))) {
-                            updateProperty(gcContent, gcTemplateField, targetPage, propertyPath, gcAssets, updatedProperties,
-                                    resourceResolver, configurationPath, value.getPlugin());
-                            break;
-                        }
-                    }
+                    value.getPath().stream().filter(propertyPath -> !ResourceUtil.isNonExistingResource(resourceResolver.resolve(GCStringUtil.appendNewLevelToPath(targetPage.getPath(), propertyPath)))).findFirst().ifPresent(propertyPath -> updateProperty(gcContent, gcTemplateField, targetPage, propertyPath, gcAssets, updatedProperties,
+                            resourceResolver, configurationPath, value.getPlugin()));
                 }
             });
         }
@@ -536,13 +530,13 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
     private Map<String, Asset> uploadFilesToAssets(final GCContext gcContext, final GCItem gcItem, final Map<String, FieldMappingProperties> mapping, final String importDAMPath) {
         List<GCContent> filesContentList = new ArrayList<>();
         gcItem.getContent().forEach((key, entryValue) -> {
-            if (GCElementType.COMPONENT.equals(entryValue.getType())) {
+            if (GCElementType.COMPONENT == entryValue.getType()) {
                 entryValue.getComponent().forEach((key1, value) -> {
-                    if (GCElementType.FILES.equals(value.getType()) && isFileInMapping(mapping, key1)) {
+                    if (GCElementType.FILES == value.getType() && isFileInMapping(mapping, key1)) {
                         filesContentList.add(value);
                     }
                 });
-            } else if (GCElementType.FILES.equals(entryValue.getType()) && isFileInMapping(mapping, key)) {
+            } else if (GCElementType.FILES == entryValue.getType() && isFileInMapping(mapping, key)) {
                 filesContentList.add(entryValue);
             }
         });
@@ -560,7 +554,7 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
 
     private boolean isFileInMapping(final Map<String, FieldMappingProperties> mapping, final String key) {
         if (mapping != null ) {
-            return mapping.keySet().stream().anyMatch(mapEntry -> mapEntry.equals(key));
+            return mapping.containsKey(key);
         }
         return false;
     }
@@ -621,21 +615,19 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
     }
 
 
-
-    private void getAllPropertiesMap(List<Page> allTemplatePages, Map<Property, String> allPropertiesMap) throws RepositoryException {
+    private void getAllPropertiesMap(List<Page> allTemplatePages, Map<Property, String> allPropertiesMap) {
         Map<String, Property> allPropertiesRelativeToPage = new HashMap<>();
-        for (Page templatePage : allTemplatePages) {
-            if (templatePage != null && templatePage.hasContent()) {
-                Node aemTemplateNode = templatePage.getContentResource().adaptTo(Node.class);
-                if (aemTemplateNode != null) {
+        allTemplatePages.stream().filter(templatePage -> templatePage != null && templatePage.hasContent()).forEach(templatePage -> {
+            Node aemTemplateNode = Objects.requireNonNull(templatePage.getContentResource()).adaptTo(Node.class);
+            if (aemTemplateNode != null) {
+                try {
                     getAllChildrenProperties(templatePage.getPath(), allPropertiesRelativeToPage, aemTemplateNode);
+                } catch (RepositoryException e) {
+                    throw new RuntimeException(e);
                 }
             }
-        }
-
-        for (Map.Entry<String, Property> entry : allPropertiesRelativeToPage.entrySet()) {
-            allPropertiesMap.put(entry.getValue(), entry.getKey());
-        }
+        });
+        allPropertiesRelativeToPage.forEach((key, value) -> allPropertiesMap.put(value, key));
     }
 
     private List<Page> getAllTemplatePages(boolean useAbstract, String templatePath, ResourceResolver resourceResolver, String abstractTemplateLimitPath) {
@@ -644,7 +636,7 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
         Page sourceAemTemplatePage = pageManager.getPage(templatePath);
         if (useAbstract) {
             if (sourceAemTemplatePage != null && sourceAemTemplatePage.hasContent()) {
-                String cqTemplatePath = sourceAemTemplatePage.getContentResource().getValueMap().get(NameConstants.PN_TEMPLATE, String.class);
+                String cqTemplatePath = Objects.requireNonNull(sourceAemTemplatePage.getContentResource()).getValueMap().get(NameConstants.PN_TEMPLATE, String.class);
                 if (StringUtils.isNotEmpty(cqTemplatePath)) {
                     Iterator<Resource> abstractTemplatesPagesResources =
                             resourceResolver.findResources(String.format(ALL_PAGES_WITH_TEMPLATE_QUERY, abstractTemplateLimitPath, cqTemplatePath), Query.JCR_SQL2);
@@ -672,7 +664,6 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
                                                 final GCElementType gcFieldType, final String gcElementLabel,
                                                 final String configurationPath) {
         Map<String, String> fieldMapping = new TreeMap<>();
-
         Map<Property, String> filteredPropertiesMap = new HashMap<>();
         if (addEmptyValue) {
             fieldMapping.put("", "Don't map");
@@ -681,9 +672,7 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
             GCPlugin gcPlugin = gcPluginManager.getPlugin(resourceResolver, configurationPath, gcFieldType.getValue(), gcElementLabel, StringUtils.EMPTY);
             if (gcPlugin != null) {
                 Collection<Property> filteredProperties = gcPlugin.filter(resourceResolver, allPropertiesMap.keySet());
-                for (Property filteredProperty : filteredProperties) {
-                    filteredPropertiesMap.put(filteredProperty, allPropertiesMap.get(filteredProperty));
-                }
+                filteredPropertiesMap = filteredProperties.stream().collect(Collectors.toMap(filteredProperty -> filteredProperty, allPropertiesMap::get, (a, b) -> b));
             }
             fillFieldMapping(fieldMapping, filteredPropertiesMap);
         } catch (Exception e) {
@@ -692,31 +681,31 @@ public final class AEMPageModifierImpl extends AbstractPageModifier implements A
         return fieldMapping;
     }
 
-    private void fillFieldMapping(final Map<String, String> fieldMapping,
-                                  final Map<Property, String> filteredProperties) throws RepositoryException {
-        for (Map.Entry<Property, String> entry : filteredProperties.entrySet()) {
-            String key = entry.getValue();
-            Property filteredProperty = entry.getKey();
-            String propertyName = filteredProperty.getName();
-            String fieldValue;
-            if (filteredProperty.isMultiple()) {
-                String[] values = PropertiesUtil.toStringArray(filteredProperty.getValues(), new String[0]);
-                if (values.length > 0) {
-                    fieldValue = StringUtils.join(values, " ");
+    private void fillFieldMapping(final Map<String, String> fieldMapping, final Map<Property, String> filteredProperties) {
+        filteredProperties.forEach((filteredProperty, key) -> {
+            try {
+                String propertyName = filteredProperty.getName();
+                String fieldValue;
+                if (filteredProperty.isMultiple()) {
+                    String[] values = PropertiesUtil.toStringArray(filteredProperty.getValues(), new String[0]);
+                    if (values.length > 0) {
+                        fieldValue = StringUtils.join(values, " ");
+                    } else {
+                        fieldValue = propertyName;
+                    }
                 } else {
-                    fieldValue = propertyName;
+                    if (!"jcr:data".equals(filteredProperty.getName())) {
+                        fieldValue = PropertiesUtil.toString(filteredProperty.getValue(), propertyName);
+                    } else {
+                        fieldValue = "File";
+                    }
                 }
-            } else {
-                if (!filteredProperty.getName().equals("jcr:data")) {
-                    fieldValue = PropertiesUtil.toString(filteredProperty.getValue(), propertyName);
-                } else {
-                    fieldValue = "File";
-                }
+                fieldValue = fieldValue.substring(0, Math.min(fieldValue.length(), MAX_FIELD_LENGTH_TO_SHOW));
+                fieldMapping.put(key, "Path: /" + key + " | Current value: " + fieldValue);
+            } catch (RepositoryException e) {
+                throw new RuntimeException(e);
             }
-            fieldValue = fieldValue.substring(0, Math.min(fieldValue.length(), MAX_FIELD_LENGTH_TO_SHOW));
-
-            fieldMapping.put(key, "Path: /" + key + " | Current value: " + fieldValue);
-        }
+        });
     }
 
     private ResourceResolver getPageCreatorResourceResolver() throws LoginException {

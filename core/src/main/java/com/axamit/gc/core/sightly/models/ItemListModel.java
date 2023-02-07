@@ -133,7 +133,7 @@ public final class ItemListModel {
                 .filter(status -> status.getId().equals(gcItem.getStatusId()))
                 .findAny()
                 .ifPresent(gcStatus -> {
-                    listItem.setStatus(gcStatus.getName());
+                    listItem.setStatus(gcStatus.getDisplayName());
                     listItem.setColor(gcStatus.getColor());
                 });
         return listItem;

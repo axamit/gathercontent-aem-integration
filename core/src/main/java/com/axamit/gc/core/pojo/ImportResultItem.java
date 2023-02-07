@@ -7,6 +7,8 @@ package com.axamit.gc.core.pojo;
 import com.axamit.gc.core.pojo.helpers.GCHierarchySortable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * The <code>ImportResultItem</code> represents result of an import of page.
@@ -79,6 +81,7 @@ public final class ImportResultItem implements GCHierarchySortable {
     /**
      * @return Live status in GatherContent.
      */
+
     public String getStatus() {
         return status;
     }
@@ -87,6 +90,7 @@ public final class ImportResultItem implements GCHierarchySortable {
      * @param status New Live status in GatherContent to set.
      * @return ImportResultItem himself.
      */
+
     public ImportResultItem setStatus(final String status) {
         this.status = status;
         return this;
@@ -111,6 +115,7 @@ public final class ImportResultItem implements GCHierarchySortable {
     /**
      * @return Item name in GatherContent.
      */
+
     public String getName() {
         return name;
     }
@@ -323,5 +328,21 @@ public final class ImportResultItem implements GCHierarchySortable {
             + ", type='" + type + '\''
             + ", importIndex=" + importIndex
             + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ImportResultItem that = (ImportResultItem) o;
+
+        return new EqualsBuilder().append(getStatus(), that.getStatus()).append(getName(), that.getName()).append(getAemTitle(), that.getAemTitle()).append(getImportStatus(), that.getImportStatus()).append(getGcTemplateName(), that.getGcTemplateName()).append(getGcLink(), that.getGcLink()).append(getAemLink(), that.getAemLink()).append(getColor(), that.getColor()).append(getPosition(), that.getPosition()).append(getId(), that.getId()).append(getFolderUuid(), that.getFolderUuid()).append(getType(), that.getType()).append(getImportIndex(), that.getImportIndex()).append(getMappingName(), that.getMappingName()).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(getStatus()).append(getName()).append(getAemTitle()).append(getImportStatus()).append(getGcTemplateName()).append(getGcLink()).append(getAemLink()).append(getColor()).append(getPosition()).append(getId()).append(getFolderUuid()).append(getType()).append(getImportIndex()).append(getMappingName()).toHashCode();
     }
 }

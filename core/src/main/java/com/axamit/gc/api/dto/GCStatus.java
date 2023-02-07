@@ -6,6 +6,8 @@ package com.axamit.gc.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * The <code>GCData</code> class represents data structure of live status.
@@ -20,7 +22,7 @@ public final class GCStatus {
     private Boolean isDefault;
     private Integer position;
     private String color;
-    private String name;
+    private String display_name;
     private String description;
     private Boolean canEdit;
 
@@ -73,12 +75,13 @@ public final class GCStatus {
     /**
      * @return Status name.
      */
-    public String getName() {
-        return name;
+    @JsonProperty("display_name")
+    public String getDisplayName() {
+        return display_name;
     }
-
-    public void setName(final String name) {
-        this.name = name;
+    @JsonProperty("display_name")
+    public void setDisplayName(final String display_name) {
+        this.display_name = display_name;
     }
 
     /**
@@ -100,5 +103,21 @@ public final class GCStatus {
     @JsonProperty("can_edit")
     public void setCanEdit(final Boolean canEdit) {
         this.canEdit = canEdit;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        GCStatus gcStatus = (GCStatus) o;
+
+        return new EqualsBuilder().append(getId(), gcStatus.getId()).append(getIsDefault(), gcStatus.getIsDefault()).append(getPosition(), gcStatus.getPosition()).append(getColor(), gcStatus.getColor()).append(display_name, gcStatus.display_name).append(getDescription(), gcStatus.getDescription()).append(getCanEdit(), gcStatus.getCanEdit()).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(getId()).append(getIsDefault()).append(getPosition()).append(getColor()).append(display_name).append(getDescription()).append(getCanEdit()).toHashCode();
     }
 }
