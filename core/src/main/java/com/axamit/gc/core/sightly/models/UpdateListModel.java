@@ -32,6 +32,7 @@ import javax.inject.Inject;
 import javax.jcr.query.Query;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Sling model class which represents table with items to process on update page.
@@ -52,8 +53,8 @@ public final class UpdateListModel {
                     + " AND [isGCExportedPage] = true";
 
     private List<GCStatus> projectStatusList = new ArrayList<>();
-    private final List<GCProject> projects = new ArrayList<>();
-    private final List<ImportUpdateTableItem> itemList = new ArrayList<>();
+    private List<GCProject> projects = new ArrayList<>();
+    private List<ImportUpdateTableItem> itemList = new ArrayList<>();
 
     /**
      * Constructor with resource initializing.
@@ -132,9 +133,9 @@ public final class UpdateListModel {
 
     private void addItemsFromPages(Set<UpdateResourceUnit> updateResourceUnits, GCItem gcItem, String slug) {
         if (updateResourceUnits != null) {
-            updateResourceUnits.stream().map(updateResourceUnit -> createImportUpdateTableItem(gcItem, updateResourceUnit, slug))
+            itemList = updateResourceUnits.stream().map(updateResourceUnit -> createImportUpdateTableItem(gcItem, updateResourceUnit, slug))
                     .filter(Objects::nonNull)
-                    .forEach(itemList::add);
+                    .collect(Collectors.toList());
         }
     }
 
@@ -177,7 +178,7 @@ public final class UpdateListModel {
                 .filter(status -> status.getId().equals(gcItem.getStatusId()))
                 .findAny()
                 .ifPresent(gcStatus -> {
-                    listItem.setStatus(gcStatus.getName());
+                    listItem.setStatus(gcStatus.getDisplayName());
                     listItem.setColor(gcStatus.getColor());
                 });
         return listItem;

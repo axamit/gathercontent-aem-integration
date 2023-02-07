@@ -11,6 +11,8 @@ import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Singleton;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -21,7 +23,7 @@ import java.util.Map;
  */
 public enum ResourceResolverUtil {
     /*INSTANCE*/;
-    private static final Logger LOGGER = LoggerFactory.getLogger(JSONUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceResolverUtil.class);
 
     /**
      * @param resourceResolverFactory Reference to <code>resourceResolverFactory</code> service.
@@ -38,7 +40,7 @@ public enum ResourceResolverUtil {
                                                        final String subservice) throws LoginException {
         try {
             Map<String, Object> paramMap =
-                ImmutableMap.<String, Object>of(ResourceResolverFactory.SUBSERVICE, subservice);
+                Collections.singletonMap(ResourceResolverFactory.SUBSERVICE, subservice);
             final ResourceResolver resourceResolver = resourceResolverFactory.getServiceResourceResolver(paramMap);
             if (resourceResolver != null) {
                 return resourceResolver;

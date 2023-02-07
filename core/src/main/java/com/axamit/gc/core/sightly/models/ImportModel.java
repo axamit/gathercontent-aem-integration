@@ -13,7 +13,10 @@ import com.axamit.gc.core.util.JSONUtil;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.models.annotations.Model;
@@ -332,6 +335,22 @@ public final class ImportModel {
             importResultItem.setName(GCUtil.getHierarchyName(importedPages, importResultItem.getFolderUuid(),
                     importResultItem.getName()));
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ImportModel that = (ImportModel) o;
+
+        return new EqualsBuilder().append(getTotalPagesCount(), that.getTotalPagesCount()).append(importedPagesCountInt, that.importedPagesCountInt).append(getJobId(), that.getJobId()).append(getImportId(), that.getImportId()).append(getImportedPagesData(), that.getImportedPagesData()).append(getImportEndDate(), that.getImportEndDate()).append(getImportStartDate(), that.getImportStartDate()).append(getProjectName(), that.getProjectName()).append(getJobType(), that.getJobType()).append(getStatus(), that.getStatus()).append(getProjectId(), that.getProjectId()).append(resource, that.resource).append(gcOrderComparator, that.gcOrderComparator).append(initialImportOrderComparator, that.initialImportOrderComparator).append(getImportedPagesCount(), that.getImportedPagesCount()).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(getJobId()).append(getImportId()).append(getImportedPagesData()).append(getTotalPagesCount()).append(importedPagesCountInt).append(getImportEndDate()).append(getImportStartDate()).append(getProjectName()).append(getJobType()).append(getStatus()).append(getProjectId()).append(resource).append(gcOrderComparator).append(initialImportOrderComparator).append(getImportedPagesCount()).toHashCode();
     }
 
     /*

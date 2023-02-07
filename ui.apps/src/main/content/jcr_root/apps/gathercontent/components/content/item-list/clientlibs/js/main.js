@@ -692,21 +692,22 @@ $(function () {
         });
 
         $("#import-project-select").change(function () {
-            var projectid = $(this).find("option:selected").val();
-            var path = $("#confirm-import").data("path");
-            var spinnerTarget = document.getElementById('import-table');
-            var spinner = new Spinner().spin();
+            let projectid = $(this).find('option:selected').val();
+            let path = $('#confirm-import').data('path');
+            let spinnerTarget = document.getElementById('import-table');
+            let spinner = new Spinner().spin();
             $.ajax({
                 url: path + ".ajax.projectId-" + projectid + ".html",
                 type: "GET",
                 cache: false,
-                beforeSend: function () {
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Accept-Encoding", "gzip, deflate");
                     $(spinnerTarget).addClass('grayout');
                     spinnerTarget.appendChild(spinner.el);
                 },
                 success: function (data) {
                     $("#import-table").html(data);
-                    var table = GATHERCONTENT.initImportUpdateTable('item-list-table');
+                    const table = GATHERCONTENT.initImportUpdateTable('item-list-table');
                     GATHERCONTENT.fillFilter(table, '#status-filter', '.item-status', 'Select Status');
                     GATHERCONTENT.fillFilter(table, '#template-filter', '.item-template', 'Select Template');
                 },
@@ -742,7 +743,7 @@ $('document').ready(function () {
         $('#all-items-checkbox').prop('checked', false);
     }));
     $('#status-filter').change(function () {
-        $('#item-list-table').DataTable().column(1).search(this.value, false, false, false).rows().deselect().draw();
+        $('#item-list-table').DataTable().column(4).search(this.value, false, false, false).rows().deselect().draw();
         $('#all-items-checkbox').prop('checked', false);
     });
     $('#template-filter').change(function () {

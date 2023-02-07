@@ -28,7 +28,6 @@ import com.axamit.gc.core.util.ResourceResolverUtil;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.PageManager;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -38,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -84,7 +82,7 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
         Map<String, FieldMappingProperties> rawContent = mapperModel.getMapper();
         HashMap<String, GCContent> content = new HashMap<>();
         rawContent.forEach((key, value) -> content.put(key, createGContent(value)));
-        return ImmutableMap.copyOf(content);
+        return content;
     }
 
     private static GCContent createGContent(FieldMappingProperties properties) {
@@ -204,14 +202,14 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
                     } else {
                         List<GCStatus> gcStatusList = gContentApi.statusesByProjectId(gcContext, projectId);
                         statusData = gcStatusList.stream().filter(gcStatus -> Boolean.TRUE.equals(gcStatus.getIsDefault()))
-                                .findFirst().orElse(new GCStatus());
+                                .findFirst().orElseGet(GCStatus::new);
                     }
                     childrenItems.forEach(childItem -> childItem.setGcTargetItemId(String.valueOf(createdItemId)));
                     ImmutableList.Builder<ImportResultItem> importResultItemList = ImmutableList.builder();
                     for (ImportItem importItem : importItemsToMerge) {
                         updateGCSpecialPropertiesInAEMPage(resourceResolver, pageManager, gcItem.getProjectId(),
                                 createdItemId, importItem);
-                        final ImportResultItem importResultItem = new ImportResultItem(statusData.getName(),
+                        final ImportResultItem importResultItem = new ImportResultItem(statusData.getDisplayName(),
                                 gcItem.getName(),
                                 importItem.getAemTitle(),
                                 ImportResultItem.IMPORTED,
@@ -322,7 +320,7 @@ public final class GCPageModifierImpl extends AbstractPageModifier implements GC
                                     resourceResolver, pluginConfigPath, gcContext);
                         }
                     }
-//TODO Boolean isUpdatedSuccessfully = gcContentNewApi.updateItem(gcItem.getConfig(), gcItem.getId(), gcContext);
+                    //TODO Boolean isUpdatedSuccessfully = gcContentNewApi.updateItem(gcItem.getConfig(), gcItem.getId(), gcContext);
                     boolean isUpdatedSuccessfully = false;
 
                     if (isUpdatedSuccessfully) {
